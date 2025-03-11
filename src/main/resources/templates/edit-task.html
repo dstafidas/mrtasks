@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="#{tasks.edit.title}">Edit Task</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 th:text="#{tasks.edit.title}">Edit Task</h1>
+    <form th:action="@{/tasks/edit/{id}(id=${task.id})}" th:object="${task}" method="post">
+        <div class="mb-3">
+            <label for="title" class="form-label" th:text="#{tasks.form.title}">Title</label>
+            <input type="text" id="title" th:field="*{title}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="description" class="form-label" th:text="#{tasks.form.description}">Description</label>
+            <input type="text" id="description" th:field="*{description}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="deadline" class="form-label" th:text="#{tasks.form.deadline}">Deadline</label>
+            <input type="datetime-local" id="deadline" th:field="*{deadline}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="billable" class="form-label" th:text="#{tasks.form.billable}">Billable</label>
+            <input type="checkbox" id="billable" th:field="*{billable}" class="form-check-input">
+        </div>
+        <div class="mb-3">
+            <label for="hoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
+            <input type="number" id="hoursWorked" th:field="*{hoursWorked}" step="0.1" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="hourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
+            <input type="number" id="hourlyRate" th:field="*{hourlyRate}" step="0.01" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="advancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
+            <input type="number" id="advancePayment" th:field="*{advancePayment}" step="0.01" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="clientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
+            <input type="text" id="clientName" th:field="*{clientName}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary" th:text="#{tasks.edit.submit}">Update Task</button>
+        <a href="/tasks" class="btn btn-secondary" th:text="#{tasks.edit.cancel}">Cancel</a>
+    </form>
+</div>
+</body>
+</html>

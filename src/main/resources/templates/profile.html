@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="#{profile.title}">Profile</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <h1 th:text="#{profile.title}">Profile</h1>
+    <a href="/tasks" class="btn btn-secondary mb-3" th:text="#{profile.back}">Back to Tasks</a>
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+    <h2 th:text="#{profile.details}">User Details</h2>
+    <p><strong th:text="#{profile.username}">Username:</strong> <span th:text="${user.username}"></span></p>
+    <p><strong th:text="#{profile.role}">Role:</strong> <span th:text="${user.role}"></span></p>
+
+    <h2 th:text="#{profile.edit}">Edit Profile</h2>
+    <form th:action="@{/profile}" th:object="${profile}" method="post">
+        <div class="mb-3">
+            <label for="companyName" class="form-label" th:text="#{profile.companyName}">Company Name</label>
+            <input type="text" id="companyName" th:field="*{companyName}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="logoUrl" class="form-label" th:text="#{profile.logoUrl}">Logo URL</label>
+            <input type="url" id="logoUrl" th:field="*{logoUrl}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary" th:text="#{profile.submit}">Update Profile</button>
+    </form>
+</div>
+</body>
+</html>
