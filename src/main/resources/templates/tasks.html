@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<meta name="_csrf" th:content="${_csrf.token}"/>
-<meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 <head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="#{tasks.title}">Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
@@ -81,10 +81,8 @@
                 <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
             </div>
             <div class="actions">
-                <a th:href="@{/tasks/edit/{id}(id=${task.id})}" class="btn btn-sm btn-primary" th:text="#{tasks.edit.button}">Edit</a>
-                <form th:action="@{/tasks/delete/{id}(id=${task.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-sm btn-danger" th:text="#{tasks.delete.button}" onclick="return confirm('Are you sure you want to delete this task?');">Delete</button>
-                </form>
+                <button class="btn btn-sm btn-primary edit-task-btn" th:data-id="${task.id}" th:text="#{tasks.edit.button}">Edit</button>
+                <button class="btn btn-sm btn-danger delete-task-btn" th:data-id="${task.id}" th:text="#{tasks.delete.button}">Delete</button>
             </div>
         </div>
     </div>
@@ -153,6 +151,66 @@
         </div>
     </div>
 
+    <!-- Edit Task Modal -->
+    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTaskModalLabel" th:text="#{tasks.edit.title}">Edit Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTaskForm" method="put">
+                        <input type="hidden" id="editTaskId" name="id">
+                        <div class="mb-3">
+                            <label for="editTitle" class="form-label" th:text="#{tasks.form.title}">Title</label>
+                            <input type="text" id="editTitle" name="title" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDescription" class="form-label" th:text="#{tasks.form.description}">Description</label>
+                            <input type="text" id="editDescription" name="description" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editDeadline" class="form-label" th:text="#{tasks.form.deadline}">Deadline</label>
+                            <input type="datetime-local" id="editDeadline" name="deadline" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editBillable" class="form-label" th:text="#{tasks.form.billable}">Billable</label>
+                            <input type="checkbox" id="editBillable" name="billable" class="form-check-input">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editHoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
+                            <input type="number" id="editHoursWorked" name="hoursWorked" step="0.1" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editHourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
+                            <input type="number" id="editHourlyRate" name="hourlyRate" step="0.01" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAdvancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
+                            <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editClientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
+                            <input type="text" id="editClientName" name="clientName" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editColor" class="form-label">Color</label>
+                            <select id="editColor" name="color" class="form-select">
+                                <option value="#FFFFFF">White</option>
+                                <option value="#FFCCCC">Light Red</option>
+                                <option value="#CCFFCC">Light Green</option>
+                                <option value="#CCCCFF">Light Blue</option>
+                                <option value="#FFFFCC">Light Yellow</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" th:text="#{tasks.edit.submit}">Update Task</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <h2 th:text="#{tasks.invoice}">Generate Invoice</h2>
     <div th:unless="${isPremium}" class="alert alert-warning" th:text="#{tasks.invoice.premium}">
         Invoice generation and emailing is a Premium feature.
@@ -173,41 +231,39 @@
     </div>
 </div>
 
-<!--move tasks-->
+<!-- Sortable JS for reordering -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-    const taskList = document.getElementById('task-list');
-    if (typeof Sortable !== 'undefined') {
-        new Sortable(taskList, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            onEnd: function (evt) {
-                const taskIds = Array.from(taskList.children).map(card => card.getAttribute('data-id'));
-                const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        const taskList = document.getElementById('task-list');
+        if (typeof Sortable !== 'undefined') {
+            new Sortable(taskList, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    const taskIds = Array.from(taskList.children).map(card => card.getAttribute('data-id'));
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-                fetch('/tasks/reorder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        [csrfHeader]: csrfToken // e.g., 'X-CSRF-TOKEN': '<token>'
-                    },
-                    body: JSON.stringify(taskIds)
-                }).then(response => {
-                    if (!response.ok) {
-                        console.error('Failed to save order:', response.status);
-                    } else {
-                        console.log('Order saved successfully');
-                    }
-                }).catch(error => console.error('Error:', error));
-            }
-        });
-    } else {
-        console.error('Sortable.js failed to load');
-    }
-});
+                    fetch('/tasks/reorder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            [csrfHeader]: csrfToken
+                        },
+                        body: JSON.stringify(taskIds)
+                    }).then(response => {
+                        if (!response.ok) console.error('Failed to save order:', response.status);
+                        else console.log('Order saved successfully');
+                    }).catch(error => console.error('Error:', error));
+                }
+            });
+        } else {
+            console.error('Sortable.js failed to load');
+        }
+    });
 </script>
 
+<!-- Change Color -->
 <script>
     function changeColor(element) {
         const taskId = element.getAttribute('data-id');
@@ -218,20 +274,17 @@
         fetch(`/tasks/color/${taskId}`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded', // Matches @RequestParam
+                'Content-Type': 'application/x-www-form-urlencoded',
                 [csrfHeader]: csrfToken
             },
-            body: `color=${encodeURIComponent(color)}` // Send as form data
+            body: `color=${encodeURIComponent(color)}`
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to update color: ' + response.status);
-            }
+            if (!response.ok) throw new Error('Failed to update color: ' + response.status);
             return response.text();
         })
         .then(text => {
             if (text === 'Color updated') {
-                // Update the task card's background color
                 const taskCard = element.closest('.task-card');
                 taskCard.style.backgroundColor = color;
             } else {
@@ -242,11 +295,10 @@
     }
 </script>
 
-<!--add tasks-->
+<!-- Add Task -->
 <script>
     document.getElementById('addTaskForm').addEventListener('submit', function(event) {
-        event.preventDefault(); // Stop traditional form submission
-
+        event.preventDefault();
         const formData = new FormData(this);
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
@@ -254,18 +306,15 @@
         fetch('/tasks', {
             method: 'POST',
             headers: {
-                [csrfHeader]: csrfToken // CSRF token for security
+                [csrfHeader]: csrfToken
             },
-            body: formData // Send form data as-is
+            body: formData
         })
         .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to add task: ' + response.status);
-            }
-            return response.json(); // Parse the returned Task object
+            if (!response.ok) throw new Error('Failed to add task: ' + response.status);
+            return response.json();
         })
         .then(task => {
-            // Create a new task card
             const taskList = document.getElementById('task-list');
             const newCard = document.createElement('div');
             newCard.className = 'task-card';
@@ -277,9 +326,9 @@
                 <p><strong>Deadline:</strong> ${task.deadline || ''}</p>
                 <p><strong>Hours:</strong> ${task.hoursWorked || ''}</p>
                 <p><strong>Rate:</strong> $${task.hourlyRate || ''}</p>
-                <p><strong>Total:</strong> $${task.total || ''}</p>
+                <p><strong>Total:</strong> $${task.hoursWorked && task.hourlyRate ? (task.hoursWorked * task.hourlyRate).toFixed(2) : ''}</p>
                 <p><strong>Advance:</strong> $${task.advancePayment || ''}</p>
-                <p><strong>Remaining:</strong> $${task.remainingDue || ''}</p>
+                <p><strong>Remaining:</strong> $${task.hoursWorked && task.hourlyRate && task.advancePayment ? ((task.hoursWorked * task.hourlyRate) - task.advancePayment).toFixed(2) : ''}</p>
                 <div>
                     <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
                     <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -288,21 +337,126 @@
                     <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
                 </div>
                 <div class="actions">
-                    <a href="/tasks/edit/${task.id}" class="btn btn-sm btn-primary">Edit</a>
-                    <form action="/tasks/delete/${task.id}" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this task?');">Delete</button>
-                    </form>
+                    <button class="btn btn-sm btn-primary edit-task-btn" data-id="${task.id}">Edit</button>
+                    <button class="btn btn-sm btn-danger delete-task-btn" data-id="${task.id}">Delete</button>
                 </div>
             `;
             taskList.appendChild(newCard);
-
-            // Close the modal and reset the form
             bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
             this.reset();
+            attachEditAndDeleteListeners(newCard);
         })
         .catch(error => {
             console.error('Error:', error);
             alert('Failed to add task. Please try again.');
+        });
+    });
+</script>
+
+<!-- Edit and Delete Tasks -->
+<script>
+    function attachEditAndDeleteListeners(element) {
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        // Edit Task
+        element.querySelectorAll('.edit-task-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const taskId = this.getAttribute('data-id');
+                fetch(`/tasks/${taskId}`, {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
+                    return response.json();
+                })
+                .then(task => {
+                    document.getElementById('editTaskId').value = task.id;
+                    document.getElementById('editTitle').value = task.title;
+                    document.getElementById('editDescription').value = task.description || '';
+                    document.getElementById('editDeadline').value = task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '';
+                    document.getElementById('editBillable').checked = task.billable;
+                    document.getElementById('editHoursWorked').value = task.hoursWorked || '';
+                    document.getElementById('editHourlyRate').value = task.hourlyRate || '';
+                    document.getElementById('editAdvancePayment').value = task.advancePayment || '';
+                    document.getElementById('editClientName').value = task.clientName || '';
+                    document.getElementById('editColor').value = task.color;
+
+                    const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+                    editModal.show();
+                })
+                .catch(error => console.error('Error fetching task:', error));
+            });
+        });
+
+        // Delete Task
+        element.querySelectorAll('.delete-task-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const taskId = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this task?')) {
+                    fetch(`/tasks/${taskId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to delete task: ' + response.status);
+                        const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
+                        if (taskCard) taskCard.remove();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to delete task');
+                    });
+                }
+            });
+        });
+    }
+
+    // Attach listeners to existing tasks on page load
+    document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
+
+    // Handle Edit Form Submission
+    document.getElementById('editTaskForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData(this);
+        const taskId = document.getElementById('editTaskId').value;
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        fetch(`/tasks/${taskId}`, {
+            method: 'PUT',
+            headers: {
+                [csrfHeader]: csrfToken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to update task: ' + response.status);
+            return response.json();
+        })
+        .then(task => {
+            const taskCard = document.querySelector(`.task-card[data-id="${task.id}"]`);
+            if (taskCard) {
+                taskCard.querySelector('h6').textContent = task.title;
+                taskCard.querySelector('p:nth-child(2)').textContent = task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description) : 'No description';
+                taskCard.querySelector('p:nth-child(3) span').textContent = task.deadline || '';
+                taskCard.querySelector('p:nth-child(4) span').textContent = task.hoursWorked || '';
+                taskCard.querySelector('p:nth-child(5) span').textContent = task.hourlyRate ? '$' + task.hourlyRate : '';
+                taskCard.querySelector('p:nth-child(6) span').textContent = task.hoursWorked && task.hourlyRate ? '$' + (task.hoursWorked * task.hourlyRate).toFixed(2) : '';
+                taskCard.querySelector('p:nth-child(7) span').textContent = task.advancePayment ? '$' + task.advancePayment : '';
+                taskCard.querySelector('p:nth-child(8) span').textContent = task.hoursWorked && task.hourlyRate && task.advancePayment ? '$' + ((task.hoursWorked * task.hourlyRate) - task.advancePayment).toFixed(2) : '';
+                taskCard.style.backgroundColor = task.color;
+            }
+            bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to update task');
         });
     });
 </script>

@@ -6,7 +6,6 @@ import com.taskmaster.repository.UserRepository;
 import com.taskmaster.service.InvoiceService;
 import com.taskmaster.service.PremiumService;
 import com.taskmaster.service.TaskService;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,50 +42,57 @@ public class TaskController {
         task.setUser(user);
         task.setOrderIndex(taskService.getMaxOrderIndex(user) + 1);
         taskService.saveTask(task);
-        return ResponseEntity.ok(task); // Return the saved task
+        return ResponseEntity.ok(task);
     }
 
-    @GetMapping("/tasks/edit/{id}")
-    public String showEditForm(@PathVariable Long id, Authentication auth, Model model) {
+    @GetMapping("/tasks/{id}")
+    @ResponseBody
+    public ResponseEntity<Task> getTask(@PathVariable Long id, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Task task = taskService.getTaskByIdAndUser(id, user);
         if (task == null) {
-            model.addAttribute("error", "Task not found or not authorized");
-            return listTasks(model, auth);
+            return ResponseEntity.notFound().build();
         }
-        model.addAttribute("task", task);
-        return "edit-task";
+        return ResponseEntity.ok(task);
     }
 
-    @PostMapping("/tasks/edit/{id}")
-    public String updateTask(@PathVariable Long id, @ModelAttribute Task task, Authentication auth, Model model) {
+    @PutMapping("/tasks/{id}")
+    @ResponseBody
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Task existingTask = taskService.getTaskByIdAndUser(id, user);
         if (existingTask == null) {
-            model.addAttribute("error", "Task not found or not authorized");
-            return listTasks(model, auth);
+            return ResponseEntity.notFound().build();
         }
-        task.setId(id);
-        task.setUser(user);
-        task.setOrderIndex(existingTask.getOrderIndex()); // Preserve order
-        taskService.updateTask(task);
-        return "redirect:/tasks?message=Task+updated+successfully";
+        // Update fields
+        existingTask.setTitle(task.getTitle());
+        existingTask.setDescription(task.getDescription());
+        existingTask.setDeadline(task.getDeadline());
+        existingTask.setBillable(task.isBillable());
+        existingTask.setHoursWorked(task.getHoursWorked());
+        existingTask.setHourlyRate(task.getHourlyRate());
+        existingTask.setClientName(task.getClientName());
+        existingTask.setAdvancePayment(task.getAdvancePayment());
+        existingTask.setColor(task.getColor());
+        existingTask.setOrderIndex(existingTask.getOrderIndex()); // Preserve unless reordered
+        taskService.updateTask(existingTask);
+        return ResponseEntity.ok(existingTask);
     }
 
-    @PostMapping("/tasks/delete/{id}")
-    public String deleteTask(@PathVariable Long id, Authentication auth, Model model) {
+    @DeleteMapping("/tasks/{id}")
+    @ResponseBody
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Task task = taskService.getTaskByIdAndUser(id, user);
         if (task == null) {
-            model.addAttribute("error", "Task not found or not authorized");
-            return listTasks(model, auth);
+            return ResponseEntity.notFound().build();
         }
         taskService.deleteTask(id, user);
-        return "redirect:/tasks?message=Task+deleted+successfully";
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/tasks/color/{id}")
-    @ResponseBody // Indicates this returns a response body, not a view
+    @ResponseBody
     public ResponseEntity<String> changeTaskColor(@PathVariable Long id, @RequestParam("color") String color, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Task task = taskService.getTaskByIdAndUser(id, user);
