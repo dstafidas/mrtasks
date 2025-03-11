@@ -2,8 +2,12 @@ package com.taskmaster.controller;
 
 import com.taskmaster.model.User;
 import com.taskmaster.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +22,14 @@ public class AuthController {
     @GetMapping("/login")
     public String showLoginPage() {
         return "login";
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        if (authentication != null) {
+            new SecurityContextLogoutHandler().logout(request, response, authentication);
+        }
+        return "redirect:/login?logout=true";
     }
 
     @GetMapping("/register")
