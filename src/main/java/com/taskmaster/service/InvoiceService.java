@@ -35,7 +35,6 @@ public class InvoiceService {
             throw new IllegalStateException("No billable tasks selected.");
         }
 
-        // Use the clientName from the first task (assumes all tasks share the same client for simplicity)
         String invoiceTo = selectedTasks.stream()
                 .map(Task::getClientName)
                 .filter(name -> name != null && !name.isEmpty())
@@ -44,6 +43,8 @@ public class InvoiceService {
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUser(user);
         UserProfile profile = profileOpt.orElse(new UserProfile());
+        String sender = profile.getCompanyName() != null && !profile.getCompanyName().isEmpty() ?
+                profile.getCompanyName() : user.getUsername();
 
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -57,14 +58,15 @@ public class InvoiceService {
         }
 
         document.add(new Paragraph("Invoice", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20)));
-        document.add(new Paragraph("From: " + (profile.getCompanyName() != null ? profile.getCompanyName() : user.getUsername())));
+        document.add(new Paragraph("From: " + sender));
         document.add(new Paragraph("To: " + invoiceTo));
         document.add(new Paragraph("Date: " + LocalDateTime.now().toString()));
         document.add(Chunk.NEWLINE);
 
-        PdfPTable table = new PdfPTable(6);
-        table.setWidths(new float[]{3, 1, 1, 1, 1, 1});
+        PdfPTable table = new PdfPTable(7); // Increased to 7 columns for description
+        table.setWidths(new float[]{3, 2, 1, 1, 1, 1, 1}); // Adjusted widths
         table.addCell(new PdfPCell(new Phrase("Task", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
+        table.addCell(new PdfPCell(new Phrase("Description", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
         table.addCell(new PdfPCell(new Phrase("Hours", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
         table.addCell(new PdfPCell(new Phrase("Rate", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
         table.addCell(new PdfPCell(new Phrase("Total", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
@@ -76,6 +78,7 @@ public class InvoiceService {
         double grandRemainingDue = 0;
         for (Task task : selectedTasks) {
             table.addCell(task.getTitle());
+            table.addCell(task.getDescription() != null ? task.getDescription() : "N/A");
             table.addCell(String.valueOf(task.getHoursWorked()));
             table.addCell(String.format("$%.2f", task.getHourlyRate()));
             table.addCell(String.format("$%.2f", task.getTotal()));
