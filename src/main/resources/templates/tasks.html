@@ -89,52 +89,69 @@
         </div>
     </div>
 
-    <h2 th:text="#{tasks.add}">Add New Task</h2>
-    <form th:action="@{/tasks}" th:object="${newTask}" method="post">
-        <div class="mb-3">
-            <label for="title" class="form-label" th:text="#{tasks.form.title}">Title</label>
-            <input type="text" id="title" th:field="*{title}" class="form-control" required>
+    <!-- Add Task Button -->
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+        <span>+</span> <span th:text="#{tasks.add}">Add New Task</span>
+    </button>
+
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTaskModalLabel" th:text="#{tasks.add}">Add New Task</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addTaskForm" th:action="@{/tasks}" th:object="${newTask}" method="post">
+                        <div class="mb-3">
+                            <label for="title" class="form-label" th:text="#{tasks.form.title}">Title</label>
+                            <input type="text" id="title" th:field="*{title}" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label" th:text="#{tasks.form.description}">Description</label>
+                            <input type="text" id="description" th:field="*{description}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="deadline" class="form-label" th:text="#{tasks.form.deadline}">Deadline</label>
+                            <input type="datetime-local" id="deadline" th:field="*{deadline}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="billable" class="form-label" th:text="#{tasks.form.billable}">Billable</label>
+                            <input type="checkbox" id="billable" th:field="*{billable}" class="form-check-input">
+                        </div>
+                        <div class="mb-3">
+                            <label for="hoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
+                            <input type="number" id="hoursWorked" th:field="*{hoursWorked}" step="0.1" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="hourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
+                            <input type="number" id="hourlyRate" th:field="*{hourlyRate}" step="0.01" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="advancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
+                            <input type="number" id="advancePayment" th:field="*{advancePayment}" step="0.01" class="form-control" value="0.0">
+                        </div>
+                        <div class="mb-3">
+                            <label for="clientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
+                            <input type="text" id="clientName" th:field="*{clientName}" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="color" class="form-label">Color</label>
+                            <select id="color" th:field="*{color}" class="form-select">
+                                <option value="#FFFFFF">White</option>
+                                <option value="#FFCCCC">Light Red</option>
+                                <option value="#CCFFCC">Light Green</option>
+                                <option value="#CCCCFF">Light Blue</option>
+                                <option value="#FFFFCC">Light Yellow</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary" th:text="#{tasks.form.submit}">Add Task</button>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="description" class="form-label" th:text="#{tasks.form.description}">Description</label>
-            <input type="text" id="description" th:field="*{description}" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="deadline" class="form-label" th:text="#{tasks.form.deadline}">Deadline</label>
-            <input type="datetime-local" id="deadline" th:field="*{deadline}" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="billable" class="form-label" th:text="#{tasks.form.billable}">Billable</label>
-            <input type="checkbox" id="billable" th:field="*{billable}" class="form-check-input">
-        </div>
-        <div class="mb-3">
-            <label for="hoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
-            <input type="number" id="hoursWorked" th:field="*{hoursWorked}" step="0.1" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="hourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
-            <input type="number" id="hourlyRate" th:field="*{hourlyRate}" step="0.01" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="advancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
-            <input type="number" id="advancePayment" th:field="*{advancePayment}" step="0.01" class="form-control" value="0.0">
-        </div>
-        <div class="mb-3">
-            <label for="clientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
-            <input type="text" id="clientName" th:field="*{clientName}" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="color" class="form-label">Color</label>
-            <select id="color" th:field="*{color}" class="form-select">
-                <option value="#FFFFFF">White</option>
-                <option value="#FFCCCC">Light Red</option>
-                <option value="#CCFFCC">Light Green</option>
-                <option value="#CCCCFF">Light Blue</option>
-                <option value="#FFFFCC">Light Yellow</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary" th:text="#{tasks.form.submit}">Add Task</button>
-    </form>
+    </div>
 
     <h2 th:text="#{tasks.invoice}">Generate Invoice</h2>
     <div th:unless="${isPremium}" class="alert alert-warning" th:text="#{tasks.invoice.premium}">
@@ -156,6 +173,7 @@
     </div>
 </div>
 
+<!--move tasks-->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
     const taskList = document.getElementById('task-list');
@@ -223,5 +241,73 @@
         .catch(error => console.error('Error:', error));
     }
 </script>
+
+<!--add tasks-->
+<script>
+    document.getElementById('addTaskForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Stop traditional form submission
+
+        const formData = new FormData(this);
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        fetch('/tasks', {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken // CSRF token for security
+            },
+            body: formData // Send form data as-is
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to add task: ' + response.status);
+            }
+            return response.json(); // Parse the returned Task object
+        })
+        .then(task => {
+            // Create a new task card
+            const taskList = document.getElementById('task-list');
+            const newCard = document.createElement('div');
+            newCard.className = 'task-card';
+            newCard.setAttribute('data-id', task.id);
+            newCard.style.backgroundColor = task.color;
+            newCard.innerHTML = `
+                <h6>${task.title}</h6>
+                <p>${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description) : 'No description'}</p>
+                <p><strong>Deadline:</strong> ${task.deadline || ''}</p>
+                <p><strong>Hours:</strong> ${task.hoursWorked || ''}</p>
+                <p><strong>Rate:</strong> $${task.hourlyRate || ''}</p>
+                <p><strong>Total:</strong> $${task.total || ''}</p>
+                <p><strong>Advance:</strong> $${task.advancePayment || ''}</p>
+                <p><strong>Remaining:</strong> $${task.remainingDue || ''}</p>
+                <div>
+                    <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                </div>
+                <div class="actions">
+                    <a href="/tasks/edit/${task.id}" class="btn btn-sm btn-primary">Edit</a>
+                    <form action="/tasks/delete/${task.id}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this task?');">Delete</button>
+                    </form>
+                </div>
+            `;
+            taskList.appendChild(newCard);
+
+            // Close the modal and reset the form
+            bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
+            this.reset();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to add task. Please try again.');
+        });
+    });
+</script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -37,12 +37,13 @@ public class TaskController {
     }
 
     @PostMapping("/tasks")
-    public String addTask(@ModelAttribute Task task, Authentication auth) {
+    @ResponseBody
+    public ResponseEntity<Task> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         task.setUser(user);
-        task.setOrderIndex(taskService.getMaxOrderIndex(user) + 1); // Set initial order
+        task.setOrderIndex(taskService.getMaxOrderIndex(user) + 1);
         taskService.saveTask(task);
-        return "redirect:/tasks?message=Task+added+successfully";
+        return ResponseEntity.ok(task); // Return the saved task
     }
 
     @GetMapping("/tasks/edit/{id}")
