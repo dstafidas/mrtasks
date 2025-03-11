@@ -85,16 +85,16 @@ public class TaskController {
     }
 
     @PostMapping("/tasks/color/{id}")
-    public String changeTaskColor(@PathVariable Long id, @RequestParam("color") String color, Authentication auth, Model model) {
+    @ResponseBody // Indicates this returns a response body, not a view
+    public ResponseEntity<String> changeTaskColor(@PathVariable Long id, @RequestParam("color") String color, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Task task = taskService.getTaskByIdAndUser(id, user);
         if (task == null) {
-            model.addAttribute("error", "Task not found or not authorized");
-            return listTasks(model, auth);
+            return ResponseEntity.status(403).body("Task not found or not authorized");
         }
         task.setColor(color);
         taskService.updateTask(task);
-        return "redirect:/tasks?message=Task+color+updated+successfully";
+        return ResponseEntity.ok("Color updated");
     }
 
     @PostMapping("/tasks/reorder")
