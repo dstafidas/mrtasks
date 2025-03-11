@@ -20,6 +20,7 @@
             flex-direction: column;
             justify-content: space-between;
             cursor: move;
+            position: relative;
         }
         .task-card h6 {
             margin-bottom: 5px;
@@ -45,6 +46,16 @@
             flex-wrap: wrap;
             gap: 10px;
         }
+        .task-select {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -62,17 +73,33 @@
     </p>
     <p th:unless="${isPremium}" th:text="#{tasks.free.status}">You are on a Free plan.</p>
 
+    <div class="button-group">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+            <span>+</span> <span th:text="#{tasks.add}">Add New Task</span>
+        </button>
+        <div th:if="${isPremium}">
+            <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-success" th:text="#{tasks.invoice.download}" id="downloadInvoiceBtn">Download Invoice</button>
+            </form>
+        </div>
+        <div th:unless="${isPremium}" class="alert alert-warning" th:text="#{tasks.invoice.premium}">
+            Invoice generation is a Premium feature.
+        </div>
+    </div>
+
     <h2 th:text="#{tasks.list}">Task List</h2>
     <div class="row" id="task-list">
         <div class="task-card" th:each="task : ${tasks}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}">
+            <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
             <h6 th:text="${task.title}">Task Title</h6>
             <p th:text="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description) : 'No description'}">Description</p>
-            <p><strong>Deadline:</strong> <span th:text="${task.deadline}"></span></p>
-            <p><strong>Hours:</strong> <span th:text="${task.hoursWorked}"></span></p>
-            <p><strong>Rate:</strong> <span th:text="'$' + ${task.hourlyRate}"></span></p>
-            <p><strong>Total:</strong> <span th:text="'$' + ${task.total}"></span></p>
-            <p><strong>Advance:</strong> <span th:text="'$' + ${task.advancePayment}"></span></p>
-            <p><strong>Remaining:</strong> <span th:text="'$' + ${task.remainingDue}"></span></p>
+            <p><strong>Client:</strong> <span class="client-name" th:text="${task.clientName != null ? task.clientName : 'N/A'}"></span></p>
+            <p><strong>Deadline:</strong> <span class="deadline" th:text="${task.deadline}"></span></p>
+            <p><strong>Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
+            <p><strong>Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
+            <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total}"></span></p>
+            <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment}"></span></p>
+            <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue}"></span></p>
             <div>
                 <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
                 <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -86,11 +113,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Add Task Button -->
-    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-        <span>+</span> <span th:text="#{tasks.add}">Add New Task</span>
-    </button>
 
     <!-- Add Task Modal -->
     <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
@@ -120,11 +142,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="hoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
-                            <input type="number" id="hoursWorked" th:field="*{hoursWorked}" step="0.1" class="form-control">
+                            <input type="number" id="hoursWorked" th:field="*{hoursWorked}" step="0.1" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
                             <label for="hourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
-                            <input type="number" id="hourlyRate" th:field="*{hourlyRate}" step="0.01" class="form-control">
+                            <input type="number" id="hourlyRate" th:field="*{hourlyRate}" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
                             <label for="advancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
@@ -180,15 +202,15 @@
                         </div>
                         <div class="mb-3">
                             <label for="editHoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
-                            <input type="number" id="editHoursWorked" name="hoursWorked" step="0.1" class="form-control">
+                            <input type="number" id="editHoursWorked" name="hoursWorked" step="0.1" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
                             <label for="editHourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
-                            <input type="number" id="editHourlyRate" name="hourlyRate" step="0.01" class="form-control">
+                            <input type="number" id="editHourlyRate" name="hourlyRate" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
                             <label for="editAdvancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
-                            <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control">
+                            <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
                             <label for="editClientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
@@ -210,29 +232,70 @@
             </div>
         </div>
     </div>
-
-    <h2 th:text="#{tasks.invoice}">Generate Invoice</h2>
-    <div th:unless="${isPremium}" class="alert alert-warning" th:text="#{tasks.invoice.premium}">
-        Invoice generation and emailing is a Premium feature.
-    </div>
-    <div th:if="${isPremium}">
-        <a th:href="@{/invoice}" class="btn btn-success" th:text="#{tasks.invoice.download}">Download Invoice</a>
-        <form th:action="@{/invoice/email}" method="post" class="mt-3">
-            <div class="mb-3">
-                <label for="clientNameInvoice" class="form-label" th:text="#{tasks.invoice.clientName}">Client Name</label>
-                <input type="text" id="clientNameInvoice" name="clientName" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label for="clientEmail" class="form-label" th:text="#{tasks.invoice.clientEmail}">Client Email</label>
-                <input type="email" id="clientEmail" name="clientEmail" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary" th:text="#{tasks.invoice.send}">Send Invoice</button>
-        </form>
-    </div>
 </div>
 
-<!-- Sortable JS for reordering -->
+<!-- Scripts -->
 <script>
+    function attachEditAndDeleteListeners(element) {
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        element.querySelectorAll('.edit-task-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const taskId = this.getAttribute('data-id');
+                fetch(`/tasks/${taskId}`, {
+                    method: 'GET',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
+                    return response.json();
+                })
+                .then(task => {
+                    document.getElementById('editTaskId').value = task.id;
+                    document.getElementById('editTitle').value = task.title;
+                    document.getElementById('editDescription').value = task.description || '';
+                    document.getElementById('editDeadline').value = task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '';
+                    document.getElementById('editBillable').checked = task.billable;
+                    document.getElementById('editHoursWorked').value = task.hoursWorked || 0.0;
+                    document.getElementById('editHourlyRate').value = task.hourlyRate || 0.0;
+                    document.getElementById('editAdvancePayment').value = task.advancePayment || 0.0;
+                    document.getElementById('editClientName').value = task.clientName || '';
+                    document.getElementById('editColor').value = task.color;
+
+                    const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+                    editModal.show();
+                })
+                .catch(error => console.error('Error fetching task:', error));
+            });
+        });
+
+        element.querySelectorAll('.delete-task-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const taskId = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this task?')) {
+                    fetch(`/tasks/${taskId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            [csrfHeader]: csrfToken
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Failed to delete task: ' + response.status);
+                        const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
+                        if (taskCard) taskCard.remove();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Failed to delete task');
+                    });
+                }
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const taskList = document.getElementById('task-list');
         if (typeof Sortable !== 'undefined') {
@@ -260,11 +323,10 @@
         } else {
             console.error('Sortable.js failed to load');
         }
-    });
-</script>
 
-<!-- Change Color -->
-<script>
+        document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
+    });
+
     function changeColor(element) {
         const taskId = element.getAttribute('data-id');
         const color = element.getAttribute('data-color');
@@ -293,10 +355,7 @@
         })
         .catch(error => console.error('Error:', error));
     }
-</script>
 
-<!-- Add Task -->
-<script>
     document.getElementById('addTaskForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData(this);
@@ -321,14 +380,16 @@
             newCard.setAttribute('data-id', task.id);
             newCard.style.backgroundColor = task.color;
             newCard.innerHTML = `
+                <input type="checkbox" class="task-select" data-id="${task.id}" ${task.billable ? '' : 'disabled'}>
                 <h6>${task.title}</h6>
                 <p>${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description) : 'No description'}</p>
-                <p><strong>Deadline:</strong> ${task.deadline || ''}</p>
-                <p><strong>Hours:</strong> ${task.hoursWorked || ''}</p>
-                <p><strong>Rate:</strong> $${task.hourlyRate || ''}</p>
-                <p><strong>Total:</strong> $${task.hoursWorked && task.hourlyRate ? (task.hoursWorked * task.hourlyRate).toFixed(2) : ''}</p>
-                <p><strong>Advance:</strong> $${task.advancePayment || ''}</p>
-                <p><strong>Remaining:</strong> $${task.hoursWorked && task.hourlyRate && task.advancePayment ? ((task.hoursWorked * task.hourlyRate) - task.advancePayment).toFixed(2) : ''}</p>
+                <p><strong>Client:</strong> <span class="client-name">${task.clientName || 'N/A'}</span></p>
+                <p><strong>Deadline:</strong> <span class="deadline">${task.deadline || ''}</span></p>
+                <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked}</span></p>
+                <p><strong>Rate:</strong> <span class="hourly-rate">$${task.hourlyRate}</span></p>
+                <p><strong>Total:</strong> <span class="total">$${task.total.toFixed(2)}</span></p>
+                <p><strong>Advance:</strong> <span class="advance-payment">$${task.advancePayment.toFixed(2)}</span></p>
+                <p><strong>Remaining:</strong> <span class="remaining-due">$${task.remainingDue.toFixed(2)}</span></p>
                 <div>
                     <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
                     <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -351,79 +412,13 @@
             alert('Failed to add task. Please try again.');
         });
     });
-</script>
 
-<!-- Edit and Delete Tasks -->
-<script>
-    function attachEditAndDeleteListeners(element) {
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-        // Edit Task
-        element.querySelectorAll('.edit-task-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const taskId = this.getAttribute('data-id');
-                fetch(`/tasks/${taskId}`, {
-                    method: 'GET',
-                    headers: {
-                        [csrfHeader]: csrfToken
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
-                    return response.json();
-                })
-                .then(task => {
-                    document.getElementById('editTaskId').value = task.id;
-                    document.getElementById('editTitle').value = task.title;
-                    document.getElementById('editDescription').value = task.description || '';
-                    document.getElementById('editDeadline').value = task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '';
-                    document.getElementById('editBillable').checked = task.billable;
-                    document.getElementById('editHoursWorked').value = task.hoursWorked || '';
-                    document.getElementById('editHourlyRate').value = task.hourlyRate || '';
-                    document.getElementById('editAdvancePayment').value = task.advancePayment || '';
-                    document.getElementById('editClientName').value = task.clientName || '';
-                    document.getElementById('editColor').value = task.color;
-
-                    const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
-                    editModal.show();
-                })
-                .catch(error => console.error('Error fetching task:', error));
-            });
-        });
-
-        // Delete Task
-        element.querySelectorAll('.delete-task-btn').forEach(button => {
-            button.addEventListener('click', function () {
-                const taskId = this.getAttribute('data-id');
-                if (confirm('Are you sure you want to delete this task?')) {
-                    fetch(`/tasks/${taskId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            [csrfHeader]: csrfToken
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to delete task: ' + response.status);
-                        const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
-                        if (taskCard) taskCard.remove();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to delete task');
-                    });
-                }
-            });
-        });
-    }
-
-    // Attach listeners to existing tasks on page load
-    document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
-
-    // Handle Edit Form Submission
     document.getElementById('editTaskForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData(this);
+        if (!formData.get('hoursWorked')) formData.set('hoursWorked', '0.0');
+        if (!formData.get('hourlyRate')) formData.set('hourlyRate', '0.0');
+        if (!formData.get('advancePayment')) formData.set('advancePayment', '0.0');
         const taskId = document.getElementById('editTaskId').value;
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
@@ -442,14 +437,16 @@
         .then(task => {
             const taskCard = document.querySelector(`.task-card[data-id="${task.id}"]`);
             if (taskCard) {
+                taskCard.querySelector('.task-select').disabled = !task.billable;
                 taskCard.querySelector('h6').textContent = task.title;
-                taskCard.querySelector('p:nth-child(2)').textContent = task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description) : 'No description';
-                taskCard.querySelector('p:nth-child(3) span').textContent = task.deadline || '';
-                taskCard.querySelector('p:nth-child(4) span').textContent = task.hoursWorked || '';
-                taskCard.querySelector('p:nth-child(5) span').textContent = task.hourlyRate ? '$' + task.hourlyRate : '';
-                taskCard.querySelector('p:nth-child(6) span').textContent = task.hoursWorked && task.hourlyRate ? '$' + (task.hoursWorked * task.hourlyRate).toFixed(2) : '';
-                taskCard.querySelector('p:nth-child(7) span').textContent = task.advancePayment ? '$' + task.advancePayment : '';
-                taskCard.querySelector('p:nth-child(8) span').textContent = task.hoursWorked && task.hourlyRate && task.advancePayment ? '$' + ((task.hoursWorked * task.hourlyRate) - task.advancePayment).toFixed(2) : '';
+                taskCard.querySelector('p:nth-child(3)').textContent = task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description) : 'No description';
+                taskCard.querySelector('.client-name').textContent = task.clientName || 'N/A';
+                taskCard.querySelector('.deadline').textContent = task.deadline || '';
+                taskCard.querySelector('.hours-worked').textContent = task.hoursWorked;
+                taskCard.querySelector('.hourly-rate').textContent = '$' + task.hourlyRate;
+                taskCard.querySelector('.total').textContent = '$' + task.total.toFixed(2);
+                taskCard.querySelector('.advance-payment').textContent = '$' + task.advancePayment.toFixed(2);
+                taskCard.querySelector('.remaining-due').textContent = '$' + task.remainingDue.toFixed(2);
                 taskCard.style.backgroundColor = task.color;
             }
             bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
@@ -459,9 +456,50 @@
             alert('Failed to update task');
         });
     });
+
+    document.getElementById('invoiceForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const formData = new FormData();
+        const selectedTaskIds = Array.from(document.querySelectorAll('.task-select:checked'))
+            .map(checkbox => checkbox.getAttribute('data-id'));
+
+        if (selectedTaskIds.length === 0) {
+            alert('Please select at least one billable task to generate an invoice.');
+            return;
+        }
+
+        selectedTaskIds.forEach(id => formData.append('taskIds', id));
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        fetch('/invoice', {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to generate invoice: ' + response.status);
+            return response.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'invoice.pdf';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to download invoice. Please try again.');
+        });
+    });
 </script>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -10,16 +10,13 @@ import com.taskmaster.model.UserProfile;
 import com.taskmaster.repository.TaskRepository;
 import com.taskmaster.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import jakarta.mail.internet.MimeMessage;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +24,23 @@ public class InvoiceService {
 
     private final TaskRepository taskRepository;
     private final UserProfileRepository userProfileRepository;
-    private final JavaMailSender mailSender;
 
-    public byte[] generateInvoice(User user, String invoiceTo) throws Exception {
-        List<Task> billableTasks = taskRepository.findByUserAndBillable(user, true);
-        if (billableTasks.isEmpty()) {
-            throw new IllegalStateException("No billable tasks found.");
+    public byte[] generateInvoice(User user, List<Long> taskIds) throws Exception {
+        List<Task> selectedTasks = taskRepository.findByUserAndIdIn(user, taskIds)
+                .stream()
+                .filter(Task::isBillable)
+                .toList();
+
+        if (selectedTasks.isEmpty()) {
+            throw new IllegalStateException("No billable tasks selected.");
         }
+
+        // Use the clientName from the first task (assumes all tasks share the same client for simplicity)
+        String invoiceTo = selectedTasks.stream()
+                .map(Task::getClientName)
+                .filter(name -> name != null && !name.isEmpty())
+                .findFirst()
+                .orElse("Client");
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUser(user);
         UserProfile profile = profileOpt.orElse(new UserProfile());
@@ -43,22 +50,19 @@ public class InvoiceService {
         PdfWriter.getInstance(document, out);
         document.open();
 
-        // Add logo if available
         if (profile.getLogoUrl() != null && !profile.getLogoUrl().isEmpty()) {
             Image logo = Image.getInstance(profile.getLogoUrl());
             logo.scaleToFit(100, 100);
             document.add(logo);
         }
 
-        // Invoice header
         document.add(new Paragraph("Invoice", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20)));
         document.add(new Paragraph("From: " + (profile.getCompanyName() != null ? profile.getCompanyName() : user.getUsername())));
-        document.add(new Paragraph("To: " + (invoiceTo != null ? invoiceTo : "Client")));
+        document.add(new Paragraph("To: " + invoiceTo));
         document.add(new Paragraph("Date: " + LocalDateTime.now().toString()));
         document.add(Chunk.NEWLINE);
 
-        // Task table
-        PdfPTable table = new PdfPTable(6); // 6 columns
+        PdfPTable table = new PdfPTable(6);
         table.setWidths(new float[]{3, 1, 1, 1, 1, 1});
         table.addCell(new PdfPCell(new Phrase("Task", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
         table.addCell(new PdfPCell(new Phrase("Hours", FontFactory.getFont(FontFactory.HELVETICA_BOLD))));
@@ -70,7 +74,7 @@ public class InvoiceService {
         double grandTotal = 0;
         double grandAdvance = 0;
         double grandRemainingDue = 0;
-        for (Task task : billableTasks) {
+        for (Task task : selectedTasks) {
             table.addCell(task.getTitle());
             table.addCell(String.valueOf(task.getHoursWorked()));
             table.addCell(String.format("$%.2f", task.getHourlyRate()));
@@ -83,7 +87,6 @@ public class InvoiceService {
         }
         document.add(table);
 
-        // Totals section
         document.add(Chunk.NEWLINE);
         document.add(new Paragraph("Grand Total: $" + String.format("%.2f", grandTotal)));
         document.add(new Paragraph("Advance Paid: $" + String.format("%.2f", grandAdvance)));
@@ -92,21 +95,5 @@ public class InvoiceService {
 
         document.close();
         return out.toByteArray();
-    }
-
-    public void sendInvoiceEmail(User user, String clientName, String clientEmail) throws Exception {
-        byte[] invoicePdf = generateInvoice(user, clientName);
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(clientEmail);
-        helper.setSubject("Invoice from TaskMaster");
-        helper.setText("Dear " + (clientName != null ? clientName : "Client") + ",\n\n" +
-                "Please find attached your invoice detailing the work completed.\n\n" +
-                "Best regards,\n" +
-                "TaskMaster Team");
-        helper.addAttachment("invoice.pdf", new ByteArrayResource(invoicePdf));
-
-        mailSender.send(message);
     }
 }

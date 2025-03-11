@@ -64,7 +64,6 @@ public class TaskController {
         if (existingTask == null) {
             return ResponseEntity.notFound().build();
         }
-        // Update fields
         existingTask.setTitle(task.getTitle());
         existingTask.setDescription(task.getDescription());
         existingTask.setDeadline(task.getDeadline());
@@ -74,7 +73,7 @@ public class TaskController {
         existingTask.setClientName(task.getClientName());
         existingTask.setAdvancePayment(task.getAdvancePayment());
         existingTask.setColor(task.getColor());
-        existingTask.setOrderIndex(existingTask.getOrderIndex()); // Preserve unless reordered
+        existingTask.setOrderIndex(existingTask.getOrderIndex());
         taskService.updateTask(existingTask);
         return ResponseEntity.ok(existingTask);
     }
@@ -112,38 +111,18 @@ public class TaskController {
         return ResponseEntity.ok("Order updated");
     }
 
-    @GetMapping("/invoice")
+    @PostMapping("/invoice")
     public ResponseEntity<byte[]> downloadInvoice(
-            @RequestParam(required = false) String clientName,
+            @RequestParam("taskIds") List<Long> taskIds,
             Authentication auth) throws Exception {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         if (!premiumService.isPremiumUser(user)) {
             return ResponseEntity.status(403).body("Premium subscription required".getBytes());
         }
-        byte[] invoice = invoiceService.generateInvoice(user, clientName);
+        byte[] invoice = invoiceService.generateInvoice(user, taskIds);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=invoice_" + user.getUsername() + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(invoice);
-    }
-
-    @PostMapping("/invoice/email")
-    public String sendInvoiceEmail(
-            @RequestParam(required = false) String clientName,
-            @RequestParam String clientEmail,
-            Authentication auth,
-            Model model) {
-        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        try {
-            if (!premiumService.isPremiumUser(user)) {
-                model.addAttribute("error", "Premium subscription required or expired");
-                return "tasks";
-            }
-            invoiceService.sendInvoiceEmail(user, clientName, clientEmail);
-            model.addAttribute("message", "Invoice emailed successfully to " + clientEmail);
-        } catch (Exception e) {
-            model.addAttribute("error", "Failed to send invoice: " + e.getMessage());
-        }
-        return "redirect:/tasks";
     }
 }
