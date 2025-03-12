@@ -3,80 +3,173 @@
 <head>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="#{tasks.title}">Tasks</title>
+    <title th:text="#{tasks.title}">Tasks - Task Master</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
-        .task-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 250px;
-            min-height: 150px;
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            cursor: move;
-            position: relative;
+            justify-content: center;
         }
-        .task-card h6 {
-            margin-bottom: 5px;
-            font-size: 1rem;
+        .tasks-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 100%;
         }
-        .task-card p {
-            margin: 2px 0;
-            font-size: 0.9rem;
+        .tasks-header {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
         }
-        .task-card .actions {
-            margin-top: 5px;
-        }
-        .color-swatch {
-            width: 20px;
-            height: 20px;
-            display: inline-block;
-            margin-right: 5px;
-            border: 1px solid #ccc;
-            cursor: pointer;
-        }
-        .row {
+        .nav-group {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-        }
-        .task-select {
-            position: absolute;
-            top: 5px;
-            right: 5px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
         }
         .button-group {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
+            align-items: center;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-success:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            pointer-events: auto;
+        }
+        .task-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .task-card {
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            cursor: move;
+            display: flex;
+            flex-direction: column;
+            min-height: 220px;
+        }
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        .task-card h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        .task-card p {
+            margin: 4px 0;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .task-card .actions {
+            margin-top: auto;
+            display: flex;
+            gap: 5px;
+        }
+        .color-swatch {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 2px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.2);
+        }
+        .task-select {
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
         .description-textarea {
             width: 100%;
-            height: 100px; /* Bigger size */
-            resize: vertical; /* Allow vertical resizing */
+            height: 120px;
+            resize: vertical;
+            border-radius: 5px;
+        }
+        .modal-content {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal-header {
+            background-color: #3498db;
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .alert {
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1 th:text="#{tasks.title}">Tasks</h1>
-    <a href="/profile" class="btn btn-secondary mb-3" th:text="#{tasks.profile}">Profile</a>
-    <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary mb-3" th:text="#{tasks.admin}">Admin</a>
-    <a href="/logout" class="btn btn-danger mb-3" th:text="#{tasks.logout}">Logout</a>
+<div class="tasks-container">
+    <h1 class="tasks-header" th:text="#{tasks.title}">Tasks</h1>
+    <div class="nav-group">
+        <div>
+            <a href="/profile" class="btn btn-secondary" th:text="#{tasks.profile}">Profile</a>
+            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{tasks.admin}">Admin</a>
+        </div>
+        <a href="/logout" class="btn btn-danger" th:text="#{tasks.logout}">Logout</a>
+    </div>
 
     <div th:if="${param.message != null}" class="alert alert-success" th:text="${param.message}"></div>
     <div th:if="${param.error != null}" class="alert alert-danger" th:text="${param.error}"></div>
-
-    <p th:if="${isPremium}" th:text="#{tasks.premium.status} + ' ' + ${expiresAt != null ? expiresAt : ''}">
-        You are a Premium user until [expiration date].
-    </p>
-    <p th:unless="${isPremium}" th:text="#{tasks.free.status}">You are on a Free plan.</p>
 
     <div class="button-group">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
@@ -84,16 +177,24 @@
         </button>
         <div th:if="${isPremium}">
             <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-success" th:text="#{tasks.invoice.download}" id="downloadInvoiceBtn">Download Invoice</button>
+                <button type="submit" class="btn btn-success" th:text="#{tasks.invoice.download}">Download Invoice</button>
             </form>
         </div>
-        <div th:unless="${isPremium}" class="alert alert-warning" th:text="#{tasks.invoice.premium}">
-            Invoice generation is a Premium feature.
+        <div th:unless="${isPremium}">
+            <button type="button"
+                    class="btn btn-success"
+                    disabled
+                    th:text="#{tasks.invoice.download}"
+                    data-bs-toggle="tooltip"
+                    data-bs-placement="top"
+                    title="Premium feature - Upgrade to unlock">
+                Download Invoice
+            </button>
         </div>
     </div>
 
     <h2 th:text="#{tasks.list}">Task List</h2>
-    <div class="row" id="task-list">
+    <div class="task-list" id="task-list">
         <div class="task-card" th:each="task : ${tasks}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}">
             <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
             <h6 th:text="${task.title}">Task Title</h6>
@@ -239,8 +340,44 @@
     </div>
 </div>
 
-<!-- Scripts -->
 <script>
+    // Initialize Bootstrap tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        const taskList = document.getElementById('task-list');
+        if (typeof Sortable !== 'undefined') {
+            new Sortable(taskList, {
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function (evt) {
+                    const taskIds = Array.from(taskList.children).map(card => card.getAttribute('data-id'));
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+                    fetch('/tasks/reorder', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            [csrfHeader]: csrfToken
+                        },
+                        body: JSON.stringify(taskIds)
+                    }).then(response => {
+                        if (!response.ok) console.error('Failed to save order:', response.status);
+                        else console.log('Order saved successfully');
+                    }).catch(error => console.error('Error:', error));
+                }
+            });
+        } else {
+            console.error('Sortable.js failed to load');
+        }
+
+        document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
+    });
+
     function attachEditAndDeleteListeners(element) {
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
@@ -300,37 +437,6 @@
             });
         });
     }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const taskList = document.getElementById('task-list');
-        if (typeof Sortable !== 'undefined') {
-            new Sortable(taskList, {
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                onEnd: function (evt) {
-                    const taskIds = Array.from(taskList.children).map(card => card.getAttribute('data-id'));
-                    const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-                    fetch('/tasks/reorder', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            [csrfHeader]: csrfToken
-                        },
-                        body: JSON.stringify(taskIds)
-                    }).then(response => {
-                        if (!response.ok) console.error('Failed to save order:', response.status);
-                        else console.log('Order saved successfully');
-                    }).catch(error => console.error('Error:', error));
-                }
-            });
-        } else {
-            console.error('Sortable.js failed to load');
-        }
-
-        document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
-    });
 
     function changeColor(element) {
         const taskId = element.getAttribute('data-id');

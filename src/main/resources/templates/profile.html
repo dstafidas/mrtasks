@@ -1,13 +1,124 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="#{profile.title}">Profile</title>
+    <meta charset="UTF-8">
+    <title th:text="#{profile.title}">Profile - Task Master</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .profile-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        .profile-header {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .nav-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #34495e;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+        p strong {
+            color: #34495e;
+        }
+        .premium-status {
+            background: linear-gradient(90deg, #28a745, #34c759);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+        .free-status {
+            background: linear-gradient(90deg, #6c757d, #adb5bd);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: block;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h1 th:text="#{profile.title}">Profile</h1>
-    <a href="/tasks" class="btn btn-secondary mb-3" th:text="#{profile.back}">Back to Tasks</a>
+<div class="profile-container">
+    <h1 class="profile-header" th:text="#{profile.title}">Profile</h1>
+    <div class="nav-group">
+        <a href="/tasks" class="btn btn-secondary" th:text="#{admin.back.to.tasks}">Back to Tasks</a>
+        <a href="/logout" class="btn btn-danger" th:text="#{tasks.logout}">Logout</a>
+    </div>
+
+    <!-- Use the same subscription logic as in admin page -->
+    <div class="premium-status"
+         th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
+         th:text="'You are a Premium user until ' + ${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}">
+        You are a Premium user until [expiration date].
+    </div>
+    <div class="free-status"
+         th:unless="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
+         th:text="#{tasks.free.status}">
+        You are on a Free plan.
+    </div>
+
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
     <h2 th:text="#{profile.details}">User Details</h2>
