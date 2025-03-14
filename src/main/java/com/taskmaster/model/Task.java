@@ -1,3 +1,4 @@
+// Task.java
 package com.taskmaster.model;
 
 import jakarta.persistence.*;
@@ -27,6 +28,10 @@ public class Task {
     private double advancePayment;
     private String color;
     private int orderIndex;
+    private boolean hidden = false;
+
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status = TaskStatus.TODO;
 
     public double getTotal() {
         return billable ? hoursWorked * hourlyRate : 0;
@@ -34,5 +39,11 @@ public class Task {
 
     public double getRemainingDue() {
         return billable ? (hoursWorked * hourlyRate - advancePayment) : 0;
+    }
+
+    public enum TaskStatus {
+        TODO,
+        IN_PROGRESS,
+        COMPLETED
     }
 }

@@ -28,11 +28,20 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public String listTasks(Model model, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        model.addAttribute("tasks", taskService.getTasksForUser(user));
+        model.addAttribute("tasks", taskService.getTasksForUser(user).stream()
+                .filter(task -> !task.isHidden())
+                .toList());
         model.addAttribute("newTask", new Task());
         model.addAttribute("isPremium", premiumService.isPremiumUser(user));
         model.addAttribute("expiresAt", premiumService.getExpirationDate(user));
         return "dashboard";
+    }
+
+    @GetMapping("/tasks")
+    public String listAllTasks(Model model, Authentication auth) {
+        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        model.addAttribute("tasks", taskService.getTasksForUser(user));
+        return "tasks";
     }
 
     @PostMapping("/dashboard")
@@ -74,6 +83,8 @@ public class DashboardController {
         existingTask.setAdvancePayment(task.getAdvancePayment());
         existingTask.setColor(task.getColor());
         existingTask.setOrderIndex(existingTask.getOrderIndex());
+        existingTask.setStatus(task.getStatus());
+        existingTask.setHidden(task.isHidden());
         taskService.updateTask(existingTask);
         return ResponseEntity.ok(existingTask);
     }
@@ -88,6 +99,32 @@ public class DashboardController {
         }
         taskService.deleteTask(id, user);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/dashboard/task/{id}/hide")
+    @ResponseBody
+    public ResponseEntity<String> hideTask(@PathVariable Long id, Authentication auth) {
+        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        Task task = taskService.getTaskByIdAndUser(id, user);
+        if (task == null) {
+            return ResponseEntity.status(403).body("Task not found or not authorized");
+        }
+        task.setHidden(true);
+        taskService.updateTask(task);
+        return ResponseEntity.ok("Task hidden");
+    }
+
+    @PostMapping("/dashboard/task/{id}/unhide")
+    @ResponseBody
+    public ResponseEntity<String> unhideTask(@PathVariable Long id, Authentication auth) {
+        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        Task task = taskService.getTaskByIdAndUser(id, user);
+        if (task == null) {
+            return ResponseEntity.status(403).body("Task not found or not authorized");
+        }
+        task.setHidden(false);
+        taskService.updateTask(task);
+        return ResponseEntity.ok("Task unhidden");
     }
 
     @PostMapping("/dashboard/color/{id}")

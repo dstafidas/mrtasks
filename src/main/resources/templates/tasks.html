@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta name="_csrf" th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <title th:text="#{tasks.title}">All Tasks - Task Master</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 2rem;
+        display: flex;
+        justify-content: center;
+    }
+    .tasks-container {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 1400px;
+        width: 100%;
+    }
+    .tasks-header {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    .nav-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .search-group {
+        margin-bottom: 20px;
+        max-width: 300px;
+    }
+    .table-responsive {
+        margin-top: 20px;
+    }
+    .table {
+        width: 100%;
+        margin-bottom: 1rem;
+        color: #212529;
+    }
+    .table th,
+    .table td {
+        padding: 0.75rem;
+        vertical-align: middle;
+        border-top: 1px solid #dee2e6;
+    }
+    .btn-primary {
+        background-color: #3498db;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #2980b9;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+    }
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    .btn-danger:hover {
+        background-color: #c82333;
+    }
+    .btn-success {
+        background-color: #28a745;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    .btn-success:hover {
+        background-color: #218838;
+    }
+    .modal-content {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .modal-header {
+        background-color: #3498db;
+        color: white;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .description-textarea {
+        width: 100%;
+        height: 120px;
+        resize: vertical;
+        border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+<div class="tasks-container">
+  <h1 class="tasks-header" th:text="#{tasks.title}">All Tasks</h1>
+  <div class="nav-group">
+    <div>
+      <a href="/dashboard" class="btn btn-secondary" th:text="#{tasks.back}">Back to Dashboard</a>
+      <a href="/profile" class="btn btn-secondary" th:text="#{tasks.profile}">Profile</a>
+      <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{tasks.admin}">Admin</a>
+    </div>
+    <a href="/logout" class="btn btn-danger" th:text="#{tasks.logout}">Logout</a>
+  </div>
+
+  <div class="search-group">
+    <input type="text" id="searchInput" class="form-control" placeholder="Search tasks..." th:placeholder="#{tasks.search.placeholder}">
+  </div>
+
+  <h2 th:text="#{tasks.list}">All Tasks</h2>
+  <div class="table-responsive">
+    <table class="table table-striped table-hover" id="tasksTable">
+      <thead>
+      <tr>
+        <th th:text="#{dashboard.table.title}">Title</th>
+        <th th:text="#{dashboard.table.description}">Description</th>
+        <th th:text="#{dashboard.table.deadline}">Deadline</th>
+        <th th:text="#{dashboard.form.status}">Status</th>
+        <th>Hidden</th>
+        <th th:text="#{dashboard.table.actions}">Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="task : ${tasks}" th:data-id="${task.id}">
+        <td th:text="${task.title}">Title</td>
+        <td th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</td>
+        <td th:text="${task.deadline}">Deadline</td>
+        <td th:text="${task.status}">Status</td>
+        <td th:text="${task.hidden ? 'Yes' : 'No'}">Hidden</td>
+        <td>
+          <button class="btn btn-sm btn-primary edit-task-btn" th:data-id="${task.id}" th:text="#{tasks.edit.button}">Edit</button>
+          <button class="btn btn-sm btn-danger delete-task-btn" th:data-id="${task.id}" th:text="#{tasks.delete.button}">Delete</button>
+          <button class="btn btn-sm btn-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" th:text="#{tasks.unhide.button}">Unhide</button>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Edit Task Modal -->
+  <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTaskModalLabel" th:text="#{tasks.edit.title}">Edit Task</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editTaskForm" method="put">
+            <input type="hidden" id="editTaskId" name="id">
+            <div class="mb-3">
+              <label for="editTitle" class="form-label" th:text="#{dashboard.form.title}">Title</label>
+              <input type="text" id="editTitle" name="title" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="editDescription" class="form-label" th:text="#{dashboard.form.description}">Description</label>
+              <textarea id="editDescription" name="description" class="form-control description-textarea"></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="editDeadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
+              <input type="datetime-local" id="editDeadline" name="deadline" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="editBillable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
+              <input type="checkbox" id="editBillable" name="billable" class="form-check-input">
+            </div>
+            <div class="mb-3">
+              <label for="editHoursWorked" class="form-label" th:text="#{dashboard.form.hours}">Hours Worked</label>
+              <input type="number" id="editHoursWorked" name="hoursWorked" step="0.1" class="form-control" value="0.0">
+            </div>
+            <div class="mb-3">
+              <label for="editHourlyRate" class="form-label" th:text="#{dashboard.form.rate}">Hourly Rate</label>
+              <input type="number" id="editHourlyRate" name="hourlyRate" step="0.01" class="form-control" value="0.0">
+            </div>
+            <div class="mb-3">
+              <label for="editAdvancePayment" class="form-label" th:text="#{dashboard.form.advance}">Advance Payment</label>
+              <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control" value="0.0">
+            </div>
+            <div class="mb-3">
+              <label for="editClientName" class="form-label" th:text="#{dashboard.form.client}">Client Name</label>
+              <input type="text" id="editClientName" name="clientName" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="editColor" class="form-label">Color</label>
+              <select id="editColor" name="color" class="form-select">
+                <option value="#FFFFFF">White</option>
+                <option value="#FFCCCC">Light Red</option>
+                <option value="#CCFFCC">Light Green</option>
+                <option value="#CCCCFF">Light Blue</option>
+                <option value="#FFFFCC">Light Yellow</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editStatus" class="form-label" th:text="#{dashboard.form.status}">Status</label>
+              <select id="editStatus" name="status" class="form-select">
+                <option value="TODO" th:text="#{dashboard.status.todo}">To Do</option>
+                <option value="IN_PROGRESS" th:text="#{dashboard.status.inprogress}">In Progress</option>
+                <option value="COMPLETED" th:text="#{dashboard.status.completed}">Completed</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" th:text="#{tasks.edit.submit}">Update Task</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('tr').forEach(row => attachListeners(row));
+
+      const searchInput = document.getElementById('searchInput');
+      searchInput.addEventListener('keyup', function() {
+          const filter = this.value.toLowerCase();
+          const rows = document.querySelectorAll('#tasksTable tbody tr');
+
+          rows.forEach(row => {
+              const title = row.cells[0].textContent.toLowerCase();
+              const description = row.cells[1].textContent.toLowerCase();
+              const status = row.cells[3].textContent.toLowerCase();
+
+              if (title.includes(filter) || description.includes(filter) || status.includes(filter)) {
+                  row.style.display = '';
+              } else {
+                  row.style.display = 'none';
+              }
+          });
+      });
+  });
+
+  function attachListeners(element) {
+      const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+      element.querySelectorAll('.edit-task-btn').forEach(button => {
+          button.addEventListener('click', function () {
+              const taskId = this.getAttribute('data-id');
+              fetch(`/dashboard/task/${taskId}`, {
+                  method: 'GET',
+                  headers: { [csrfHeader]: csrfToken }
+              })
+              .then(response => {
+                  if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
+                  return response.json();
+              })
+              .then(task => {
+                  document.getElementById('editTaskId').value = task.id;
+                  document.getElementById('editTitle').value = task.title;
+                  document.getElementById('editDescription').value = task.description || '';
+                  document.getElementById('editDeadline').value = task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '';
+                  document.getElementById('editBillable').checked = task.billable;
+                  document.getElementById('editHoursWorked').value = task.hoursWorked || 0.0;
+                  document.getElementById('editHourlyRate').value = task.hourlyRate || 0.0;
+                  document.getElementById('editAdvancePayment').value = task.advancePayment || 0.0;
+                  document.getElementById('editClientName').value = task.clientName || '';
+                  document.getElementById('editColor').value = task.color;
+                  document.getElementById('editStatus').value = task.status;
+
+                  const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+                  editModal.show();
+              })
+              .catch(error => console.error('Error fetching task:', error));
+          });
+      });
+
+      element.querySelectorAll('.delete-task-btn').forEach(button => {
+          button.addEventListener('click', function () {
+              const taskId = this.getAttribute('data-id');
+              if (confirm('Are you sure you want to delete this task?')) {
+                  fetch(`/dashboard/task/${taskId}`, {
+                      method: 'DELETE',
+                      headers: { [csrfHeader]: csrfToken }
+                  })
+                  .then(response => {
+                      if (!response.ok) throw new Error('Failed to delete task: ' + response.status);
+                      const taskRow = document.querySelector(`tr[data-id="${taskId}"]`);
+                      if (taskRow) taskRow.remove();
+                  })
+                  .catch(error => {
+                      console.error('Error:', error);
+                      alert('Failed to delete task');
+                  });
+              }
+          });
+      });
+
+      element.querySelectorAll('.unhide-task-btn').forEach(button => {
+          button.addEventListener('click', function () {
+              const taskId = this.getAttribute('data-id');
+              if (confirm('Are you sure you want to unhide this task?')) {
+                  fetch(`/dashboard/task/${taskId}/unhide`, {
+                      method: 'POST',
+                      headers: { [csrfHeader]: csrfToken }
+                  })
+                  .then(response => {
+                      if (!response.ok) throw new Error('Failed to unhide task: ' + response.status);
+                      const taskRow = document.querySelector(`tr[data-id="${taskId}"]`);
+                      if (taskRow) {
+                          taskRow.querySelector('td:nth-child(5)').textContent = 'No';
+                          taskRow.querySelector('.unhide-task-btn').remove();
+                      }
+                  })
+                  .catch(error => {
+                      console.error('Error:', error);
+                      alert('Failed to unhide task');
+                  });
+              }
+          });
+      });
+  }
+
+  document.getElementById('editTaskForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(this);
+      if (!formData.get('hoursWorked')) formData.set('hoursWorked', '0.0');
+      if (!formData.get('hourlyRate')) formData.set('hourlyRate', '0.0');
+      if (!formData.get('advancePayment')) formData.set('advancePayment', '0.0');
+      const taskId = document.getElementById('editTaskId').value;
+      const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+      fetch(`/dashboard/task/${taskId}`, {
+          method: 'PUT',
+          headers: { [csrfHeader]: csrfToken },
+          body: formData
+      })
+      .then(response => {
+          if (!response.ok) throw new Error('Failed to update task: ' + response.status);
+          return response.json();
+      })
+      .then(task => {
+          const taskRow = document.querySelector(`tr[data-id="${task.id}"]`);
+          if (taskRow) {
+              taskRow.querySelector('td:nth-child(1)').textContent = task.title;
+              taskRow.querySelector('td:nth-child(2)').innerHTML = task.description && task.description.length > 0 ?
+                  (task.description.length > 50 ? task.description.substring(0, 50) + '...' : task.description.replace(/\n/g, '<br>')) :
+                  'No description';
+              taskRow.querySelector('td:nth-child(3)').textContent = task.deadline || '';
+              taskRow.querySelector('td:nth-child(4)').textContent = task.status;
+              taskRow.querySelector('td:nth-child(5)').textContent = task.hidden ? 'Yes' : 'No';
+              if (!task.hidden) {
+                  const unhideBtn = taskRow.querySelector('.unhide-task-btn');
+                  if (unhideBtn) unhideBtn.remove();
+              } else if (!taskRow.querySelector('.unhide-task-btn')) {
+                  const actionsCell = taskRow.querySelector('td:last-child');
+                  const unhideBtn = document.createElement('button');
+                  unhideBtn.className = 'btn btn-sm btn-success unhide-task-btn';
+                  unhideBtn.setAttribute('data-id', task.id);
+                  unhideBtn.textContent = 'Unhide';
+                  actionsCell.appendChild(unhideBtn);
+                  attachListeners(taskRow);
+              }
+          }
+          bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to update task');
+      });
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
