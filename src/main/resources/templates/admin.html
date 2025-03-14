@@ -125,8 +125,8 @@
 <div class="admin-container">
     <h1 class="admin-header" th:text="#{admin.title}">Admin Dashboard</h1>
     <div class="nav-group">
-        <a href="/tasks" class="btn btn-secondary" th:text="#{admin.back.to.tasks}">Back to Tasks</a>
-        <a href="/logout" class="btn btn-danger" th:text="#{tasks.logout}">Logout</a>
+        <a href="/dashboard" class="btn btn-secondary" th:text="#{admin.back.to.dashboard}">Back to Dashboard</a>
+        <a href="/logout" class="btn btn-danger" th:text="#{dashboard.logout}">Logout</a>
     </div>
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>

@@ -18,24 +18,24 @@ import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
-public class TaskController {
+public class DashboardController {
 
     private final TaskService taskService;
     private final InvoiceService invoiceService;
     private final PremiumService premiumService;
     private final UserRepository userRepository;
 
-    @GetMapping("/tasks")
+    @GetMapping("/dashboard")
     public String listTasks(Model model, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         model.addAttribute("tasks", taskService.getTasksForUser(user));
         model.addAttribute("newTask", new Task());
         model.addAttribute("isPremium", premiumService.isPremiumUser(user));
         model.addAttribute("expiresAt", premiumService.getExpirationDate(user));
-        return "tasks";
+        return "dashboard";
     }
 
-    @PostMapping("/tasks")
+    @PostMapping("/dashboard")
     @ResponseBody
     public ResponseEntity<Task> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -45,7 +45,7 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
-    @GetMapping("/tasks/{id}")
+    @GetMapping("/dashboard/task/{id}")
     @ResponseBody
     public ResponseEntity<Task> getTask(@PathVariable Long id, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -56,7 +56,7 @@ public class TaskController {
         return ResponseEntity.ok(task);
     }
 
-    @PutMapping("/tasks/{id}")
+    @PutMapping("/dashboard/task/{id}")
     @ResponseBody
     public ResponseEntity<Task> updateTask(@PathVariable Long id, @ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -78,7 +78,7 @@ public class TaskController {
         return ResponseEntity.ok(existingTask);
     }
 
-    @DeleteMapping("/tasks/{id}")
+    @DeleteMapping("/dashboard/task/{id}")
     @ResponseBody
     public ResponseEntity<Void> deleteTask(@PathVariable Long id, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -90,7 +90,7 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/tasks/color/{id}")
+    @PostMapping("/dashboard/color/{id}")
     @ResponseBody
     public ResponseEntity<String> changeTaskColor(@PathVariable Long id, @RequestParam("color") String color, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -103,7 +103,7 @@ public class TaskController {
         return ResponseEntity.ok("Color updated");
     }
 
-    @PostMapping("/tasks/reorder")
+    @PostMapping("/dashboard/reorder")
     @ResponseBody
     public ResponseEntity<String> reorderTasks(@RequestBody List<Long> taskIds, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();

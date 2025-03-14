@@ -3,7 +3,7 @@
 <head>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-    <title th:text="#{tasks.title}">Tasks - Task Master</title>
+    <title th:text="#{dashboard.title}">Dashboard - Task Master</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <style>
@@ -159,13 +159,13 @@
 </head>
 <body>
 <div class="tasks-container">
-    <h1 class="tasks-header" th:text="#{tasks.title}">Tasks</h1>
+    <h1 class="tasks-header" th:text="#{dashboard.title}">Dashboard</h1>
     <div class="nav-group">
         <div>
-            <a href="/profile" class="btn btn-secondary" th:text="#{tasks.profile}">Profile</a>
-            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{tasks.admin}">Admin</a>
+            <a href="/profile" class="btn btn-secondary" th:text="#{dashboard.profile}">Profile</a>
+            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{dashboard.admin}">Admin</a>
         </div>
-        <a href="/logout" class="btn btn-danger" th:text="#{tasks.logout}">Logout</a>
+        <a href="/logout" class="btn btn-danger" th:text="#{dashboard.logout}">Logout</a>
     </div>
 
     <div th:if="${param.message != null}" class="alert alert-success" th:text="${param.message}"></div>
@@ -173,18 +173,18 @@
 
     <div class="button-group">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
-            <span>+</span> <span th:text="#{tasks.add}">Add New Task</span>
+            <span>+</span> <span th:text="#{dashboard.add}">Add New Task</span>
         </button>
         <div th:if="${isPremium}">
             <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-success" th:text="#{tasks.invoice.download}">Download Invoice</button>
+                <button type="submit" class="btn btn-success" th:text="#{dashboard.invoice.download}">Download Invoice</button>
             </form>
         </div>
         <div th:unless="${isPremium}">
             <button type="button"
                     class="btn btn-success"
                     disabled
-                    th:text="#{tasks.invoice.download}"
+                    th:text="#{dashboard.invoice.download}"
                     data-bs-toggle="tooltip"
                     data-bs-placement="top"
                     title="Premium feature - Upgrade to unlock">
@@ -193,7 +193,7 @@
         </div>
     </div>
 
-    <h2 th:text="#{tasks.list}">Task List</h2>
+    <h2 th:text="#{dashboard.list}">Task List</h2>
     <div class="task-list" id="task-list">
         <div class="task-card" th:each="task : ${tasks}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}">
             <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
@@ -214,8 +214,8 @@
                 <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
             </div>
             <div class="actions">
-                <button class="btn btn-sm btn-primary edit-task-btn" th:data-id="${task.id}" th:text="#{tasks.edit.button}">Edit</button>
-                <button class="btn btn-sm btn-danger delete-task-btn" th:data-id="${task.id}" th:text="#{tasks.delete.button}">Delete</button>
+                <button class="btn btn-sm btn-primary edit-task-btn" th:data-id="${task.id}" th:text="#{dashboard.edit.button}">Edit</button>
+                <button class="btn btn-sm btn-danger delete-task-btn" th:data-id="${task.id}" th:text="#{dashboard.delete.button}">Delete</button>
             </div>
         </div>
     </div>
@@ -225,41 +225,41 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="addTaskModalLabel" th:text="#{tasks.add}">Add New Task</h5>
+                    <h5 class="modal-title" id="addTaskModalLabel" th:text="#{dashboard.add}">Add New Task</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="addTaskForm" th:action="@{/tasks}" th:object="${newTask}" method="post">
+                    <form id="addTaskForm" th:action="@{/dashboard}" th:object="${newTask}" method="post">
                         <div class="mb-3">
-                            <label for="title" class="form-label" th:text="#{tasks.form.title}">Title</label>
+                            <label for="title" class="form-label" th:text="#{dashboard.form.title}">Title</label>
                             <input type="text" id="title" th:field="*{title}" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label for="description" class="form-label" th:text="#{tasks.form.description}">Description</label>
+                            <label for="description" class="form-label" th:text="#{dashboard.form.description}">Description</label>
                             <textarea id="description" th:field="*{description}" class="form-control description-textarea"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="deadline" class="form-label" th:text="#{tasks.form.deadline}">Deadline</label>
+                            <label for="deadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
                             <input type="datetime-local" id="deadline" th:field="*{deadline}" class="form-control">
                         </div>
                         <div class="mb-3">
-                            <label for="billable" class="form-label" th:text="#{tasks.form.billable}">Billable</label>
+                            <label for="billable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
                             <input type="checkbox" id="billable" th:field="*{billable}" class="form-check-input">
                         </div>
                         <div class="mb-3">
-                            <label for="hoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
+                            <label for="hoursWorked" class="form-label" th:text="#{dashboard.form.hours}">Hours Worked</label>
                             <input type="number" id="hoursWorked" th:field="*{hoursWorked}" step="0.1" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
-                            <label for="hourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
+                            <label for="hourlyRate" class="form-label" th:text="#{dashboard.form.rate}">Hourly Rate</label>
                             <input type="number" id="hourlyRate" th:field="*{hourlyRate}" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
-                            <label for="advancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
+                            <label for="advancePayment" class="form-label" th:text="#{dashboard.form.advance}">Advance Payment</label>
                             <input type="number" id="advancePayment" th:field="*{advancePayment}" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
-                            <label for="clientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
+                            <label for="clientName" class="form-label" th:text="#{dashboard.form.client}">Client Name</label>
                             <input type="text" id="clientName" th:field="*{clientName}" class="form-control">
                         </div>
                         <div class="mb-3">
@@ -272,7 +272,7 @@
                                 <option value="#FFFFCC">Light Yellow</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary" th:text="#{tasks.form.submit}">Add Task</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{dashboard.form.submit}">Add Task</button>
                     </form>
                 </div>
             </div>
@@ -284,42 +284,42 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editTaskModalLabel" th:text="#{tasks.edit.title}">Edit Task</h5>
+                    <h5 class="modal-title" id="editTaskModalLabel" th:text="#{dashboard.edit.title}">Edit Task</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="editTaskForm" method="put">
                         <input type="hidden" id="editTaskId" name="id">
                         <div class="mb-3">
-                            <label for="editTitle" class="form-label" th:text="#{tasks.form.title}">Title</label>
+                            <label for="editTitle" class="form-label" th:text="#{dashboard.form.title}">Title</label>
                             <input type="text" id="editTitle" name="title" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label for="editDescription" class="form-label" th:text="#{tasks.form.description}">Description</label>
+                            <label for="editDescription" class="form-label" th:text="#{dashboard.form.description}">Description</label>
                             <textarea id="editDescription" name="description" class="form-control description-textarea"></textarea>
                         </div>
                         <div class="mb-3">
-                            <label for="editDeadline" class="form-label" th:text="#{tasks.form.deadline}">Deadline</label>
+                            <label for="editDeadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
                             <input type="datetime-local" id="editDeadline" name="deadline" class="form-control">
                         </div>
                         <div class="mb-3">
-                            <label for="editBillable" class="form-label" th:text="#{tasks.form.billable}">Billable</label>
+                            <label for="editBillable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
                             <input type="checkbox" id="editBillable" name="billable" class="form-check-input">
                         </div>
                         <div class="mb-3">
-                            <label for="editHoursWorked" class="form-label" th:text="#{tasks.form.hours}">Hours Worked</label>
+                            <label for="editHoursWorked" class="form-label" th:text="#{dashboard.form.hours}">Hours Worked</label>
                             <input type="number" id="editHoursWorked" name="hoursWorked" step="0.1" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
-                            <label for="editHourlyRate" class="form-label" th:text="#{tasks.form.rate}">Hourly Rate</label>
+                            <label for="editHourlyRate" class="form-label" th:text="#{dashboard.form.rate}">Hourly Rate</label>
                             <input type="number" id="editHourlyRate" name="hourlyRate" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
-                            <label for="editAdvancePayment" class="form-label" th:text="#{tasks.form.advance}">Advance Payment</label>
+                            <label for="editAdvancePayment" class="form-label" th:text="#{dashboard.form.advance}">Advance Payment</label>
                             <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control" value="0.0">
                         </div>
                         <div class="mb-3">
-                            <label for="editClientName" class="form-label" th:text="#{tasks.form.client}">Client Name</label>
+                            <label for="editClientName" class="form-label" th:text="#{dashboard.form.client}">Client Name</label>
                             <input type="text" id="editClientName" name="clientName" class="form-control">
                         </div>
                         <div class="mb-3">
@@ -332,7 +332,7 @@
                                 <option value="#FFFFCC">Light Yellow</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary" th:text="#{tasks.edit.submit}">Update Task</button>
+                        <button type="submit" class="btn btn-primary" th:text="#{dashboard.edit.submit}">Update Task</button>
                     </form>
                 </div>
             </div>
@@ -341,7 +341,6 @@
 </div>
 
 <script>
-    // Initialize Bootstrap tooltips
     document.addEventListener('DOMContentLoaded', function () {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -358,7 +357,7 @@
                     const csrfToken = document.querySelector('meta[name="_csrf"]').content;
                     const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-                    fetch('/tasks/reorder', {
+                    fetch('/dashboard/reorder', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -385,7 +384,7 @@
         element.querySelectorAll('.edit-task-btn').forEach(button => {
             button.addEventListener('click', function () {
                 const taskId = this.getAttribute('data-id');
-                fetch(`/tasks/${taskId}`, {
+                fetch(`/dashboard/task/${taskId}`, {
                     method: 'GET',
                     headers: {
                         [csrfHeader]: csrfToken
@@ -418,7 +417,7 @@
             button.addEventListener('click', function () {
                 const taskId = this.getAttribute('data-id');
                 if (confirm('Are you sure you want to delete this task?')) {
-                    fetch(`/tasks/${taskId}`, {
+                    fetch(`/dashboard/task/${taskId}`, {
                         method: 'DELETE',
                         headers: {
                             [csrfHeader]: csrfToken
@@ -444,7 +443,7 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-        fetch(`/tasks/color/${taskId}`, {
+        fetch(`/dashboard/color/${taskId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -473,7 +472,7 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-        fetch('/tasks', {
+        fetch('/dashboard', {
             method: 'POST',
             headers: {
                 [csrfHeader]: csrfToken
@@ -534,7 +533,7 @@
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-        fetch(`/tasks/${taskId}`, {
+        fetch(`/dashboard/task/${taskId}`, {
             method: 'PUT',
             headers: {
                 [csrfHeader]: csrfToken
@@ -612,5 +611,5 @@
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9206280c9e87b062',t:'MTc0MTk4MDMyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
