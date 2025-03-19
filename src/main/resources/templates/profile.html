@@ -97,6 +97,17 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             display: block;
         }
+        .is-invalid {
+            border-color: #dc3545;
+        }
+        .invalid-feedback {
+            display: none;
+            color: #dc3545;
+            font-size: 0.875rem;
+        }
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -107,7 +118,7 @@
         <a href="/logout" class="btn btn-danger" th:text="#{dashboard.logout}">Logout</a>
     </div>
 
-    <!-- Use the same subscription logic as in admin page -->
+    <!-- Subscription Status -->
     <div class="premium-status"
          th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
          th:text="'You are a Premium user until ' + ${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}">
@@ -123,20 +134,94 @@
 
     <h2 th:text="#{profile.details}">User Details</h2>
     <p><strong th:text="#{profile.username}">Username:</strong> <span th:text="${user.username}"></span></p>
-    <p><strong th:text="#{profile.role}">Role:</strong> <span th:text="${user.role}"></span></p>
 
-    <h2 th:text="#{profile.edit}">Edit Profile</h2>
-    <form th:action="@{/profile}" th:object="${profile}" method="post">
+    <form id="profileForm" th:action="@{/profile}" th:object="${profile}" method="post" novalidate>
         <div class="mb-3">
             <label for="companyName" class="form-label" th:text="#{profile.companyName}">Company Name</label>
-            <input type="text" id="companyName" th:field="*{companyName}" class="form-control">
+            <input type="text" id="companyName" th:field="*{companyName}" class="form-control" maxlength="100">
+            <div class="invalid-feedback">Company name must be 1-100 characters long.</div>
         </div>
         <div class="mb-3">
             <label for="logoUrl" class="form-label" th:text="#{profile.logoUrl}">Logo URL</label>
             <input type="url" id="logoUrl" th:field="*{logoUrl}" class="form-control">
+            <div class="invalid-feedback">Please enter a valid URL (e.g., https://example.com/logo.png).</div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label" th:text="#{profile.email}">Email</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control">
+            <div class="invalid-feedback">Please enter a valid email address (e.g., user@example.com).</div>
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label" th:text="#{profile.phone}">Phone</label>
+            <input type="tel" id="phone" th:field="*{phone}" class="form-control" pattern="^\+?[1-9]\d{1,14}$">
+            <div class="invalid-feedback">Please enter a valid phone number (e.g., +1234567890).</div>
         </div>
         <button type="submit" class="btn btn-primary" th:text="#{profile.submit}">Update Profile</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('profileForm');
+
+        // Validation function for individual fields
+        function validateField(input) {
+            const id = input.id;
+            const value = input.value.trim();
+
+            if (id === 'companyName' && value) {
+                if (value.length > 100 || value.length < 1) {
+                    input.classList.add('is-invalid');
+                    return false;
+                }
+            } else if (id === 'logoUrl' && value) {
+                const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/i;
+                if (!urlPattern.test(value)) {
+                    input.classList.add('is-invalid');
+                    return false;
+                }
+            } else if (id === 'email' && value) {
+                const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailPattern.test(value)) {
+                    input.classList.add('is-invalid');
+                    return false;
+                }
+            } else if (id === 'phone' && value) {
+                const phonePattern = /^\+?[1-9]\d{1,14}$/;
+                if (!phonePattern.test(value)) {
+                    input.classList.add('is-invalid');
+                    return false;
+                }
+            }
+            input.classList.remove('is-invalid');
+            return true;
+        }
+
+        // Form submission handler
+        form.addEventListener('submit', function (event) {
+            let isValid = true;
+            const inputs = ['companyName', 'logoUrl', 'email', 'phone'].map(id => document.getElementById(id));
+
+            inputs.forEach(input => {
+                if (!validateField(input)) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+
+        // Real-time validation feedback for each input
+        ['companyName', 'logoUrl', 'email', 'phone'].forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', function () {
+                validateField(this);
+            });
+        });
+    });
+</script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'922c6c20088dafb4',t:'MTc0MjM4MTU2OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
 </body>
 </html>

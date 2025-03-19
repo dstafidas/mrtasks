@@ -19,4 +19,6 @@ public class UserProfile {
 
     private String companyName;
     private String logoUrl;
+    private String email;
+    private String phone;
 }

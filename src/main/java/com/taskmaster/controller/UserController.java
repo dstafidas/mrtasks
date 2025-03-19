@@ -39,6 +39,8 @@ public class UserController {
         updatedProfile.setUser(user);
         updatedProfile.setCompanyName(profile.getCompanyName());
         updatedProfile.setLogoUrl(profile.getLogoUrl());
+        updatedProfile.setEmail(profile.getEmail());
+        updatedProfile.setPhone(profile.getPhone());
         userProfileRepository.save(updatedProfile);
         model.addAttribute("message", "Profile updated successfully");
         model.addAttribute("user", user);
