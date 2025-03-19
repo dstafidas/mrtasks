@@ -85,7 +85,8 @@ public class InvoiceService {
         PdfPCell titleCell = new PdfPCell();
         titleCell.setBorder(Rectangle.NO_BORDER);
         titleCell.setVerticalAlignment(Element.ALIGN_TOP);
-        titleCell.addElement(new Paragraph("Invoice", headerFont));
+        String invoiceNumber = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        titleCell.addElement(new Paragraph("Invoice #" + invoiceNumber, normalFont));
         titleCell.addElement(new Paragraph("Date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH)), normalFont));
         headerTable.addCell(titleCell);
 
