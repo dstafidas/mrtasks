@@ -5,6 +5,7 @@
   <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
   <title th:text="#{tasks.title}">All Tasks - Task Master</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <style>
     body {
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -101,6 +102,15 @@
         resize: vertical;
         border-radius: 5px;
     }
+    .bi {
+        font-size: 1.2rem;
+        margin-right: 8px;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    .bi:hover {
+        color: #000;
+    }
   </style>
 </head>
 <body>
@@ -140,9 +150,9 @@
         <td th:text="${task.status}">Status</td>
         <td th:text="${task.hidden ? 'Yes' : 'No'}">Hidden</td>
         <td>
-          <button class="btn btn-sm btn-primary edit-task-btn" th:data-id="${task.id}" th:text="#{tasks.edit.button}">Edit</button>
-          <button class="btn btn-sm btn-danger delete-task-btn" th:data-id="${task.id}" th:text="#{tasks.delete.button}">Delete</button>
-          <button class="btn btn-sm btn-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" th:text="#{tasks.unhide.button}">Unhide</button>
+          <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" title="Edit"></i>
+          <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" title="Delete"></i>
+          <i class="bi bi-eye text-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" data-bs-toggle="tooltip" title="Unhide"></i>
         </td>
       </tr>
       </tbody>
@@ -239,14 +249,19 @@
               }
           });
       });
+
+      var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+      });
   });
 
   function attachListeners(element) {
       const csrfToken = document.querySelector('meta[name="_csrf"]').content;
       const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-      element.querySelectorAll('.edit-task-btn').forEach(button => {
-          button.addEventListener('click', function () {
+      element.querySelectorAll('.edit-task-btn').forEach(icon => {
+          icon.addEventListener('click', function () {
               const taskId = this.getAttribute('data-id');
               fetch(`/dashboard/task/${taskId}`, {
                   method: 'GET',
@@ -276,8 +291,8 @@
           });
       });
 
-      element.querySelectorAll('.delete-task-btn').forEach(button => {
-          button.addEventListener('click', function () {
+      element.querySelectorAll('.delete-task-btn').forEach(icon => {
+          icon.addEventListener('click', function () {
               const taskId = this.getAttribute('data-id');
               if (confirm('Are you sure you want to delete this task?')) {
                   fetch(`/dashboard/task/${taskId}`, {
@@ -297,8 +312,8 @@
           });
       });
 
-      element.querySelectorAll('.unhide-task-btn').forEach(button => {
-          button.addEventListener('click', function () {
+      element.querySelectorAll('.unhide-task-btn').forEach(icon => {
+          icon.addEventListener('click', function () {
               const taskId = this.getAttribute('data-id');
               if (confirm('Are you sure you want to unhide this task?')) {
                   fetch(`/dashboard/task/${taskId}/unhide`, {
@@ -352,15 +367,16 @@
               taskRow.querySelector('td:nth-child(4)').textContent = task.status;
               taskRow.querySelector('td:nth-child(5)').textContent = task.hidden ? 'Yes' : 'No';
               if (!task.hidden) {
-                  const unhideBtn = taskRow.querySelector('.unhide-task-btn');
-                  if (unhideBtn) unhideBtn.remove();
+                  const unhideIcon = taskRow.querySelector('.unhide-task-btn');
+                  if (unhideIcon) unhideIcon.remove();
               } else if (!taskRow.querySelector('.unhide-task-btn')) {
                   const actionsCell = taskRow.querySelector('td:last-child');
-                  const unhideBtn = document.createElement('button');
-                  unhideBtn.className = 'btn btn-sm btn-success unhide-task-btn';
-                  unhideBtn.setAttribute('data-id', task.id);
-                  unhideBtn.textContent = 'Unhide';
-                  actionsCell.appendChild(unhideBtn);
+                  const unhideIcon = document.createElement('i');
+                  unhideIcon.className = 'bi bi-eye text-success unhide-task-btn';
+                  unhideIcon.setAttribute('data-id', task.id);
+                  unhideIcon.setAttribute('data-bs-toggle', 'tooltip');
+                  unhideIcon.setAttribute('title', 'Unhide');
+                  actionsCell.appendChild(unhideIcon);
                   attachListeners(taskRow);
               }
           }
@@ -373,5 +389,5 @@
   });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'922bed282e4d44f9',t:'MTc0MjM3NjM2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
