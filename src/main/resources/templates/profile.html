@@ -121,12 +121,12 @@
     <!-- Subscription Status -->
     <div class="premium-status"
          th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
-         th:text="'You are a Premium user until ' + ${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}">
+         th:text="#{profile.premium.status} + ' ' + ${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}">
         You are a Premium user until [expiration date].
     </div>
     <div class="free-status"
          th:unless="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
-         th:text="#{tasks.free.status}">
+         th:text="#{profile.free.status}">
         You are on a Free plan.
     </div>
 
