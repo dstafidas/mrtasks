@@ -21,6 +21,9 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- Enforce UTF-8 encoding for Maven -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
     <dependencies>
