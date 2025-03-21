@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -28,9 +29,11 @@ public class DashboardController {
     @GetMapping("/dashboard")
     public String listTasks(Model model, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        model.addAttribute("tasks", taskService.getTasksForUser(user).stream()
+        List<Task> tasks = taskService.getTasksForUser(user).stream()
                 .filter(task -> !task.isHidden())
-                .toList());
+                .sorted(Comparator.comparingInt(Task::getOrderIndex))
+                .toList();
+        model.addAttribute("tasks", tasks);
         model.addAttribute("newTask", new Task());
         model.addAttribute("isPremium", premiumService.isPremiumUser(user));
         model.addAttribute("expiresAt", premiumService.getExpirationDate(user));
@@ -40,7 +43,10 @@ public class DashboardController {
     @GetMapping("/tasks")
     public String listAllTasks(Model model, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        model.addAttribute("tasks", taskService.getTasksForUser(user));
+        List<Task> tasks = taskService.getTasksForUser(user).stream()
+                .sorted(Comparator.comparingInt(Task::getOrderIndex))
+                .toList();
+        model.addAttribute("tasks", tasks);
         return "tasks";
     }
 
@@ -49,7 +55,7 @@ public class DashboardController {
     public ResponseEntity<Task> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         task.setUser(user);
-        task.setOrderIndex(taskService.getMaxOrderIndex(user) + 1);
+        task.setOrderIndex(taskService.getMaxOrderIndex(user, task.getStatus()) + 1); // Set order based on status column
         taskService.saveTask(task);
         return ResponseEntity.ok(task);
     }
@@ -82,7 +88,6 @@ public class DashboardController {
         existingTask.setClientName(task.getClientName());
         existingTask.setAdvancePayment(task.getAdvancePayment());
         existingTask.setColor(task.getColor());
-        existingTask.setOrderIndex(existingTask.getOrderIndex());
         existingTask.setStatus(task.getStatus());
         existingTask.setHidden(task.isHidden());
         taskService.updateTask(existingTask);

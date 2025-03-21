@@ -40,18 +40,22 @@ public class TaskService {
         }
     }
 
-    public int getMaxOrderIndex(User user) {
-        return taskRepository.findByUser(user).stream()
+    public int getMaxOrderIndex(User user, Task.TaskStatus status) {
+        return taskRepository.findByUserAndStatus(user, status).stream()
                 .mapToInt(Task::getOrderIndex)
-                .max().orElse(0);
+                .max()
+                .orElse(-1); // Start at -1 so first task in column gets 0
     }
 
     public void reorderTasks(List<Long> taskIds, User user) {
-        List<Task> tasks = taskRepository.findByUser(user);
+        // Fetch all tasks for the user
+        List<Task> userTasks = taskRepository.findByUser(user);
+
+        // Update orderIndex for tasks in the provided list
         for (int i = 0; i < taskIds.size(); i++) {
             Long taskId = taskIds.get(i);
             int finalI = i;
-            tasks.stream()
+            userTasks.stream()
                     .filter(task -> task.getId().equals(taskId))
                     .findFirst()
                     .ifPresent(task -> {
