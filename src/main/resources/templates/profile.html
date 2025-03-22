@@ -65,6 +65,7 @@
         }
         .alert {
             border-radius: 10px;
+            margin-bottom: 1.5rem;
         }
         h2 {
             color: #2c3e50;
@@ -118,19 +119,25 @@
         <a href="/logout" class="btn btn-danger" th:text="#{dashboard.logout}">Logout</a>
     </div>
 
-    <!-- Subscription Status -->
-    <div class="premium-status"
-         th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
+    <div th:if="${message}" th:classappend="${messageType == 'danger'} ? 'alert alert-danger' : 'alert alert-success'" th:text="${message}"></div>
+
+    <div th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
+         class="premium-status"
          th:text="#{profile.premium.status} + ' ' + ${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}">
         You are a Premium user until [expiration date].
     </div>
-    <div class="free-status"
-         th:unless="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}"
-         th:text="#{profile.free.status}">
-        You are on a Free plan.
+    <div th:unless="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}">
+        <div class="free-status" th:text="#{profile.free.status}">You are on a Free plan.</div>
+        <div class="mb-3">
+            <label for="subscriptionMonths" class="form-label">Upgrade to Premium</label>
+            <select id="subscriptionMonths" class="form-select" name="months">
+                <option value="1">1 Month (€10)</option>
+                <option value="3">3 Months (€25)</option>
+                <option value="6">6 Months (€45)</option>
+            </select>
+        </div>
+        <button id="upgradeButton" class="btn btn-primary" th:text="#{admin.upgrade}">Upgrade Now</button>
     </div>
-
-    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
 
     <h2 th:text="#{profile.details}">User Details</h2>
     <p><strong th:text="#{profile.username}">Username:</strong> <span th:text="${user.username}"></span></p>
@@ -162,13 +169,20 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const form = document.getElementById('profileForm');
+        const upgradeButton = document.getElementById('upgradeButton');
+        if (upgradeButton) {
+            upgradeButton.addEventListener('click', function () {
+                const months = document.getElementById('subscriptionMonths').value;
+                const userId = [[${user.id}]];
+                const url = '/upgrade-to-premium?userId=' + userId + '&months=' + months;
+                window.location.href = url;
+            });
+        }
 
-        // Validation function for individual fields
+        const form = document.getElementById('profileForm');
         function validateField(input) {
             const id = input.id;
             const value = input.value.trim();
-
             if (id === 'companyName' && value) {
                 if (value.length > 100 || value.length < 1) {
                     input.classList.add('is-invalid');
@@ -197,23 +211,19 @@
             return true;
         }
 
-        // Form submission handler
         form.addEventListener('submit', function (event) {
             let isValid = true;
             const inputs = ['companyName', 'logoUrl', 'email', 'phone'].map(id => document.getElementById(id));
-
             inputs.forEach(input => {
                 if (!validateField(input)) {
                     isValid = false;
                 }
             });
-
             if (!isValid) {
                 event.preventDefault();
             }
         });
 
-        // Real-time validation feedback for each input
         ['companyName', 'logoUrl', 'email', 'phone'].forEach(id => {
             const input = document.getElementById(id);
             input.addEventListener('input', function () {

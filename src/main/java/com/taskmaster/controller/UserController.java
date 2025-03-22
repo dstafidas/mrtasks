@@ -5,6 +5,9 @@ import com.taskmaster.model.UserProfile;
 import com.taskmaster.repository.UserProfileRepository;
 import com.taskmaster.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +21,9 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+
+    @Autowired
+    private MessageSource messageSource;
 
     @GetMapping("/profile")
     public String showProfile(Model model, Authentication auth) {
@@ -42,7 +48,9 @@ public class UserController {
         updatedProfile.setEmail(profile.getEmail());
         updatedProfile.setPhone(profile.getPhone());
         userProfileRepository.save(updatedProfile);
-        model.addAttribute("message", "Profile updated successfully");
+        String message = messageSource.getMessage("profile.updated.success", null, LocaleContextHolder.getLocale());
+        model.addAttribute("message", message);
+        model.addAttribute("messageType", "success");
         model.addAttribute("user", user);
         model.addAttribute("profile", updatedProfile);
         return "profile";
