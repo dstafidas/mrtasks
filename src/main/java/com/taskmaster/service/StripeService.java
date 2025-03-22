@@ -35,6 +35,8 @@ public class StripeService {
         String cancelUrl = baseUrl + "/cancel";
 
         SessionCreateParams params = SessionCreateParams.builder()
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
+                .addPaymentMethodType(SessionCreateParams.PaymentMethodType.PAYPAL)
                 .addLineItem(
                         SessionCreateParams.LineItem.builder()
                                 .setPriceData(
