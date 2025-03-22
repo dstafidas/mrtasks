@@ -70,7 +70,7 @@
         h2 {
             color: #2c3e50;
             font-weight: 600;
-            margin-top: 0; /* Adjusted to fit within sections */
+            margin-top: 0;
             margin-bottom: 1rem;
         }
         p strong {
@@ -109,16 +109,15 @@
         .is-invalid ~ .invalid-feedback {
             display: block;
         }
-        /* Section rectangle styles */
         .section-box {
-            background: #f8f9fa; /* Light grey */
+            background: #f8f9fa;
             padding: 1.5rem;
             border-radius: 10px;
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
     </style>
-
+</head>
 <body>
 <div class="profile-container">
     <h1 class="profile-header" th:text="#{profile.title}">Profile</h1>
@@ -180,13 +179,12 @@
     </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const upgradeButton = document.getElementById('upgradeButton');
         if (upgradeButton) {
             upgradeButton.addEventListener('click', function () {
-                const months = document.getId('subscriptionMonths').value;
+                const months = document.getElementById('subscriptionMonths').value;
                 const userId = [[${user.id}]];
                 const url = '/upgrade-to-premium?userId=' + userId + '&months=' + months;
                 window.location.href = url;
