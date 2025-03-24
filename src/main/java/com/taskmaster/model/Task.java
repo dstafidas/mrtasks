@@ -1,6 +1,7 @@
 // Task.java
 package com.taskmaster.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,7 +17,13 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    @JsonBackReference
+    private Client client;
 
     private String title;
     @Column(columnDefinition = "TEXT")

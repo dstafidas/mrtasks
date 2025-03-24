@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <title th:text="#{clients.title}">Clients - Task Master</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .clients-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            width: 100%;
+        }
+        .clients-header {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .nav-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-responsive {
+            margin-top: 20px;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            border: none;
+        }
+        .modal-content {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .modal-header {
+            background-color: #3498db;
+            color: white;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .bi {
+            font-size: 1.2rem;
+            margin-right: 8px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .bi:hover {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+<div class="clients-container">
+    <h1 class="clients-header" th:text="#{clients.title}">Clients</h1>
+    <div class="nav-group">
+        <div>
+            <a href="/dashboard" class="btn btn-secondary" th:text="#{clients.back}">Back to Dashboard</a>
+            <a href="/profile" class="btn btn-secondary" th:text="#{clients.profile}">Profile</a>
+            <a href="/tasks" class="btn btn-secondary" th:text="#{tasks.title}">All Tasks</a>
+            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{clients.admin}">Admin</a>
+        </div>
+        <a href="/logout" class="btn btn-danger" th:text="#{clients.logout}">Logout</a>
+    </div>
+
+    <h2 th:text="#{clients.list}">All Clients</h2>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover" id="clientsTable">
+            <thead>
+            <tr>
+                <th th:text="#{clients.table.name}">Name</th>
+                <th th:text="#{clients.table.email}">Email</th>
+                <th th:text="#{clients.table.phone}">Phone</th>
+                <th th:text="#{clients.table.address}">Address</th>
+                <th th:text="#{clients.table.taxId}">Tax ID</th>
+                <th th:text="#{clients.table.actions}">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="client : ${clients}" th:data-id="${client.id}">
+                <td th:text="${client.name}">Name</td>
+                <td th:text="${client.email ?: 'N/A'}">Email</td>
+                <td th:text="${client.phone ?: 'N/A'}">Phone</td>
+                <td th:text="${client.address ?: 'N/A'}">Address</td>
+                <td th:text="${client.taxId ?: 'N/A'}">Tax ID</td>
+                <td>
+                    <i class="bi bi-pencil-square text-primary edit-client-btn" th:data-id="${client.id}" data-bs-toggle="tooltip" title="Edit"></i>
+                    <i class="bi bi-trash text-danger delete-client-btn" th:data-id="${client.id}" data-bs-toggle="tooltip" title="Delete"></i>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- New Client Form -->
+    <h3 th:text="#{clients.new}">New Client</h3>
+    <form th:action="@{/clients}" th:object="${newClient}" method="post">
+        <div class="mb-3">
+            <label for="name" class="form-label" th:text="#{clients.form.name}">Name</label>
+            <input type="text" id="name" th:field="*{name}" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label" th:text="#{clients.form.email}">Email</label>
+            <input type="email" id="email" th:field="*{email}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="phone" class="form-label" th:text="#{clients.form.phone}">Phone</label>
+            <input type="text" id="phone" th:field="*{phone}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="address" class="form-label" th:text="#{clients.form.address}">Address</label>
+            <input type="text" id="address" th:field="*{address}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="taxId" class="form-label" th:text="#{clients.form.taxId}">Tax ID</label>
+            <input type="text" id="taxId" th:field="*{taxId}" class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary" th:text="#{clients.form.submit}">Add Client</button>
+    </form>
+
+    <!-- Edit Client Modal -->
+    <div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editClientModalLabel" th:text="#{clients.edit.title}">Edit Client</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editClientForm" method="put">
+                        <input type="hidden" id="editClientId" name="id">
+                        <div class="mb-3">
+                            <label for="editName" class="form-label" th:text="#{clients.form.name}">Name</label>
+                            <input type="text" id="editName" name="name" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editEmail" class="form-label" th:text="#{clients.form.email}">Email</label>
+                            <input type="email" id="editEmail" name="email" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editPhone" class="form-label" th:text="#{clients.form.phone}">Phone</label>
+                            <input type="text" id="editPhone" name="phone" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editAddress" class="form-label" th:text="#{clients.form.address}">Address</label>
+                            <input type="text" id="editAddress" name="address" class="form-control">
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTaxId" class="form-label" th:text="#{clients.form.taxId}">Tax ID</label>
+                            <input type="text" id="editTaxId" name="taxId" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn-primary" th:text="#{clients.edit.submit}">Update Client</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        // Edit client button
+        document.querySelectorAll('.edit-client-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const clientId = this.getAttribute('data-id');
+                fetch(`/clients/${clientId}`, {
+                    method: 'GET',
+                    headers: { [csrfHeader]: csrfToken }
+                })
+                .then(response => response.json())
+                .then(client => {
+                    document.getElementById('editClientId').value = client.id;
+                    document.getElementById('editName').value = client.name;
+                    document.getElementById('editEmail').value = client.email || '';
+                    document.getElementById('editPhone').value = client.phone || '';
+                    document.getElementById('editAddress').value = client.address || '';
+                    document.getElementById('editTaxId').value = client.taxId || '';
+                    const editModal = new bootstrap.Modal(document.getElementById('editClientModal'));
+                    editModal.show();
+                })
+                .catch(error => console.error('Error fetching client:', error));
+            });
+        });
+
+        // Edit client form submission
+        document.getElementById('editClientForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const clientId = document.getElementById('editClientId').value;
+            fetch(`/clients/${clientId}`, {
+                method: 'PUT',
+                headers: { [csrfHeader]: csrfToken },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(client => {
+                const row = document.querySelector(`tr[data-id="${client.id}"]`);
+                row.cells[0].textContent = client.name;
+                row.cells[1].textContent = client.email || 'N/A';
+                row.cells[2].textContent = client.phone || 'N/A';
+                row.cells[3].textContent = client.address || 'N/A';
+                row.cells[4].textContent = client.taxId || 'N/A';
+                bootstrap.Modal.getInstance(document.getElementById('editClientModal')).hide();
+            })
+            .catch(error => console.error('Error updating client:', error));
+        });
+
+        // Delete client button
+        document.querySelectorAll('.delete-client-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const clientId = this.getAttribute('data-id');
+                if (confirm('Are you sure you want to delete this client?')) {
+                    fetch(`/clients/${clientId}`, {
+                        method: 'DELETE',
+                        headers: { [csrfHeader]: csrfToken }
+                    })
+                    .then(() => {
+                        document.querySelector(`tr[data-id="${clientId}"]`).remove();
+                    })
+                    .catch(error => console.error('Error deleting client:', error));
+                }
+            });
+        });
+
+        // Tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+</body>
+</html>

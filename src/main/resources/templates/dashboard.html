@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
     <style>
+        /* Existing styles remain unchanged */
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
@@ -210,6 +211,7 @@
         <div>
             <a href="/tasks" class="btn btn-secondary" th:text="#{dashboard.allTasks}">All Tasks</a>
             <a href="/profile" class="btn btn-secondary" th:text="#{dashboard.profile}">Profile</a>
+            <a href="/clients" class="btn btn-secondary" th:text="#{dashboard.clients}">Clients</a>
             <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{dashboard.admin}">Admin</a>
         </div>
         <a href="/logout" class="btn btn-danger" th:text="#{dashboard.logout}">Logout</a>
@@ -228,15 +230,7 @@
             </form>
         </div>
         <div th:unless="${isPremium}">
-            <button type="button"
-                    class="btn btn-success"
-                    disabled
-                    th:text="#{dashboard.invoice.download}"
-                    data-bs-toggle="tooltip"
-                    data-bs-placement="top"
-                    title="Premium feature - Upgrade to unlock">
-                Download Invoice
-            </button>
+            <button type="button" class="btn btn-success" disabled th:text="#{dashboard.invoice.download}" data-bs-toggle="tooltip" data-bs-placement="top" title="Premium feature - Upgrade to unlock">Download Invoice</button>
         </div>
     </div>
 
@@ -244,18 +238,17 @@
         <div class="column" id="todo-column" data-status="TODO">
             <h3 th:text="#{dashboard.status.todo}">To Do</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'TODO'}"
-                     th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
-                    <p><strong>Client:</strong> <span class="client-name" th:text="${task.clientName != null ? task.clientName : 'N/A'}"></span></p>
-                    <p><strong>Deadline:</strong> <span class="deadline" th:text="${task.deadline}"></span></p>
+                    <p><strong>Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                    <p><strong>Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                     <p><strong>Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
                     <p><strong>Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                    <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total}"></span></p>
-                    <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment}"></span></p>
-                    <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue}"></span></p>
+                    <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
+                    <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
+                    <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
                     <p><strong>Status:</strong> <span class="status" th:text="${task.status}"></span></p>
                     <div>
                         <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -275,18 +268,17 @@
         <div class="column" id="in-progress-column" data-status="IN_PROGRESS">
             <h3 th:text="#{dashboard.status.inprogress}">In Progress</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'IN_PROGRESS'}"
-                     th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'IN_PROGRESS'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
-                    <p><strong>Client:</strong> <span class="client-name" th:text="${task.clientName != null ? task.clientName : 'N/A'}"></span></p>
-                    <p><strong>Deadline:</strong> <span class="deadline" th:text="${task.deadline}"></span></p>
+                    <p><strong>Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                    <p><strong>Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                     <p><strong>Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
                     <p><strong>Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                    <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total}"></span></p>
-                    <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment}"></span></p>
-                    <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue}"></span></p>
+                    <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
+                    <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
+                    <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
                     <p><strong>Status:</strong> <span class="status" th:text="${task.status}"></span></p>
                     <div>
                         <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -306,18 +298,17 @@
         <div class="column" id="completed-column" data-status="COMPLETED">
             <h3 th:text="#{dashboard.status.completed}">Completed</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'COMPLETED'}"
-                     th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'COMPLETED'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
-                    <p><strong>Client:</strong> <span class="client-name" th:text="${task.clientName != null ? task.clientName : 'N/A'}"></span></p>
-                    <p><strong>Deadline:</strong> <span class="deadline" th:text="${task.deadline}"></span></p>
+                    <p><strong>Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                    <p><strong>Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                     <p><strong>Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
                     <p><strong>Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                    <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total}"></span></p>
-                    <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment}"></span></p>
-                    <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue}"></span></p>
+                    <p><strong>Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
+                    <p><strong>Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
+                    <p><strong>Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
                     <p><strong>Status:</strong> <span class="status" th:text="${task.status}"></span></p>
                     <div>
                         <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -355,6 +346,13 @@
                             <textarea id="description" th:field="*{description}" class="form-control description-textarea"></textarea>
                         </div>
                         <div class="mb-3">
+                            <label for="client" class="form-label">Client</label>
+                            <select id="client" th:field="*{client.id}" class="form-select">
+                                <option value="">Select a Client (Optional)</option>
+                                <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label for="deadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
                             <input type="datetime-local" id="deadline" th:field="*{deadline}" class="form-control">
                         </div>
@@ -373,10 +371,6 @@
                         <div class="mb-3">
                             <label for="advancePayment" class="form-label" th:text="#{dashboard.form.advance}">Advance Payment</label>
                             <input type="number" id="advancePayment" th:field="*{advancePayment}" step="0.01" class="form-control" value="0.0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="clientName" class="form-label" th:text="#{dashboard.form.client}">Client Name</label>
-                            <input type="text" id="clientName" th:field="*{clientName}" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="color" class="form-label">Color</label>
@@ -423,6 +417,13 @@
                             <textarea id="editDescription" name="description" class="form-control description-textarea"></textarea>
                         </div>
                         <div class="mb-3">
+                            <label for="editClient" class="form-label">Client</label>
+                            <select id="editClient" name="client.id" class="form-select">
+                                <option value="">Select a Client (Optional)</option>
+                                <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}"></option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
                             <label for="editDeadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
                             <input type="datetime-local" id="editDeadline" name="deadline" class="form-control">
                         </div>
@@ -441,10 +442,6 @@
                         <div class="mb-3">
                             <label for="editAdvancePayment" class="form-label" th:text="#{dashboard.form.advance}">Advance Payment</label>
                             <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control" value="0.0">
-                        </div>
-                        <div class="mb-3">
-                            <label for="editClientName" class="form-label" th:text="#{dashboard.form.client}">Client Name</label>
-                            <input type="text" id="editClientName" name="clientName" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="editColor" class="form-label">Color</label>
@@ -475,6 +472,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
 <script>
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+
+    function formatNumber(num) {
+        return num !== null && num !== undefined ? Number(num).toFixed(1) : '0.0';
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -490,32 +501,22 @@
         if (typeof dragula !== 'undefined') {
             const drake = dragula(containers, {
                 revertOnSpill: true,
-                accepts: function (el, target, source, sibling) {
-                    return true;
-                },
-                moves: function (el, source, handle) {
-                    return el.classList.contains('task-card');
-                },
+                accepts: function (el, target) { return true; },
+                moves: function (el) { return el.classList.contains('task-card'); },
                 direction: 'vertical'
             });
 
-            drake.on('drop', function (el, target, source, sibling) {
+            drake.on('drop', function (el, target, source) {
                 const taskId = el.getAttribute('data-id');
                 const newStatus = target.parentElement.getAttribute('data-status');
                 const csrfToken = document.querySelector('meta[name="_csrf"]').content;
                 const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
-                // Update task status and fetch current data
                 fetch(`/dashboard/task/${taskId}`, {
                     method: 'GET',
-                    headers: {
-                        [csrfHeader]: csrfToken
-                    }
+                    headers: { [csrfHeader]: csrfToken }
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(task => {
                     const formData = new FormData();
                     formData.append('title', task.title || '');
@@ -525,73 +526,52 @@
                     formData.append('hoursWorked', task.hoursWorked || 0.0);
                     formData.append('hourlyRate', task.hourlyRate || 0.0);
                     formData.append('advancePayment', task.advancePayment || 0.0);
-                    formData.append('clientName', task.clientName || '');
+                    formData.append('client.id', task.client ? task.client.id : '');
                     formData.append('color', task.color || '#FFFFFF');
                     formData.append('status', newStatus);
                     formData.append('hidden', task.hidden || false);
 
                     return fetch(`/dashboard/task/${taskId}`, {
                         method: 'PUT',
-                        headers: {
-                            [csrfHeader]: csrfToken
-                        },
+                        headers: { [csrfHeader]: csrfToken },
                         body: formData
                     });
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to update task status: ' + response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(task => {
-                    // Update task card
+                    // Update UI with all task details
+                    el.querySelector('.task-select').disabled = !task.billable;
                     el.querySelector('h6').textContent = task.title;
-                    el.querySelector('p:nth-child(3)').innerHTML = task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description';
-                    el.querySelector('.client-name').textContent = task.clientName || 'N/A';
-                    el.querySelector('.deadline').textContent = task.deadline || '';
-                    el.querySelector('.hours-worked').textContent = task.hoursWorked;
-                    el.querySelector('.hourly-rate').textContent = '$' + task.hourlyRate;
-                    el.querySelector('.total').textContent = '$' + task.total.toFixed(2);
-                    el.querySelector('.advance-payment').textContent = '$' + task.advancePayment.toFixed(2);
-                    el.querySelector('.remaining-due').textContent = '$' + task.remainingDue.toFixed(2);
+                    el.querySelector('p:nth-child(3)').innerHTML = task.description && task.description.length > 0 ?
+                        (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
+                        'No description';
+                    el.querySelector('.client-name').textContent = task.client ? task.client.name : 'N/A';
+                    el.querySelector('.deadline').textContent = formatDate(task.deadline);
+                    el.querySelector('.hours-worked').textContent = task.hoursWorked || '0.0';
+                    el.querySelector('.hourly-rate').textContent = '$' + (task.hourlyRate || '0.00');
+                    el.querySelector('.total').textContent = '$' + (task.total !== null ? task.total.toFixed(2) : '0.00');
+                    el.querySelector('.advance-payment').textContent = '$' + (task.advancePayment !== null ? task.advancePayment.toFixed(2) : '0.00');
+                    el.querySelector('.remaining-due').textContent = '$' + (task.remainingDue !== null ? task.remainingDue.toFixed(2) : '0.00');
                     el.querySelector('.status').textContent = task.status;
                     el.style.backgroundColor = task.color;
-                    el.querySelector('.task-select').disabled = !task.billable;
 
-                    // Update order of tasks in the target column
                     const taskIds = Array.from(target.children).map(child => child.getAttribute('data-id'));
                     fetch('/dashboard/reorder', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            [csrfHeader]: csrfToken
-                        },
+                        headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
                         body: JSON.stringify(taskIds)
                     })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to update order: ' + response.status);
-                        return response.text();
-                    })
+                    .then(response => response.text())
                     .then(text => {
-                        if (text !== 'Order updated') throw new Error('Unexpected response: ' + text);
-                        taskIds.forEach((id, index) => {
-                            const card = document.querySelector(`.task-card[data-id="${id}"]`);
-                            if (card) card.setAttribute('data-order', index);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error updating order:', error);
-                        drake.cancel(true); // Revert on order update failure
-                        alert('Failed to update task order');
+                        if (text === 'Order updated') {
+                            taskIds.forEach((id, index) => {
+                                const card = document.querySelector(`.task-card[data-id="${id}"]`);
+                                if (card) card.setAttribute('data-order', index);
+                            });
+                        }
                     });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    drake.cancel(true); // Revert on status update failure
-                    alert('Failed to update task status');
                 });
             });
-        } else {
-            console.error('Dragula failed to load');
         }
 
         document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
@@ -606,14 +586,9 @@
                 const taskId = this.getAttribute('data-id');
                 fetch(`/dashboard/task/${taskId}`, {
                     method: 'GET',
-                    headers: {
-                        [csrfHeader]: csrfToken
-                    }
+                    headers: { [csrfHeader]: csrfToken }
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(task => {
                     document.getElementById('editTaskId').value = task.id;
                     document.getElementById('editTitle').value = task.title;
@@ -623,14 +598,13 @@
                     document.getElementById('editHoursWorked').value = task.hoursWorked || 0.0;
                     document.getElementById('editHourlyRate').value = task.hourlyRate || 0.0;
                     document.getElementById('editAdvancePayment').value = task.advancePayment || 0.0;
-                    document.getElementById('editClientName').value = task.clientName || '';
+                    document.getElementById('editClient').value = task.client ? task.client.id : '';
                     document.getElementById('editColor').value = task.color;
                     document.getElementById('editStatus').value = task.status;
 
                     const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
                     editModal.show();
-                })
-                .catch(error => console.error('Error fetching task:', error));
+                });
             });
         });
 
@@ -640,18 +614,13 @@
                 if (confirm('Are you sure you want to delete this task?')) {
                     fetch(`/dashboard/task/${taskId}`, {
                         method: 'DELETE',
-                        headers: {
-                            [csrfHeader]: csrfToken
-                        }
+                        headers: { [csrfHeader]: csrfToken }
                     })
                     .then(response => {
-                        if (!response.ok) throw new Error('Failed to delete task: ' + response.status);
-                        const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
-                        if (taskCard) taskCard.remove();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to delete task');
+                        if (response.ok) {
+                            const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
+                            if (taskCard) taskCard.remove();
+                        }
                     });
                 }
             });
@@ -663,18 +632,13 @@
                 if (confirm('Are you sure you want to hide this task?')) {
                     fetch(`/dashboard/task/${taskId}/hide`, {
                         method: 'POST',
-                        headers: {
-                            [csrfHeader]: csrfToken
-                        }
+                        headers: { [csrfHeader]: csrfToken }
                     })
                     .then(response => {
-                        if (!response.ok) throw new Error('Failed to hide task: ' + response.status);
-                        const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
-                        if (taskCard) taskCard.remove();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to hide task');
+                        if (response.ok) {
+                            const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
+                            if (taskCard) taskCard.remove();
+                        }
                     });
                 }
             });
@@ -689,25 +653,16 @@
 
         fetch(`/dashboard/color/${taskId}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                [csrfHeader]: csrfToken
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
             body: `color=${encodeURIComponent(color)}`
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to update color: ' + response.status);
-            return response.text();
-        })
+        .then(response => response.text())
         .then(text => {
             if (text === 'Color updated') {
                 const taskCard = element.closest('.task-card');
                 taskCard.style.backgroundColor = color;
-            } else {
-                console.error('Unexpected response:', text);
             }
-        })
-        .catch(error => console.error('Error:', error));
+        });
     }
 
     document.getElementById('addTaskForm').addEventListener('submit', function(event) {
@@ -718,17 +673,10 @@
 
         fetch('/dashboard', {
             method: 'POST',
-            headers: {
-                [csrfHeader]: csrfToken
-            },
+            headers: { [csrfHeader]: csrfToken },
             body: formData
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => { throw new Error(text || 'Failed to add task: ' + response.status); });
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(task => {
             const targetColumn = document.querySelector(`#${task.status.toLowerCase().replace('_', '-')}-column .task-list`);
             const newCard = document.createElement('div');
@@ -740,13 +688,13 @@
                 <input type="checkbox" class="task-select" data-id="${task.id}" ${task.billable ? '' : 'disabled'}>
                 <h6>${task.title}</h6>
                 <p>${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description'}</p>
-                <p><strong>Client:</strong> <span class="client-name">${task.clientName || 'N/A'}</span></p>
-                <p><strong>Deadline:</strong> <span class="deadline">${task.deadline || ''}</span></p>
-                <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked}</span></p>
-                <p><strong>Rate:</strong> <span class="hourly-rate">$${task.hourlyRate}</span></p>
-                <p><strong>Total:</strong> <span class="total">$${task.total.toFixed(2)}</span></p>
-                <p><strong>Advance:</strong> <span class="advance-payment">$${task.advancePayment.toFixed(2)}</span></p>
-                <p><strong>Remaining:</strong> <span class="remaining-due">$${task.remainingDue.toFixed(2)}</span></p>
+                <p><strong>Client:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
+                <p><strong>Deadline:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
+                <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
+                <p><strong>Rate:</strong> <span class="hourly-rate">$${task.hourlyRate || '0.00'}</span></p>
+                <p><strong>Total:</strong> <span class="total">$${task.total !== null ? task.total.toFixed(2) : '0.00'}</span></p>
+                <p><strong>Advance:</strong> <span class="advance-payment">$${task.advancePayment !== null ? task.advancePayment.toFixed(2) : '0.00'}</span></p>
+                <p><strong>Remaining:</strong> <span class="remaining-due">$${task.remainingDue !== null ? task.remainingDue.toFixed(2) : '0.00'}</span></p>
                 <p><strong>Status:</strong> <span class="status">${task.status}</span></p>
                 <div>
                     <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -766,57 +714,28 @@
             this.reset();
             attachEditAndDeleteListeners(newCard);
 
-            // Update order after adding new task
             const taskIds = Array.from(targetColumn.children).map(child => child.getAttribute('data-id'));
             fetch('/dashboard/reorder', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    [csrfHeader]: csrfToken
-                },
+                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
                 body: JSON.stringify(taskIds)
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Failed to update order: ' + response.status);
-                return response.text();
-            })
-            .then(text => {
-                if (text === 'Order updated') {
-                    taskIds.forEach((id, index) => {
-                        const card = document.querySelector(`.task-card[data-id="${id}"]`);
-                        if (card) card.setAttribute('data-order', index);
-                    });
-                }
-            })
-            .catch(error => console.error('Error updating order:', error));
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message); // Display the error message from the server
+            });
         });
     });
 
     document.getElementById('editTaskForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData(this);
-        if (!formData.get('hoursWorked')) formData.set('hoursWorked', '0.0');
-        if (!formData.get('hourlyRate')) formData.set('hourlyRate', '0.0');
-        if (!formData.get('advancePayment')) formData.set('advancePayment', '0.0');
         const taskId = document.getElementById('editTaskId').value;
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
 
         fetch(`/dashboard/task/${taskId}`, {
             method: 'PUT',
-            headers: {
-                [csrfHeader]: csrfToken
-            },
+            headers: { [csrfHeader]: csrfToken },
             body: formData
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to update task: ' + response.status);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(task => {
             const taskCard = document.querySelector(`.task-card[data-id="${task.id}"]`);
             if (taskCard) {
@@ -827,56 +746,36 @@
                 }
                 taskCard.querySelector('.task-select').disabled = !task.billable;
                 taskCard.querySelector('h6').textContent = task.title;
-                taskCard.querySelector('p:nth-child(3)').innerHTML = task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description';
-                taskCard.querySelector('.client-name').textContent = task.clientName || 'N/A';
-                taskCard.querySelector('.deadline').textContent = task.deadline || '';
-                taskCard.querySelector('.hours-worked').textContent = task.hoursWorked;
-                taskCard.querySelector('.hourly-rate').textContent = '$' + task.hourlyRate;
-                taskCard.querySelector('.total').textContent = '$' + task.total.toFixed(2);
-                taskCard.querySelector('.advance-payment').textContent = '$' + task.advancePayment.toFixed(2);
-                taskCard.querySelector('.remaining-due').textContent = '$' + task.remainingDue.toFixed(2);
+                taskCard.querySelector('p:nth-child(3)').innerHTML = task.description && task.description.length > 0 ?
+                    (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
+                    'No description';
+                taskCard.querySelector('.client-name').textContent = task.client ? task.client.name : 'N/A';
+                taskCard.querySelector('.deadline').textContent = formatDate(task.deadline);
+                taskCard.querySelector('.hours-worked').textContent = task.hoursWorked || '0.0';
+                taskCard.querySelector('.hourly-rate').textContent = '$' + (task.hourlyRate || '0.00');
+                taskCard.querySelector('.total').textContent = '$' + (task.total !== null ? task.total.toFixed(2) : '0.00');
+                taskCard.querySelector('.advance-payment').textContent = '$' + (task.advancePayment !== null ? task.advancePayment.toFixed(2) : '0.00');
+                taskCard.querySelector('.remaining-due').textContent = '$' + (task.remainingDue !== null ? task.remainingDue.toFixed(2) : '0.00');
                 taskCard.querySelector('.status').textContent = task.status;
                 taskCard.style.backgroundColor = task.color;
 
-                // Update order after editing (if status changed)
                 if (currentColumn !== newColumn) {
                     const taskIds = Array.from(newColumn.children).map(child => child.getAttribute('data-id'));
                     fetch('/dashboard/reorder', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            [csrfHeader]: csrfToken
-                        },
+                        headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
                         body: JSON.stringify(taskIds)
-                    })
-                    .then(response => {
-                        if (!response.ok) throw new Error('Failed to update order: ' + response.status);
-                        return response.text();
-                    })
-                    .then(text => {
-                        if (text === 'Order updated') {
-                            taskIds.forEach((id, index) => {
-                                const card = document.querySelector(`.task-card[data-id="${id}"]`);
-                                if (card) card.setAttribute('data-order', index);
-                            });
-                        }
-                    })
-                    .catch(error => console.error('Error updating order:', error));
+                    });
                 }
             }
             bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to update task');
         });
     });
 
     document.getElementById('invoiceForm').addEventListener('submit', function(event) {
         event.preventDefault();
         const formData = new FormData();
-        const selectedTaskIds = Array.from(document.querySelectorAll('.task-select:checked'))
-            .map(checkbox => checkbox.getAttribute('data-id'));
+        const selectedTaskIds = Array.from(document.querySelectorAll('.task-select:checked')).map(checkbox => checkbox.getAttribute('data-id'));
 
         if (selectedTaskIds.length === 0) {
             alert('Please select at least one billable task to generate an invoice.');
@@ -889,15 +788,10 @@
 
         fetch('/invoice', {
             method: 'POST',
-            headers: {
-                [csrfHeader]: csrfToken
-            },
+            headers: { [csrfHeader]: csrfToken },
             body: formData
         })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to generate invoice: ' + response.status);
-            return response.blob();
-        })
+        .then(response => response.blob())
         .then(blob => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -907,10 +801,6 @@
             a.click();
             a.remove();
             window.URL.revokeObjectURL(url);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Failed to download invoice. Please try again.');
         });
     });
 </script>

@@ -1,7 +1,9 @@
 package com.taskmaster.controller;
 
+import com.taskmaster.model.Client;
 import com.taskmaster.model.Task;
 import com.taskmaster.model.User;
+import com.taskmaster.repository.ClientRepository;
 import com.taskmaster.repository.UserRepository;
 import com.taskmaster.service.InvoiceService;
 import com.taskmaster.service.PremiumService;
@@ -25,6 +27,7 @@ public class DashboardController {
     private final InvoiceService invoiceService;
     private final PremiumService premiumService;
     private final UserRepository userRepository;
+    private final ClientRepository clientRepository;
 
     @GetMapping("/dashboard")
     public String listTasks(Model model, Authentication auth) {
@@ -33,7 +36,9 @@ public class DashboardController {
                 .filter(task -> !task.isHidden())
                 .sorted(Comparator.comparingInt(Task::getOrderIndex))
                 .toList();
+        List<Client> clients = clientRepository.findByUser(user);
         model.addAttribute("tasks", tasks);
+        model.addAttribute("clients", clients);
         model.addAttribute("newTask", new Task());
         model.addAttribute("isPremium", premiumService.isPremiumUser(user));
         model.addAttribute("expiresAt", premiumService.getExpirationDate(user));
@@ -47,7 +52,9 @@ public class DashboardController {
         List<Task> tasks = taskService.getTasksForUser(user).stream()
                 .sorted(Comparator.comparingInt(Task::getOrderIndex))
                 .toList();
+        List<Client> clients = clientRepository.findByUser(user);
         model.addAttribute("tasks", tasks);
+        model.addAttribute("clients", clients);
         return "tasks";
     }
 
@@ -56,15 +63,14 @@ public class DashboardController {
     public ResponseEntity<?> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         task.setUser(user);
-        // Check if user is non-premium and task limit is exceeded
-        if (!premiumService.isPremiumUser(user)) {
-            List<Task> userTasks = taskService.getTasksForUser(user);
-            if (userTasks.size() >= 5) {
-                return ResponseEntity.status(403)
-                        .body("Non-premium users are limited to 5 tasks. Upgrade to premium to create more.");
-            }
+        if (!premiumService.isPremiumUser(user) && taskService.getTasksForUser(user).size() >= 5) {
+            return ResponseEntity.status(403).body("Non-premium users are limited to 5 tasks. Upgrade to premium to create more.");
         }
-        task.setOrderIndex(taskService.getMaxOrderIndex(user, task.getStatus()) + 1); // Set order based on status column
+        if (task.getClient() != null && task.getClient().getId() != null) {
+            Client client = clientRepository.findByIdAndUser(task.getClient().getId(), user);
+            task.setClient(client);
+        }
+        task.setOrderIndex(taskService.getMaxOrderIndex(user, task.getStatus()) + 1);
         taskService.saveTask(task);
         return ResponseEntity.ok(task);
     }
@@ -94,7 +100,12 @@ public class DashboardController {
         existingTask.setBillable(task.isBillable());
         existingTask.setHoursWorked(task.getHoursWorked());
         existingTask.setHourlyRate(task.getHourlyRate());
-        existingTask.setClientName(task.getClientName());
+        if (task.getClient() != null && task.getClient().getId() != null) {
+            Client client = clientRepository.findByIdAndUser(task.getClient().getId(), user);
+            existingTask.setClient(client);
+        } else {
+            existingTask.setClient(null);
+        }
         existingTask.setAdvancePayment(task.getAdvancePayment());
         existingTask.setColor(task.getColor());
         existingTask.setStatus(task.getStatus());
