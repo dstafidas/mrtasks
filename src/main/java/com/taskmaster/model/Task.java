@@ -19,6 +19,7 @@ public class Task {
     private User user;
 
     private String title;
+    @Column(columnDefinition = "TEXT")
     private String description;
     private LocalDateTime deadline;
     private boolean billable;

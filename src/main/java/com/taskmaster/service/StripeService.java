@@ -14,9 +14,6 @@ public class StripeService {
     @Value("${stripe.api.key}")
     private String stripeApiKey;
 
-    @Value("${app.host:http://localhost:8080}") // Fallback host
-    private String fallbackHost;
-
     public String createCheckoutSession(Long userId, int months) throws StripeException {
         Stripe.apiKey = stripeApiKey;
 
