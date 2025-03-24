@@ -37,6 +37,7 @@ public class DashboardController {
         model.addAttribute("newTask", new Task());
         model.addAttribute("isPremium", premiumService.isPremiumUser(user));
         model.addAttribute("expiresAt", premiumService.getExpirationDate(user));
+        model.addAttribute("totalTaskCount", taskService.getTasksForUser(user).size());
         return "dashboard";
     }
 
@@ -52,9 +53,17 @@ public class DashboardController {
 
     @PostMapping("/dashboard")
     @ResponseBody
-    public ResponseEntity<Task> addTask(@ModelAttribute Task task, Authentication auth) {
+    public ResponseEntity<?> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         task.setUser(user);
+        // Check if user is non-premium and task limit is exceeded
+        if (!premiumService.isPremiumUser(user)) {
+            List<Task> userTasks = taskService.getTasksForUser(user);
+            if (userTasks.size() >= 5) {
+                return ResponseEntity.status(403)
+                        .body("Non-premium users are limited to 5 tasks. Upgrade to premium to create more.");
+            }
+        }
         task.setOrderIndex(taskService.getMaxOrderIndex(user, task.getStatus()) + 1); // Set order based on status column
         taskService.saveTask(task);
         return ResponseEntity.ok(task);
