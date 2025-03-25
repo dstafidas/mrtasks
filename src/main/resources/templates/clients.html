@@ -14,85 +14,286 @@
             padding: 2rem;
             display: flex;
             justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .clients-container {
             background: white;
-            padding: 2.5rem;
+            padding: 0 2.5rem 2.5rem;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             max-width: 1400px;
             width: 100%;
         }
-        .clients-header {
-            color: #2c3e50;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        .nav-group {
+        .navbar {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
             justify-content: space-between;
             align-items: center;
+            background: #ffffff;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #dee2e6;
+            box-shadow: none;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            margin-bottom: 10px;
         }
-        .table-responsive {
-            margin-top: 20px;
+        .navbar-brand .clients-header {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            background-color: #e9ecef;
+            color: #2980b9;
+        }
+        .navbar-profile {
+            position: relative;
+        }
+        .bi-person-circle {
+            font-size: 2rem;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .bi-person-circle:hover {
+            color: #2980b9;
+        }
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index: 1000;
+        }
+        .profile-dropdown.active {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #3498db;
+        }
+        .search-group {
+            margin-bottom: 20px;
+            max-width: 300px;
+        }
+        .search-group .form-control {
+            border-radius: 20px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .search-group .form-control:focus {
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+            border-color: #3498db;
+        }
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+        .table {
+            width: 100%;
+            margin-bottom: 0;
+            color: #2c3e50;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table thead th {
+            background-color: #3498db;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1rem;
+            border: none;
+        }
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+        .table tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .table tbody tr:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .table td, .table th {
+            padding: 1rem;
+            vertical-align: middle;
+            border: none;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .table td:last-child {
+            text-align: center;
         }
         .btn-primary {
             background-color: #3498db;
             border: none;
-            transition: background-color 0.3s;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
         }
         .btn-primary:hover {
             background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .btn-secondary {
             background-color: #6c757d;
             border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .btn-danger {
             background-color: #dc3545;
             border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-success {
+            background-color: #28a745;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .modal-content {
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+            border: none;
         }
         .modal-header {
             background-color: #3498db;
             color: white;
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            padding: 1rem 1.5rem;
         }
-        .bi {
-            font-size: 1.2rem;
-            margin-right: 8px;
-            cursor: pointer;
-            transition: color 0.3s;
+        .modal-body {
+            padding: 1.5rem;
         }
-        .bi:hover {
-            color: #000;
+        .form-control, .form-select {
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+            border-color: #3498db;
+        }
+
+        @media (max-width: 768px) {
+            .clients-container {
+                padding: 0 1.5rem 1.5rem;
+            }
+            .navbar {
+                flex-direction: column;
+                padding: 1rem;
+            }
+            .navbar-links {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 1rem;
+            }
+            .navbar-profile {
+                margin-top: 1rem;
+            }
+            .table {
+                display: block;
+                overflow-x: auto;
+            }
+            .table thead {
+                display: none;
+            }
+            .table tbody tr {
+                display: block;
+                margin-bottom: 1rem;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+            }
+            .table tbody td {
+                display: block;
+                text-align: right;
+                padding: 0.75rem;
+                border-bottom: none;
+            }
+            .table tbody td:before {
+                content: attr(data-label);
+                float: left;
+                font-weight: 600;
+                color: #3498db;
+            }
         }
     </style>
 </head>
 <body>
 <div class="clients-container">
-    <h1 class="clients-header" th:text="#{clients.title}">Clients</h1>
-    <div class="nav-group">
-        <div>
-            <a href="/dashboard" class="btn btn-secondary" th:text="#{clients.back}">Back to Dashboard</a>
-            <a href="/profile" class="btn btn-secondary" th:text="#{clients.profile}">Profile</a>
-            <a href="/tasks" class="btn btn-secondary" th:text="#{tasks.title}">All Tasks</a>
-            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{clients.admin}">Admin</a>
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <h1 class="clients-header" th:text="#{clients.title}">Clients</h1>
         </div>
-        <a href="/logout" class="btn btn-danger" th:text="#{clients.logout}">Logout</a>
+        <div class="navbar-links">
+            <a href="/dashboard" class="nav-link" th:text="#{clients.back}">Back to Dashboard</a>
+            <a href="/tasks" class="nav-link" th:text="#{tasks.title}">All Tasks</a>
+            <a href="/clients" class="nav-link" th:text="#{clients.title}">Clients</a>
+            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" th:text="#{clients.admin}">Admin</a>
+        </div>
+        <div class="navbar-profile">
+            <i class="bi bi-person-circle" id="profile-toggle"></i>
+            <div class="profile-dropdown" id="profile-dropdown">
+                <a href="/profile" class="dropdown-item" th:text="#{clients.profile}">Profile</a>
+                <a href="/logout" class="dropdown-item" th:text="#{clients.logout}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="search-group">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search clients..." th:placeholder="#{clients.search.placeholder}">
     </div>
 
     <h2 th:text="#{clients.list}">All Clients</h2>
-    <div class="table-responsive">
-        <table class="table table-striped table-hover" id="clientsTable">
+    <div class="table-container">
+        <table class="table" id="clientsTable">
             <thead>
             <tr>
                 <th th:text="#{clients.table.name}">Name</th>
@@ -105,12 +306,12 @@
             </thead>
             <tbody>
             <tr th:each="client : ${clients}" th:data-id="${client.id}">
-                <td th:text="${client.name}">Name</td>
-                <td th:text="${client.email ?: 'N/A'}">Email</td>
-                <td th:text="${client.phone ?: 'N/A'}">Phone</td>
-                <td th:text="${client.address ?: 'N/A'}">Address</td>
-                <td th:text="${client.taxId ?: 'N/A'}">Tax ID</td>
-                <td>
+                <td data-label="Name" th:text="${client.name}">Name</td>
+                <td data-label="Email" th:text="${client.email ?: 'N/A'}">Email</td>
+                <td data-label="Phone" th:text="${client.phone ?: 'N/A'}">Phone</td>
+                <td data-label="Address" th:text="${client.address ?: 'N/A'}">Address</td>
+                <td data-label="Tax ID" th:text="${client.taxId ?: 'N/A'}">Tax ID</td>
+                <td data-label="Actions">
                     <i class="bi bi-pencil-square text-primary edit-client-btn" th:data-id="${client.id}" data-bs-toggle="tooltip" title="Edit"></i>
                     <i class="bi bi-trash text-danger delete-client-btn" th:data-id="${client.id}" data-bs-toggle="tooltip" title="Delete"></i>
                 </td>
@@ -118,32 +319,36 @@
             </tbody>
         </table>
     </div>
+    <button class="btn btn-success" id="showNewClientForm" th:text="#{clients.new}">New Client</button>
 
-    <!-- New Client Form -->
-    <h3 th:text="#{clients.new}">New Client</h3>
-    <form th:action="@{/clients}" th:object="${newClient}" method="post">
-        <div class="mb-3">
-            <label for="name" class="form-label" th:text="#{clients.form.name}">Name</label>
-            <input type="text" id="name" th:field="*{name}" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="email" class="form-label" th:text="#{clients.form.email}">Email</label>
-            <input type="email" id="email" th:field="*{email}" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="phone" class="form-label" th:text="#{clients.form.phone}">Phone</label>
-            <input type="text" id="phone" th:field="*{phone}" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="address" class="form-label" th:text="#{clients.form.address}">Address</label>
-            <input type="text" id="address" th:field="*{address}" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="taxId" class="form-label" th:text="#{clients.form.taxId}">Tax ID</label>
-            <input type="text" id="taxId" th:field="*{taxId}" class="form-control">
-        </div>
-        <button type="submit" class="btn btn-primary" th:text="#{clients.form.submit}">Add Client</button>
-    </form>
+    <!-- New Client Form (Initially Hidden) -->
+    <div id="newClientSection" style="display: none;">
+        <h3 th:text="#{clients.new}">New Client</h3>
+        <form th:action="@{/clients}" th:object="${newClient}" method="post">
+            <div class="mb-3">
+                <label for="name" class="form-label" th:text="#{clients.form.name}">Name</label>
+                <input type="text" id="name" th:field="*{name}" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label" th:text="#{clients.form.email}">Email</label>
+                <input type="email" id="email" th:field="*{email}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label" th:text="#{clients.form.phone}">Phone</label>
+                <input type="text" id="phone" th:field="*{phone}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="address" class="form-label" th:text="#{clients.form.address}">Address</label>
+                <input type="text" id="address" th:field="*{address}" class="form-control">
+            </div>
+            <div class="mb-3">
+                <label for="taxId" class="form-label" th:text="#{clients.form.taxId}">Tax ID</label>
+                <input type="text" id="taxId" th:field="*{taxId}" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary" th:text="#{clients.form.submit}">Add Client</button>
+            <button type="button" class="btn btn-secondary" id="hideNewClientForm" th:text="#{clients.form.cancel}">Cancel</button>
+        </form>
+    </div>
 
     <!-- Edit Client Modal -->
     <div class="modal fade" id="editClientModal" tabindex="-1" aria-labelledby="editClientModalLabel" aria-hidden="true">
@@ -162,7 +367,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="editEmail" class="form-label" th:text="#{clients.form.email}">Email</label>
-                            <input type="email" id="editEmail" name="email" class="form-control">
+                            <input type="text" id="editEmail" name="email" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="editPhone" class="form-label" th:text="#{clients.form.phone}">Phone</label>
@@ -189,6 +394,39 @@
     document.addEventListener('DOMContentLoaded', function () {
         const csrfToken = document.querySelector('meta[name="_csrf"]').content;
         const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+
+        // Show/hide new client form
+        document.getElementById('showNewClientForm').addEventListener('click', function() {
+            document.getElementById('newClientSection').style.display = 'block';
+            this.style.display = 'none';
+        });
+
+        document.getElementById('hideNewClientForm').addEventListener('click', function() {
+            document.getElementById('newClientSection').style.display = 'none';
+            document.getElementById('showNewClientForm').style.display = 'inline-block';
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#clientsTable tbody tr');
+
+            rows.forEach(row => {
+                const name = row.cells[0].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                const phone = row.cells[2].textContent.toLowerCase();
+                const address = row.cells[3].textContent.toLowerCase();
+                const taxId = row.cells[4].textContent.toLowerCase();
+
+                if (name.includes(filter) || email.includes(filter) || phone.includes(filter) ||
+                    address.includes(filter) || taxId.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
 
         // Edit client button
         document.querySelectorAll('.edit-client-btn').forEach(btn => {
@@ -257,6 +495,20 @@
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Profile dropdown toggle
+        const profileToggle = document.getElementById('profile-toggle');
+        const profileDropdown = document.getElementById('profile-dropdown');
+
+        profileToggle.addEventListener('click', function () {
+            profileDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
+                profileDropdown.classList.remove('active');
+            }
         });
     });
 </script>

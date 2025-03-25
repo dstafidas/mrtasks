@@ -13,126 +13,295 @@
         padding: 2rem;
         display: flex;
         justify-content: center;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     .tasks-container {
         background: white;
-        padding: 2.5rem;
+        padding: 0 2.5rem 2.5rem;
         border-radius: 15px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         max-width: 1400px;
         width: 100%;
     }
-    .tasks-header {
-        color: #2c3e50;
-        font-weight: 700;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    .nav-group {
+    .navbar {
         display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 20px;
         justify-content: space-between;
         align-items: center;
+        background: #ffffff;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid #dee2e6;
+        box-shadow: none;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        margin-bottom: 10px;
+    }
+    .navbar-brand .tasks-header {
+        margin: 0;
+        color: #2c3e50;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+    .navbar-links {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+    .nav-link {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .nav-link:hover {
+        background-color: #e9ecef;
+        color: #2980b9;
+    }
+    .navbar-profile {
+        position: relative;
+    }
+    .bi-person-circle {
+        font-size: 2rem;
+        color: #2c3e50;
+        cursor: pointer;
+        transition: color 0.3s ease;
+    }
+    .bi-person-circle:hover {
+        color: #2980b9;
+    }
+    .profile-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+        z-index: 1000;
+    }
+    .profile-dropdown.active {
+        display: block;
+    }
+    .dropdown-item {
+        display: block;
+        padding: 0.5rem 1rem;
+        color: #2c3e50;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+    }
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #3498db;
     }
     .search-group {
         margin-bottom: 20px;
         max-width: 300px;
     }
-    .table-responsive {
-        margin-top: 20px;
+    .search-group .form-control {
+        border-radius: 20px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .search-group .form-control:focus {
+        box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+        border-color: #3498db;
+    }
+    .table-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid #dee2e6;
     }
     .table {
         width: 100%;
-        margin-bottom: 1rem;
+        margin-bottom: 0;
+        color: #2c3e50;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+    .table thead th {
+        background-color: #3498db;
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 1rem;
+        border: none;
+    }
+    .table tbody tr {
+        transition: all 0.3s ease;
+    }
+    .table tbody tr:nth-child(even) {
+        background-color: #f8f9fa;
+    }
+    .table tbody tr:hover {
+        background-color: #e9ecef;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    .table td, .table th {
+        padding: 1rem;
+        vertical-align: middle;
+        border: none;
+        border-bottom: 1px solid #dee2e6;
+    }
+    .table td:last-child {
+        text-align: center;
+    }
+    .status-badge {
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+    .status-todo {
+        background-color: #dc3545;
+        color: white;
+    }
+    .status-in-progress {
+        background-color: #ffc107;
         color: #212529;
     }
-    .table th,
-    .table td {
-        padding: 0.75rem;
-        vertical-align: middle;
-        border-top: 1px solid #dee2e6;
+    .status-completed {
+        background-color: #28a745;
+        color: white;
     }
     .btn-primary {
         background-color: #3498db;
         border: none;
-        transition: background-color 0.3s;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        transition: all 0.3s ease;
     }
     .btn-primary:hover {
         background-color: #2980b9;
-    }
-    .btn-secondary {
-        background-color: #6c757d;
-        border: none;
-        transition: background-color 0.3s;
-    }
-    .btn-secondary:hover {
-        background-color: #5a6268;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     .btn-danger {
         background-color: #dc3545;
         border: none;
-        transition: background-color 0.3s;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        transition: all 0.3s ease;
     }
     .btn-danger:hover {
         background-color: #c82333;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     .btn-success {
         background-color: #28a745;
         border: none;
-        transition: background-color 0.3s;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        transition: all 0.3s ease;
     }
     .btn-success:hover {
         background-color: #218838;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     .modal-content {
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        border: none;
     }
     .modal-header {
         background-color: #3498db;
         color: white;
-        border-top-left-radius: 10px;
-        border-top-right-radius: 10px;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+        padding: 1rem 1.5rem;
+    }
+    .modal-body {
+        padding: 1.5rem;
     }
     .description-textarea {
         width: 100%;
         height: 120px;
         resize: vertical;
-        border-radius: 5px;
+        border-radius: 8px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
     }
-    .bi {
-        font-size: 1.2rem;
-        margin-right: 8px;
-        cursor: pointer;
-        transition: color 0.3s;
+    h2 {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
     }
-    .bi:hover {
-        color: #000;
+    @media (max-width: 768px) {
+        .tasks-container {
+            padding: 0 1.5rem 1.5rem;
+        }
+        .navbar {
+            flex-direction: column;
+            padding: 1rem;
+        }
+        .navbar-links {
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        .navbar-profile {
+            margin-top: 1rem;
+        }
+        .table {
+            display: block;
+            overflow-x: auto;
+        }
+        .table thead {
+            display: none;
+        }
+        .table tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        .table tbody td {
+            display: block;
+            text-align: right;
+            padding: 0.75rem;
+            border-bottom: none;
+        }
+        .table tbody td:before {
+            content: attr(data-label);
+            float: left;
+            font-weight: 600;
+            color: #3498db;
+        }
     }
   </style>
 </head>
 <body>
 <div class="tasks-container">
-  <h1 class="tasks-header" th:text="#{tasks.title}">All Tasks</h1>
-  <div class="nav-group">
-    <div>
-      <a href="/dashboard" class="btn btn-secondary" th:text="#{tasks.back}">Back to Dashboard</a>
-      <a href="/profile" class="btn btn-secondary" th:text="#{tasks.profile}">Profile</a>
-      <a href="/clients" class="btn btn-secondary" th:text="#{tasks.clients}">Clients</a>
-      <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="btn btn-secondary" th:text="#{tasks.admin}">Admin</a>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <h1 class="tasks-header" th:text="#{tasks.title}">All Tasks</h1>
     </div>
-    <a href="/logout" class="btn btn-danger" th:text="#{tasks.logout}">Logout</a>
-  </div>
+    <div class="navbar-links">
+      <a href="/dashboard" class="nav-link" th:text="#{dashboard.title}">Dashboard</a>
+      <a href="/tasks" class="nav-link" th:text="#{dashboard.allTasks}">All Tasks</a>
+      <a href="/clients" class="nav-link" th:text="#{dashboard.clients}">Clients</a>
+      <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" th:text="#{dashboard.admin}">Admin</a>
+    </div>
+    <div class="navbar-profile">
+      <i class="bi bi-person-circle" id="profile-toggle"></i>
+      <div class="profile-dropdown" id="profile-dropdown">
+        <a href="/profile" class="dropdown-item" th:text="#{dashboard.profile}">Profile</a>
+        <a href="/logout" class="dropdown-item" th:text="#{dashboard.logout}">Logout</a>
+      </div>
+    </div>
+  </nav>
 
   <div class="search-group">
     <input type="text" id="searchInput" class="form-control" placeholder="Search tasks..." th:placeholder="#{tasks.search.placeholder}">
   </div>
 
   <h2 th:text="#{tasks.list}">All Tasks</h2>
-  <div class="table-responsive">
-    <table class="table table-striped table-hover" id="tasksTable">
+  <div class="table-container">
+    <table class="table" id="tasksTable">
       <thead>
       <tr>
         <th th:text="#{dashboard.table.title}">Title</th>
@@ -146,13 +315,15 @@
       </thead>
       <tbody>
       <tr th:each="task : ${tasks}" th:data-id="${task.id}">
-        <td th:text="${task.title}">Title</td>
-        <td th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</td>
-        <td th:text="${task.deadline}">Deadline</td>
-        <td th:text="${task.status}">Status</td>
-        <td th:text="${task.hidden ? 'Yes' : 'No'}">Hidden</td>
-        <td th:text="${task.client != null ? task.client.name : 'N/A'}">Client</td>
-        <td>
+        <td data-label="Title" th:text="${task.title}">Title</td>
+        <td data-label="Description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</td>
+        <td data-label="Deadline" th:text="${task.deadline}">Deadline</td>
+        <td data-label="Status">
+          <span class="status-badge" th:classappend="${task.status == 'TODO' ? 'status-todo' : task.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed'}" th:text="${task.status}">Status</span>
+        </td>
+        <td data-label="Hidden" th:text="${task.hidden ? 'Yes' : 'No'}">Hidden</td>
+        <td data-label="Client" th:text="${task.client != null ? task.client.name : 'N/A'}">Client</td>
+        <td data-label="Actions">
           <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" title="Edit"></i>
           <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" title="Delete"></i>
           <i class="bi bi-eye text-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" data-bs-toggle="tooltip" title="Unhide"></i>
@@ -162,7 +333,6 @@
     </table>
   </div>
 
-  <!-- Edit Task Modal -->
   <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -232,28 +402,34 @@
 <script>
   document.addEventListener('DOMContentLoaded', function () {
       document.querySelectorAll('tr').forEach(row => attachListeners(row));
-
       const searchInput = document.getElementById('searchInput');
+      const profileToggle = document.getElementById('profile-toggle');
+      const profileDropdown = document.getElementById('profile-dropdown');
+
       searchInput.addEventListener('keyup', function() {
           const filter = this.value.toLowerCase();
           const rows = document.querySelectorAll('#tasksTable tbody tr');
-
           rows.forEach(row => {
               const title = row.cells[0].textContent.toLowerCase();
               const description = row.cells[1].textContent.toLowerCase();
               const status = row.cells[3].textContent.toLowerCase();
               const client = row.cells[5].textContent.toLowerCase();
-
-              if (title.includes(filter) || description.includes(filter) || status.includes(filter) || client.includes(filter)) {
-                  row.style.display = '';
-              } else {
-                  row.style.display = 'none';
-              }
+              row.style.display = (title.includes(filter) || description.includes(filter) || status.includes(filter) || client.includes(filter)) ? '' : 'none';
           });
       });
 
+      profileToggle.addEventListener('click', function () {
+          profileDropdown.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function (event) {
+          if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
+              profileDropdown.classList.remove('active');
+          }
+      });
+
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-      var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      tooltipTriggerList.map(function (tooltipTriggerEl) {
           return new bootstrap.Tooltip(tooltipTriggerEl);
       });
   });
@@ -269,10 +445,7 @@
                   method: 'GET',
                   headers: { [csrfHeader]: csrfToken }
               })
-              .then(response => {
-                  if (!response.ok) throw new Error('Failed to fetch task: ' + response.status);
-                  return response.json();
-              })
+              .then(response => response.ok ? response.json() : Promise.reject('Failed to fetch task: ' + response.status))
               .then(task => {
                   document.getElementById('editTaskId').value = task.id;
                   document.getElementById('editTitle').value = task.title;
@@ -285,7 +458,6 @@
                   document.getElementById('editClient').value = task.client ? task.client.id : '';
                   document.getElementById('editColor').value = task.color;
                   document.getElementById('editStatus').value = task.status;
-
                   const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
                   editModal.show();
               })
@@ -301,11 +473,7 @@
                       method: 'DELETE',
                       headers: { [csrfHeader]: csrfToken }
                   })
-                  .then(response => {
-                      if (!response.ok) throw new Error('Failed to delete task: ' + response.status);
-                      const taskRow = document.querySelector(`tr[data-id="${taskId}"]`);
-                      if (taskRow) taskRow.remove();
-                  })
+                  .then(response => response.ok ? document.querySelector(`tr[data-id="${taskId}"]`).remove() : Promise.reject('Failed to delete task: ' + response.status))
                   .catch(error => {
                       console.error('Error:', error);
                       alert('Failed to delete task');
@@ -322,8 +490,8 @@
                       method: 'POST',
                       headers: { [csrfHeader]: csrfToken }
                   })
-                  .then(response => {
-                      if (!response.ok) throw new Error('Failed to unhide task: ' + response.status);
+                  .then(response => response.ok ? Promise.resolve() : Promise.reject('Failed to unhide task: ' + response.status))
+                  .then(() => {
                       const taskRow = document.querySelector(`tr[data-id="${taskId}"]`);
                       if (taskRow) {
                           taskRow.querySelector('td:nth-child(5)').textContent = 'No';
@@ -354,10 +522,7 @@
           headers: { [csrfHeader]: csrfToken },
           body: formData
       })
-      .then(response => {
-          if (!response.ok) throw new Error('Failed to update task: ' + response.status);
-          return response.json();
-      })
+      .then(response => response.ok ? response.json() : Promise.reject('Failed to update task: ' + response.status))
       .then(task => {
           const taskRow = document.querySelector(`tr[data-id="${task.id}"]`);
           if (taskRow) {

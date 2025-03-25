@@ -60,6 +60,7 @@ public class ClientController {
         existingClient.setEmail(client.getEmail());
         existingClient.setPhone(client.getPhone());
         existingClient.setAddress(client.getAddress());
+        existingClient.setTaxId(client.getTaxId());
         clientRepository.save(existingClient);
         return ResponseEntity.ok(existingClient);
     }
