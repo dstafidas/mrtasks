@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title th:text="#{profile.title}">Profile - Task Master</title>
@@ -199,7 +199,7 @@
             <a href="/dashboard" class="nav-link" th:text="#{dashboard.title}">Dashboard</a>
             <a href="/tasks" class="nav-link" th:text="#{dashboard.allTasks}">All Tasks</a>
             <a href="/clients" class="nav-link" th:text="#{dashboard.clients}">Clients</a>
-            <a href="/admin" class="nav-link" th:text="#{dashboard.admin}">Admin</a>
+            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" th:text="#{dashboard.admin}">Admin</a>
         </div>
         <div class="navbar-profile">
             <i class="bi bi-person-circle" id="profile-toggle"></i>
