@@ -212,13 +212,13 @@
 
     <div th:if="${message}" th:classappend="${messageType == 'danger'} ? 'alert alert-danger' : 'alert alert-success'" th:text="${message}"></div>
 
-    <div th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}">
+    <div th:if="${subscription != null and subscription.isPremium and subscription.expiresAt != null and subscription.expiresAt.isAfter(#temporals.createNow())}">
         <div class="premium-status"
-             th:text="#{profile.premium.status} + ' ' + ${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}">
+             th:text="#{profile.premium.status} + ' ' + ${#temporals.format(subscription.expiresAt, 'yyyy-MM-dd')}">
             You are a Premium user until [expiration date].
         </div>
     </div>
-    <div th:unless="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}" class="section-box">
+    <div th:unless="${subscription != null and subscription.isPremium and subscription.expiresAt != null and subscription.expiresAt.isAfter(#temporals.createNow())}" class="section-box">
         <div class="free-status" th:text="#{profile.free.status}">You are on a Free plan.</div>
         <div class="mb-3">
             <label for="subscriptionMonths" class="form-label">Upgrade to Premium</label>
@@ -261,7 +261,6 @@
     </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {

@@ -3,8 +3,8 @@ package com.taskmaster.service;
 import com.taskmaster.model.User;
 import com.taskmaster.model.UserSubscription;
 import com.taskmaster.repository.UserRepository;
+import com.taskmaster.repository.UserSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -14,16 +14,16 @@ import java.time.LocalDateTime;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
 
     public void upgradeToPremium(Long userId, int months) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        UserSubscription subscription = user.getSubscription();
+        UserSubscription subscription = userSubscriptionRepository.findByUser(user).orElse(null);
         if (subscription == null) {
             subscription = new UserSubscription();
             subscription.setUser(user);
-            user.setSubscription(subscription);
         }
 
         subscription.setPremium(true);

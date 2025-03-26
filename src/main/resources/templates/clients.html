@@ -273,7 +273,7 @@
             <h1 class="clients-header" th:text="#{clients.title}">Clients</h1>
         </div>
         <div class="navbar-links">
-            <a href="/dashboard" class="nav-link" th:text="#{clients.back}">Back to Dashboard</a>
+            <a href="/dashboard" class="nav-link" th:text="#{dashboard.title}">Back to Dashboard</a>
             <a href="/tasks" class="nav-link" th:text="#{tasks.title}">All Tasks</a>
             <a href="/clients" class="nav-link" th:text="#{clients.title}">Clients</a>
             <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" th:text="#{clients.admin}">Admin</a>

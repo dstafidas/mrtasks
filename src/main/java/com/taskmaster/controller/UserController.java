@@ -2,8 +2,10 @@ package com.taskmaster.controller;
 
 import com.taskmaster.model.User;
 import com.taskmaster.model.UserProfile;
+import com.taskmaster.model.UserSubscription;
 import com.taskmaster.repository.UserProfileRepository;
 import com.taskmaster.repository.UserRepository;
+import com.taskmaster.repository.UserSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
@@ -21,16 +23,17 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
-
-    @Autowired
-    private MessageSource messageSource;
+    private final UserSubscriptionRepository userSubscriptionRepository;
+    private final MessageSource messageSource;
 
     @GetMapping("/profile")
     public String showProfile(Model model, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         UserProfile profile = userProfileRepository.findByUser(user).orElse(new UserProfile());
+        UserSubscription userSubscription = userSubscriptionRepository.findByUser(user).orElse(new UserSubscription());
         model.addAttribute("user", user);
         model.addAttribute("profile", profile);
+        model.addAttribute("subscription", userSubscription);
         return "profile";
     }
 
@@ -40,6 +43,7 @@ public class UserController {
             Authentication auth,
             Model model) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        UserSubscription userSubscription = userSubscriptionRepository.findByUser(user).orElse(new UserSubscription());
         Optional<UserProfile> existingProfile = userProfileRepository.findByUser(user);
         UserProfile updatedProfile = existingProfile.orElse(new UserProfile());
         updatedProfile.setUser(user);
@@ -53,6 +57,7 @@ public class UserController {
         model.addAttribute("messageType", "success");
         model.addAttribute("user", user);
         model.addAttribute("profile", updatedProfile);
+        model.addAttribute("subscription", userSubscription);
         return "profile";
     }
 }

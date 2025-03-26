@@ -1,7 +1,9 @@
 package com.taskmaster.controller;
 
 import com.taskmaster.model.User;
+import com.taskmaster.model.UserSubscription;
 import com.taskmaster.repository.UserRepository;
+import com.taskmaster.repository.UserSubscriptionRepository;
 import com.taskmaster.service.PremiumService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -12,6 +14,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Controller
 @RequestMapping("/admin")
 @PreAuthorize("hasRole('ADMIN')")
@@ -20,6 +26,7 @@ public class AdminController {
 
     private final PremiumService premiumService;
     private final UserRepository userRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
 
     @GetMapping
     public String adminDashboard(
@@ -36,7 +43,15 @@ public class AdminController {
             userPage = userRepository.findAll(pageable);
         }
 
+        // Fetch subscriptions for the users in the current page
+        List<Long> userIds = userPage.getContent().stream().map(User::getId).toList();
+        List<UserSubscription> subscriptions = userSubscriptionRepository.findByUserIdIn(userIds);
+        Map<Long, UserSubscription> subscriptionMap = subscriptions.stream()
+                .collect(Collectors.toMap(sub -> sub.getUser().getId(), sub -> sub));
+
+        // Pass data to the model
         model.addAttribute("users", userPage.getContent());
+        model.addAttribute("subscriptions", subscriptionMap); // Map of user ID to subscription
         model.addAttribute("currentPage", userPage.getNumber());
         model.addAttribute("totalPages", userPage.getTotalPages());
         model.addAttribute("search", search); // Preserve search term in UI
@@ -59,7 +74,7 @@ public class AdminController {
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
-        return adminDashboard(page, size, search, model); // Reuse pagination logic
+        return adminDashboard(page, size, search, model);
     }
 
     @PostMapping("/downgrade")
@@ -77,6 +92,6 @@ public class AdminController {
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
-        return adminDashboard(page, size, search, model); // Reuse pagination logic
+        return adminDashboard(page, size, search, model);
     }
 }

@@ -314,10 +314,10 @@
                 <td data-label="Username" th:text="${user.username}"></td>
                 <td data-label="Role"><span th:class="'badge ' + (${user.role == 'ADMIN'} ? 'bg-primary' : 'bg-secondary')" th:text="${user.role}"></span></td>
                 <td data-label="Subscription Status" class="subscription-status">
-                    <span th:if="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}" class="badge bg-success">
-                        Premium until <span th:text="${#temporals.format(user.subscription.expiresAt, 'yyyy-MM-dd')}"></span>
+                    <span th:if="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-success">
+                        Premium until <span th:text="${#temporals.format(subscriptions[user.id].expiresAt, 'yyyy-MM-dd')}"></span>
                     </span>
-                    <span th:unless="${user.subscription != null and user.subscription.isPremium and user.subscription.expiresAt != null and user.subscription.expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
+                    <span th:unless="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
                         Free
                     </span>
                 </td>
