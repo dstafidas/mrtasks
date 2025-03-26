@@ -604,6 +604,20 @@
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
+            // Profile dropdown toggle
+        const profileToggle = document.getElementById('profile-toggle');
+        const profileDropdown = document.getElementById('profile-dropdown');
+
+        profileToggle.addEventListener('click', function () {
+            profileDropdown.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
+                profileDropdown.classList.remove('active');
+            }
+        });
+
         const containers = [
             document.querySelector('#todo-column .task-list'),
             document.querySelector('#in-progress-column .task-list'),
@@ -914,20 +928,6 @@
             a.remove();
             window.URL.revokeObjectURL(url);
         });
-    });
-
- // Profile dropdown toggle
-    const profileToggle = document.getElementById('profile-toggle');
-    const profileDropdown = document.getElementById('profile-dropdown');
-
-    profileToggle.addEventListener('click', function () {
-        profileDropdown.classList.toggle('active');
-    });
-
-    document.addEventListener('click', function (event) {
-        if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
-            profileDropdown.classList.remove('active');
-        }
     });
 </script>
 </body>
