@@ -11,6 +11,7 @@ import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
@@ -172,11 +173,11 @@ public class InvoiceService {
 
         // Footer (Simplified)
         document.add(Chunk.NEWLINE);
-        Paragraph footer = new Paragraph("Contact us at " +
-                (profile.getEmail() != null ? profile.getEmail() : user.getUsername() + "@example.com"), footerFont);
-        footer.setAlignment(Element.ALIGN_CENTER);
-        document.add(footer);
-
+        if (StringUtils.hasText(profile.getEmail())) {
+            Paragraph footer = new Paragraph("Contact us at " + profile.getEmail(), footerFont);
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
+        }
         document.close();
         return out.toByteArray();
     }

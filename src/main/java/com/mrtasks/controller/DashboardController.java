@@ -69,6 +69,7 @@ public class DashboardController {
         if (task.getClient() != null && task.getClient().getId() != null) {
             Client client = clientRepository.findByIdAndUser(task.getClient().getId(), user);
             task.setClient(client);
+            task.setClientName(client.getName());
         } else {
             task.setClient(null);
         }
@@ -105,6 +106,7 @@ public class DashboardController {
         if (task.getClient() != null && task.getClient().getId() != null) {
             Client client = clientRepository.findByIdAndUser(task.getClient().getId(), user);
             existingTask.setClient(client);
+            existingTask.setClientName(client.getName());
         } else {
             existingTask.setClient(null);
         }
