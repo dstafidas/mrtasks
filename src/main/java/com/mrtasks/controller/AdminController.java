@@ -69,7 +69,7 @@ public class AdminController {
         try {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-            premiumService.upgradeToPremium(user, months);
+            premiumService.upgradeToPremiumFromAdmin(user, months);
             model.addAttribute("message", "User " + username + " upgraded to Premium for " + months + " months");
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());

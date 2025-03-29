@@ -1,10 +1,10 @@
 package com.mrtasks.controller;
 
+import com.mrtasks.service.PremiumService;
+import com.mrtasks.service.StripeService;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.checkout.Session;
-import com.mrtasks.service.StripeService;
-import com.mrtasks.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -20,7 +20,7 @@ public class PaymentController {
 
     private final StripeService stripeService;
 
-    private final UserService userService;
+    private final PremiumService premiumService;
 
     private final MessageSource messageSource;
 
@@ -40,7 +40,7 @@ public class PaymentController {
         String[] parts = session.getClientReferenceId().split("_");
         Long userId = Long.valueOf(parts[0]);
         int months = Integer.parseInt(parts[1]);
-        userService.upgradeToPremium(userId, months);
+        premiumService.upgradeToPremium(userId, months);
         String message = messageSource.getMessage("profile.payment.success", null, LocaleContextHolder.getLocale());
         redirectAttributes.addFlashAttribute("message", message);
         redirectAttributes.addFlashAttribute("messageType", "success");
