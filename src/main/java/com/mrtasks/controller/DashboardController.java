@@ -62,13 +62,15 @@ public class DashboardController {
     @ResponseBody
     public ResponseEntity<?> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        task.setUser(user);
         if (!premiumService.isPremiumUser(user) && taskService.getTasksForUser(user).size() >= 5) {
             return ResponseEntity.status(403).body("Non-premium users are limited to 5 tasks. Upgrade to premium to create more.");
         }
+        task.setUser(user);
         if (task.getClient() != null && task.getClient().getId() != null) {
             Client client = clientRepository.findByIdAndUser(task.getClient().getId(), user);
             task.setClient(client);
+        } else {
+            task.setClient(null);
         }
         task.setOrderIndex(taskService.getMaxOrderIndex(user, task.getStatus()) + 1);
         taskService.saveTask(task);
