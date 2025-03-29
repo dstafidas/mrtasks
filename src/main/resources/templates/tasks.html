@@ -308,7 +308,7 @@
         <th th:text="#{dashboard.table.description}">Description</th>
         <th th:text="#{dashboard.table.deadline}">Deadline</th>
         <th th:text="#{dashboard.form.status}">Status</th>
-        <th>Hidden</th>
+        <th th:text="#{dashboard.table.hidden}">Hidden</th>
         <th th:text="#{dashboard.form.client}">Client</th>
         <th th:text="#{dashboard.table.actions}">Actions</th>
       </tr>
@@ -316,17 +316,22 @@
       <tbody>
       <tr th:each="task : ${tasks}" th:data-id="${task.id}">
         <td data-label="Title" th:text="${task.title}">Title</td>
-        <td data-label="Description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</td>
+        <td data-label="Description">
+          <span th:if="${task.description != null and task.description.length() > 0}"
+                th:utext="${task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')}">Description</span>
+          <span th:unless="${task.description != null and task.description.length() > 0}"
+                th:utext="#{dashboard.table.noDescription}">No description</span>
+        </td>
         <td data-label="Deadline" th:text="${task.deadline}">Deadline</td>
         <td data-label="Status">
-          <span class="status-badge" th:classappend="${task.status == 'TODO' ? 'status-todo' : task.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed'}" th:text="${task.status}">Status</span>
+          <span class="status-badge" th:classappend="${task.status == 'TODO' ? 'status-todo' : task.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed'}" th:text="#{dashboard.status.__${task.status.name().toLowerCase()}__}">Status</span>
         </td>
-        <td data-label="Hidden" th:text="${task.hidden ? 'Yes' : 'No'}">Hidden</td>
-        <td data-label="Client" th:text="${task.client != null ? task.client.name : 'N/A'}">Client</td>
+        <td data-label="Hidden" th:text="${task.hidden} ? #{dashboard.table.yes} : #{dashboard.table.no}">Hidden</td>
+        <td data-label="Client" th:text="${task.client != null} ? ${task.client.name} : #{dashboard.table.na}">Client</td>
         <td data-label="Actions">
-          <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" title="Edit"></i>
-          <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" title="Delete"></i>
-          <i class="bi bi-eye text-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" data-bs-toggle="tooltip" title="Unhide"></i>
+          <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
+          <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
+          <i class="bi bi-eye text-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" data-bs-toggle="tooltip" th:data-bs-title="#{tasks.unhide.button}"></i>
         </td>
       </tr>
       </tbody>
@@ -354,7 +359,7 @@
             <div class="mb-3">
               <label for="editClient" class="form-label" th:text="#{dashboard.form.client}">Client</label>
               <select id="editClient" name="client.id" class="form-select">
-                <option value="">Select a Client (Optional)</option>
+                <option value="" th:text="#{dashboard.form.client.placeholder}">Select a Client (Optional)</option>
                 <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}"></option>
               </select>
             </div>
@@ -379,14 +384,14 @@
               <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control" value="0.0">
             </div>
             <div class="mb-3">
-              <label for="editColor" class="form-label">Color</label>
+              <label for="editColor" class="form-label" th:text="#{dashboard.form.color}">Color</label>
               <input type="color" id="editColor" name="color" class="form-control">
             </div>
             <div class="mb-3">
               <label for="editStatus" class="form-label" th:text="#{dashboard.form.status}">Status</label>
               <select id="editStatus" name="status" class="form-select">
                 <option value="TODO" th:text="#{dashboard.status.todo}">To Do</option>
-                <option value="IN_PROGRESS" th:text="#{dashboard.status.inprogress}">In Progress</option>
+                <option value="IN_PROGRESS" th:text="#{dashboard.status.in_progress}">In Progress</option>
                 <option value="COMPLETED" th:text="#{dashboard.status.completed}">Completed</option>
               </select>
             </div>
@@ -399,34 +404,53 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+<script th:inline="javascript">
+  const statusMessages = {
+      'todo': /*[[#{dashboard.status.todo}]]*/,
+      'in_progress': /*[[#{dashboard.status.in_progress}]]*/,
+      'completed': /*[[#{dashboard.status.completed}]]*/
+  };
+
+  const hiddenStatusMessages = {
+    true: /*[[#{dashboard.table.yes}]]*/,
+    false: /*[[#{dashboard.table.no}]]*/
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
       document.querySelectorAll('tr').forEach(row => attachListeners(row));
       const searchInput = document.getElementById('searchInput');
       const profileToggle = document.getElementById('profile-toggle');
       const profileDropdown = document.getElementById('profile-dropdown');
 
-      searchInput.addEventListener('keyup', function() {
-          const filter = this.value.toLowerCase();
-          const rows = document.querySelectorAll('#tasksTable tbody tr');
-          rows.forEach(row => {
-              const title = row.cells[0].textContent.toLowerCase();
-              const description = row.cells[1].textContent.toLowerCase();
-              const status = row.cells[3].textContent.toLowerCase();
-              const client = row.cells[5].textContent.toLowerCase();
-              row.style.display = (title.includes(filter) || description.includes(filter) || status.includes(filter) || client.includes(filter)) ? '' : 'none';
+      if (searchInput) {
+          searchInput.addEventListener('keyup', function() {
+              const filter = this.value.toLowerCase();
+              const rows = document.querySelectorAll('#tasksTable tbody tr');
+              rows.forEach(row => {
+                  const title = row.cells[0].textContent.toLowerCase();
+                  const description = row.cells[1].textContent.toLowerCase();
+                  const status = row.cells[3].textContent.toLowerCase();
+                  const client = row.cells[5].textContent.toLowerCase();
+                  row.style.display = (title.includes(filter) || description.includes(filter) || status.includes(filter) || client.includes(filter)) ? '' : 'none';
+              });
           });
-      });
+      } else {
+          console.error('Search input not found');
+      }
 
-      profileToggle.addEventListener('click', function () {
-          profileDropdown.classList.toggle('active');
-      });
+      if (profileToggle && profileDropdown) {
+          profileToggle.addEventListener('click', function () {
+              profileDropdown.classList.toggle('active');
+          });
 
-      document.addEventListener('click', function (event) {
-          if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
-              profileDropdown.classList.remove('active');
-          }
-      });
+          document.addEventListener('click', function (event) {
+              if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
+                  profileDropdown.classList.remove('active');
+              }
+          });
+      } else {
+          console.error('Profile toggle or dropdown not found');
+      }
 
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
       tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -468,7 +492,7 @@
       element.querySelectorAll('.delete-task-btn').forEach(icon => {
           icon.addEventListener('click', function () {
               const taskId = this.getAttribute('data-id');
-              if (confirm('Are you sure you want to delete this task?')) {
+              if (confirm(/*[[#{dashboard.confirm.deleteTask}]]*/)) {
                   fetch(`/dashboard/task/${taskId}`, {
                       method: 'DELETE',
                       headers: { [csrfHeader]: csrfToken }
@@ -476,7 +500,7 @@
                   .then(response => response.ok ? document.querySelector(`tr[data-id="${taskId}"]`).remove() : Promise.reject('Failed to delete task: ' + response.status))
                   .catch(error => {
                       console.error('Error:', error);
-                      alert('Failed to delete task');
+                      alert(/*[[#{dashboard.alert.deleteTaskFailed}]]*/);
                   });
               }
           });
@@ -485,7 +509,7 @@
       element.querySelectorAll('.unhide-task-btn').forEach(icon => {
           icon.addEventListener('click', function () {
               const taskId = this.getAttribute('data-id');
-              if (confirm('Are you sure you want to unhide this task?')) {
+              if (confirm(/*[[#{dashboard.confirm.unhideTask}]]*/)) {
                   fetch(`/dashboard/task/${taskId}/unhide`, {
                       method: 'POST',
                       headers: { [csrfHeader]: csrfToken }
@@ -494,16 +518,20 @@
                   .then(() => {
                       const taskRow = document.querySelector(`tr[data-id="${taskId}"]`);
                       if (taskRow) {
-                          taskRow.querySelector('td:nth-child(5)').textContent = 'No';
+                          taskRow.querySelector('td:nth-child(5)').textContent = /*[[#{dashboard.table.no}]]*/;
                           taskRow.querySelector('.unhide-task-btn').remove();
                       }
                   })
                   .catch(error => {
                       console.error('Error:', error);
-                      alert('Failed to unhide task');
+                      alert(/*[[#{dashboard.alert.unhideTaskFailed}]]*/);
                   });
               }
           });
+      });
+
+      element.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+          new bootstrap.Tooltip(el);
       });
   }
 
@@ -529,11 +557,14 @@
               taskRow.querySelector('td:nth-child(1)').textContent = task.title;
               taskRow.querySelector('td:nth-child(2)').innerHTML = task.description && task.description.length > 0 ?
                   (task.description.length > 50 ? task.description.substring(0, 50) + '...' : task.description.replace(/\n/g, '<br>')) :
-                  'No description';
+                  /*[[#{dashboard.table.noDescription}]]*/;
               taskRow.querySelector('td:nth-child(3)').textContent = task.deadline || '';
-              taskRow.querySelector('td:nth-child(4)').textContent = task.status;
-              taskRow.querySelector('td:nth-child(5)').textContent = task.hidden ? 'Yes' : 'No';
-              taskRow.querySelector('td:nth-child(6)').textContent = task.client ? task.client.name : 'N/A';
+              const statusCell = taskRow.querySelector('td:nth-child(4) span.status-badge');
+              statusCell.textContent = statusMessages[task.status.toLowerCase()];
+              statusCell.className = 'status-badge';
+              statusCell.classList.add(task.status === 'TODO' ? 'status-todo' : task.status === 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed');
+              taskRow.querySelector('td:nth-child(5)').textContent = hiddenStatusMessages[task.hidden];
+              taskRow.querySelector('td:nth-child(6)').textContent = task.client ? task.client.name : /*[[#{dashboard.table.na}]]*/;
               if (!task.hidden) {
                   const unhideIcon = taskRow.querySelector('.unhide-task-btn');
                   if (unhideIcon) unhideIcon.remove();
@@ -543,7 +574,7 @@
                   unhideIcon.className = 'bi bi-eye text-success unhide-task-btn';
                   unhideIcon.setAttribute('data-id', task.id);
                   unhideIcon.setAttribute('data-bs-toggle', 'tooltip');
-                  unhideIcon.setAttribute('title', 'Unhide');
+                  unhideIcon.setAttribute('data-bs-title', /*[[#{tasks.unhide.button}]]*/);
                   actionsCell.appendChild(unhideIcon);
                   attachListeners(taskRow);
               }
@@ -552,7 +583,7 @@
       })
       .catch(error => {
           console.error('Error:', error);
-          alert('Failed to update task');
+          alert(/*[[#{dashboard.alert.updateTaskFailed}]]*/);
       });
   });
 </script>

@@ -21,4 +21,7 @@ public class UserProfile {
     private String logoUrl;
     private String email;
     private String phone;
+
+    @Column(name = "language", nullable = false, columnDefinition = "varchar(5) default 'en'")
+    private String language = "en";
 }

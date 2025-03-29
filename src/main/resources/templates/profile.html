@@ -19,6 +19,13 @@
             padding: 0 2.5rem 2.5rem;
             border-radius: 15px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-details-container {
             max-width: 700px;
             width: 100%;
         }
@@ -33,6 +40,7 @@
             border-top-left-radius: 15px;
             border-top-right-radius: 15px;
             margin-bottom: 10px;
+            width: 100%;
         }
         .navbar-brand .profile-header {
             margin: 0;
@@ -210,54 +218,69 @@
         </div>
     </nav>
 
-    <div th:if="${message}" th:classappend="${messageType == 'danger'} ? 'alert alert-danger' : 'alert alert-success'" th:text="${message}"></div>
+    <div class="profile-details-container">
+        <div th:if="${message}" th:classappend="${messageType == 'danger'} ? 'alert alert-danger' : 'alert alert-success'" th:text="${message}"></div>
 
-    <div th:if="${subscription != null and subscription.isPremium and subscription.expiresAt != null and subscription.expiresAt.isAfter(#temporals.createNow())}">
-        <div class="premium-status"
-             th:text="#{profile.premium.status} + ' ' + ${#temporals.format(subscription.expiresAt, 'yyyy-MM-dd')}">
-            You are a Premium user until [expiration date].
+        <div th:if="${subscription != null and subscription.isPremium and subscription.expiresAt != null and subscription.expiresAt.isAfter(#temporals.createNow())}">
+            <div class="premium-status"
+                 th:text="#{profile.premium.status} + ' ' + ${#temporals.format(subscription.expiresAt, 'yyyy-MM-dd')}">
+                You are a Premium user until [expiration date].
+            </div>
         </div>
-    </div>
-    <div th:unless="${subscription != null and subscription.isPremium and subscription.expiresAt != null and subscription.expiresAt.isAfter(#temporals.createNow())}" class="section-box">
-        <div class="free-status" th:text="#{profile.free.status}">You are on a Free plan.</div>
-        <div class="mb-3">
-            <label for="subscriptionMonths" class="form-label">Upgrade to Premium</label>
-            <select id="subscriptionMonths" class="form-select" name="months">
-                <option value="1">1 Month (€10)</option>
-                <option value="3">3 Months (€25)</option>
-                <option value="6">6 Months (€45)</option>
-            </select>
+        <div th:unless="${subscription != null and subscription.isPremium and subscription.expiresAt != null and subscription.expiresAt.isAfter(#temporals.createNow())}" class="section-box">
+            <div class="free-status" th:text="#{profile.free.status}">You are on a Free plan.</div>
+            <div class="mb-3">
+                <label for="subscriptionMonths" class="form-label" th:text="#{admin.upgrade}">Upgrade to Premium</label>
+                <select id="subscriptionMonths" class="form-select" name="months">
+                    <option value="1" th:text="#{profile.subscription.option.1(#{profile.subscription.month})}">1 Month (€10)</option>
+                    <option value="3" th:text="#{profile.subscription.option.3(#{profile.subscription.months})}">3 Months (€25)</option>
+                    <option value="6" th:text="#{profile.subscription.option.6(#{profile.subscription.months})}">6 Months (€45)</option>
+                </select>
+            </div>
+            <button id="upgradeButton" class="btn btn-primary" th:text="#{admin.upgrade}">Upgrade Now</button>
         </div>
-        <button id="upgradeButton" class="btn btn-primary" th:text="#{admin.upgrade}">Upgrade Now</button>
-    </div>
 
-    <div class="section-box">
-        <h2 th:text="#{profile.details}">User Details</h2>
-        <p><strong th:text="#{profile.username}">Username:</strong> <span th:text="${user.username}"></span></p>
+        <div class="section-box">
+            <h2 th:text="#{profile.details}">User Details</h2>
+            <p><strong th:text="#{profile.username}">Username:</strong> <span th:text="${user.username}"></span></p>
 
-        <form id="profileForm" th:action="@{/profile}" th:object="${profile}" method="post" novalidate>
-            <div class="mb-3">
-                <label for="companyName" class="form-label" th:text="#{profile.companyName}">Company Name</label>
-                <input type="text" id="companyName" th:field="*{companyName}" class="form-control" maxlength="100">
-                <div class="invalid-feedback">Company name must be 1-100 characters long.</div>
-            </div>
-            <div class="mb-3">
-                <label for="logoUrl" class="form-label" th:text="#{profile.logoUrl}">Logo URL</label>
-                <input type="url" id="logoUrl" th:field="*{logoUrl}" class="form-control">
-                <div class="invalid-feedback">Please enter a valid URL (e.g., https://example.com/logo.png).</div>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label" th:text="#{profile.email}">Email</label>
-                <input type="email" id="email" th:field="*{email}" class="form-control">
-                <div class="invalid-feedback">Please enter a valid email address (e.g., <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abcdcdcbdcce">[email&#160;protected]</a>).</div>
-            </div>
-            <div class="mb-3">
-                <label for="phone" class="form-label" th:text="#{profile.phone}">Phone</label>
-                <input type="tel" id="phone" th:field="*{phone}" class="form-control" pattern="^\+?[1-9]\d{1,14}$">
-                <div class="invalid-feedback">Please enter a valid phone number (e.g., +1234567890).</div>
-            </div>
-            <button type="submit" class="btn btn-primary" th:text="#{profile.submit}">Update Profile</button>
-        </form>
+            <form id="profileForm" th:action="@{/profile}" th:object="${profile}" method="post" novalidate>
+                <div class="mb-3">
+                    <label for="companyName" class="form-label" th:text="#{profile.companyName}">Company Name</label>
+                    <input type="text" id="companyName" th:field="*{companyName}" class="form-control" maxlength="100">
+                    <div class="invalid-feedback">Company name must be 1-100 characters long.</div>
+                </div>
+                <div class="mb-3">
+                    <label for="logoUrl" class="form-label" th:text="#{profile.logoUrl}">Logo URL</label>
+                    <input type="url" id="logoUrl" th:field="*{logoUrl}" class="form-control">
+                    <div class="invalid-feedback">Please enter a valid URL (e.g., https://example.com/logo.png).</div>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label" th:text="#{profile.email}">Email</label>
+                    <input type="email" id="email" th:field="*{email}" class="form-control">
+                    <div class="invalid-feedback">Please enter a valid email address (e.g., <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abcdcdcbdcce">[email protected]</a>).</div>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label" th:text="#{profile.phone}">Phone</label>
+                    <input type="tel" id="phone" th:field="*{phone}" class="form-control" pattern="^\+?[1-9]\d{1,14}$">
+                    <div class="invalid-feedback">Please enter a valid phone number (e.g., +1234567890).</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="language" class="form-label" th:text="#{profile.language.label}">Preferred Language</label>
+                    <select id="language" th:field="*{language}" class="form-select" name="language">
+                        <option value="en" th:text="'English'">English</option>
+                        <option value="el" th:text="'Ελληνικά'">Greek</option>
+                        <option value="es" th:text="'Español'">Spanish</option>
+                        <option value="fr" th:text="'Français'">French</option>
+                        <option value="de" th:text="'Deutsch'">German</option>
+                        <option value="it" th:text="'Italiano'">Italian</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" th:text="#{profile.submit}">Update Profile</button>
+            </form>
+        </div>
     </div>
 </div>
 
