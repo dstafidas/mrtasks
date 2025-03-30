@@ -11,11 +11,13 @@ import com.mrtasks.model.UserProfile;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -61,9 +63,17 @@ public class InvoiceService {
         PdfWriter.getInstance(document, out);
         document.open();
 
-        // Fonts with Unicode support
-        BaseFont baseFont = BaseFont.createFont("src/main/resources/fonts/DejaVuSans.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
-        BaseFont boldBaseFont = BaseFont.createFont("src/main/resources/fonts/DejaVuSans-Bold.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        BaseFont baseFont;
+        try (InputStream fontStream = new ClassPathResource("fonts/DejaVuSans.ttf").getInputStream()) {
+            byte[] fontBytes = fontStream.readAllBytes();
+            baseFont = BaseFont.createFont("DejaVuSans.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, fontBytes, null);
+        }
+        BaseFont boldBaseFont;
+        try (InputStream boldFontStream = new ClassPathResource("fonts/DejaVuSans-Bold.ttf").getInputStream()) {
+            byte[] boldFontBytes = boldFontStream.readAllBytes();
+            boldBaseFont = BaseFont.createFont("DejaVuSans-Bold.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED, true, boldFontBytes, null);
+        }
+
         Font headerFont = new Font(boldBaseFont, 16, Font.NORMAL, new Color(64, 64, 64)); // Dark gray
         Font normalFont = new Font(baseFont, 10, Font.NORMAL, Color.BLACK);
         Font boldFont = new Font(boldBaseFont, 10, Font.BOLD, Color.BLACK);
