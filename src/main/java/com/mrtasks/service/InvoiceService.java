@@ -1,9 +1,10 @@
 package com.mrtasks.service;
 
-import com.itextpdf.text.*;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.PdfPCell;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+import com.lowagie.text.pdf.BaseFont;
 import com.mrtasks.model.Task;
 import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
@@ -13,12 +14,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.ResourceBundle;
 
 @Service
 @RequiredArgsConstructor
@@ -48,18 +51,25 @@ public class InvoiceService {
         String sender = profile.getCompanyName() != null && !profile.getCompanyName().isEmpty() ?
                 profile.getCompanyName() : user.getUsername();
 
+        // Load the user's preferred language
+        String language = profile.getLanguage() != null ? profile.getLanguage() : "en";
+        Locale locale = new Locale(language);
+        ResourceBundle messages = ResourceBundle.getBundle("messages", locale);
+
         Document document = new Document(PageSize.A4, 36, 36, 54, 36);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PdfWriter.getInstance(document, out);
         document.open();
 
-        // Fonts
-        Font headerFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 16, BaseColor.DARK_GRAY);
-        Font normalFont = FontFactory.getFont(FontFactory.HELVETICA, 10, BaseColor.BLACK);
-        Font boldFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.BLACK);
-        Font footerFont = FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 9, BaseColor.GRAY);
+        // Fonts with Unicode support
+        BaseFont baseFont = BaseFont.createFont("src/main/resources/fonts/DejaVuSans.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        BaseFont boldBaseFont = BaseFont.createFont("src/main/resources/fonts/DejaVuSans-Bold.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+        Font headerFont = new Font(boldBaseFont, 16, Font.NORMAL, new Color(64, 64, 64)); // Dark gray
+        Font normalFont = new Font(baseFont, 10, Font.NORMAL, Color.BLACK);
+        Font boldFont = new Font(boldBaseFont, 10, Font.BOLD, Color.BLACK);
+        Font footerFont = new Font(baseFont, 9, Font.ITALIC, Color.GRAY);
 
-        // Header Section (Simplified and Flexible)
+        // Header Section
         PdfPTable headerTable = new PdfPTable(2);
         headerTable.setWidthPercentage(100);
         headerTable.setWidths(new float[]{1, 3});
@@ -72,23 +82,17 @@ public class InvoiceService {
                 logo.scaleToFit(100, 100);
                 logoCell.addElement(logo);
             } catch (Exception e) {
-                logoCell.addElement(new Paragraph("Logo unavailable", normalFont));
+                logoCell.addElement(new Paragraph(messages.getString("invoice.logo.unavailable"), normalFont));
             }
         }
         headerTable.addCell(logoCell);
-
-        // Date with locale support
-        // Optional: Override with user preference from UserProfile (uncomment if implemented)
-        // if (profile.getPreferredLanguage() != null && profile.getPreferredLanguage().equals("en")) {
-        //     dateLocale = Locale.ENGLISH;
-        // }
 
         PdfPCell titleCell = new PdfPCell();
         titleCell.setBorder(Rectangle.NO_BORDER);
         titleCell.setVerticalAlignment(Element.ALIGN_TOP);
         String invoiceNumber = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-        titleCell.addElement(new Paragraph("Invoice #" + invoiceNumber, normalFont));
-        titleCell.addElement(new Paragraph("Date: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.ENGLISH)), normalFont));
+        titleCell.addElement(new Paragraph(messages.getString("invoice.title") + invoiceNumber, normalFont));
+        titleCell.addElement(new Paragraph(messages.getString("invoice.date.label") + " " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy", locale)), normalFont));
         headerTable.addCell(titleCell);
 
         document.add(headerTable);
@@ -101,7 +105,7 @@ public class InvoiceService {
 
         PdfPCell fromCell = new PdfPCell();
         fromCell.setBorder(Rectangle.NO_BORDER);
-        fromCell.addElement(new Paragraph("From:", boldFont));
+        fromCell.addElement(new Paragraph(messages.getString("invoice.from.label"), boldFont));
         fromCell.addElement(new Paragraph(sender, normalFont));
         if (profile.getEmail() != null) fromCell.addElement(new Paragraph(profile.getEmail(), normalFont));
         if (profile.getPhone() != null) fromCell.addElement(new Paragraph(profile.getPhone(), normalFont));
@@ -109,37 +113,33 @@ public class InvoiceService {
 
         PdfPCell toCell = new PdfPCell();
         toCell.setBorder(Rectangle.NO_BORDER);
-        toCell.addElement(new Paragraph("To:", boldFont));
+        toCell.addElement(new Paragraph(messages.getString("invoice.to.label"), boldFont));
         toCell.addElement(new Paragraph(invoiceTo, normalFont));
         addressTable.addCell(toCell);
 
         document.add(addressTable);
         document.add(Chunk.NEWLINE);
 
-        // Task Table (Adjusted for better fit)
+        // Task Table
         PdfPTable table = new PdfPTable(7);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{2.5f, 2.5f, 1f, 1f, 1f, 1f, 1f}); // Adjusted widths for better spacing
+        table.setWidths(new float[]{2f, 2f, 1f, 1f, 1f, 1.6f, 1.4f});
         table.getDefaultCell().setPadding(5);
-        table.getDefaultCell().setBackgroundColor(BaseColor.LIGHT_GRAY);
+        table.getDefaultCell().setBackgroundColor(new Color(230, 230, 230)); // Light gray for header
+        table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
 
-        // Table Headers with multi-line support
-        PdfPCell taskHeader = new PdfPCell(new Phrase("Task", boldFont));
-        PdfPCell descHeader = new PdfPCell(new Phrase("Description", boldFont));
-        PdfPCell hoursHeader = new PdfPCell(new Phrase("Hours", boldFont));
-        PdfPCell rateHeader = new PdfPCell(new Phrase("Rate", boldFont));
-        PdfPCell totalHeader = new PdfPCell(new Phrase("Total", boldFont));
-        PdfPCell advanceHeader = new PdfPCell(new Phrase("Advance\nPaid", boldFont)); // Split into two lines
-        PdfPCell remainingHeader = new PdfPCell(new Phrase("Amount\nDue", boldFont)); // Split into two lines
-        table.addCell(taskHeader);
-        table.addCell(descHeader);
-        table.addCell(hoursHeader);
-        table.addCell(rateHeader);
-        table.addCell(totalHeader);
-        table.addCell(advanceHeader);
-        table.addCell(remainingHeader);
+        // Table Headers
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.task.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.description.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.hours.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.rate.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.total.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.advance.paid.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.amount.due.header"), boldFont)));
         table.getDefaultCell().setBackgroundColor(null);
 
+        // Table Rows
+        table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
         double grandTotal = 0;
         double grandAdvance = 0;
         double grandRemainingDue = 0;
@@ -162,19 +162,19 @@ public class InvoiceService {
         totalsTable.setWidthPercentage(40);
         totalsTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
         totalsTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
-        totalsTable.addCell(new PdfPCell(new Phrase("Grand Total:", boldFont)));
+        totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.grand.total"), boldFont)));
         totalsTable.addCell(new PdfPCell(new Phrase(String.format("$%.2f", grandTotal), normalFont)));
-        totalsTable.addCell(new PdfPCell(new Phrase("Advance Paid:", boldFont)));
+        totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.advance.paid"), boldFont)));
         totalsTable.addCell(new PdfPCell(new Phrase(String.format("$%.2f", grandAdvance), normalFont)));
-        totalsTable.addCell(new PdfPCell(new Phrase("Amount Due:", boldFont)));
+        totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.amount.due"), boldFont)));
         totalsTable.addCell(new PdfPCell(new Phrase(String.format("$%.2f", grandRemainingDue), boldFont)));
         document.add(Chunk.NEWLINE);
         document.add(totalsTable);
 
-        // Footer (Simplified)
+        // Footer
         document.add(Chunk.NEWLINE);
         if (StringUtils.hasText(profile.getEmail())) {
-            Paragraph footer = new Paragraph("Contact us at " + profile.getEmail(), footerFont);
+            Paragraph footer = new Paragraph(messages.getString("invoice.contact.us") + " " + profile.getEmail(), footerFont);
             footer.setAlignment(Element.ALIGN_CENTER);
             document.add(footer);
         }
