@@ -5,6 +5,7 @@
     <title th:text="#{profile.title}">Profile - Mr Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -286,66 +287,62 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const upgradeButton = document.getElementById('upgradeButton');
-        if (upgradeButton) {
-            upgradeButton.addEventListener('click', function () {
-                const months = document.getElementById('subscriptionMonths').value;
-                const userId = [[${user.id}]];
-                window.location.href = '/upgrade-to-premium?userId=' + userId + '&months=' + months;
-            });
-        }
-
-        const profileToggle = document.getElementById('profile-toggle');
-        const profileDropdown = document.getElementById('profile-dropdown');
-
-        profileToggle.addEventListener('click', function () {
-            profileDropdown.classList.toggle('active');
+    $(document).ready(function() {
+        // Upgrade button
+        $('#upgradeButton').click(function() {
+            const months = $('#subscriptionMonths').val();
+            const userId = [[${user.id}]];
+            window.location.href = '/upgrade-to-premium?userId=' + userId + '&months=' + months;
         });
 
-        document.addEventListener('click', function (event) {
-            if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
-                profileDropdown.classList.remove('active');
+        // Profile dropdown toggle
+        $('#profile-toggle').click(function() {
+            $('#profile-dropdown').toggleClass('active');
+        });
+
+        $(document).click(function(event) {
+            if (!$(event.target).closest('#profile-toggle, #profile-dropdown').length) {
+                $('#profile-dropdown').removeClass('active');
             }
         });
 
-        const form = document.getElementById('profileForm');
-        function validateField(input) {
-            const id = input.id;
-            const value = input.value.trim();
+        // Form validation
+        function validateField($input) {
+            const id = $input.attr('id');
+            const value = $input.val().trim();
             if (id === 'companyName' && value) {
                 if (value.length > 100 || value.length < 1) {
-                    input.classList.add('is-invalid');
+                    $input.addClass('is-invalid');
                     return false;
                 }
             } else if (id === 'logoUrl' && value) {
                 const urlPattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?$/i;
                 if (!urlPattern.test(value)) {
-                    input.classList.add('is-invalid');
+                    $input.addClass('is-invalid');
                     return false;
                 }
             } else if (id === 'email' && value) {
                 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailPattern.test(value)) {
-                    input.classList.add('is-invalid');
+                    $input.addClass('is-invalid');
                     return false;
                 }
             } else if (id === 'phone' && value) {
                 const phonePattern = /^\+?[1-9]\d{1,14}$/;
                 if (!phonePattern.test(value)) {
-                    input.classList.add('is-invalid');
+                    $input.addClass('is-invalid');
                     return false;
                 }
             }
-            input.classList.remove('is-invalid');
+            $input.removeClass('is-invalid');
             return true;
         }
 
-        form.addEventListener('submit', function (event) {
+        $('#profileForm').submit(function(event) {
             let isValid = true;
-            const inputs = ['companyName', 'logoUrl', 'email', 'phone'].map(id => document.getElementById(id));
-            inputs.forEach(input => {
-                if (!validateField(input)) {
+            ['companyName', 'logoUrl', 'email', 'phone'].forEach(function(id) {
+                const $input = $('#' + id);
+                if (!validateField($input)) {
                     isValid = false;
                 }
             });
@@ -354,10 +351,9 @@
             }
         });
 
-        ['companyName', 'logoUrl', 'email', 'phone'].forEach(id => {
-            const input = document.getElementById(id);
-            input.addEventListener('input', function () {
-                validateField(this);
+        ['companyName', 'logoUrl', 'email', 'phone'].forEach(function(id) {
+            $('#' + id).on('input', function() {
+                validateField($(this));
             });
         });
     });

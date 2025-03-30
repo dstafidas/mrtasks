@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title th:text="#{register.title}">Register - Mr Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         body {
@@ -120,19 +121,19 @@
 </div>
 
 <script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
-        const strengthBar = document.getElementById('passwordStrength');
-        const strengthText = document.getElementById('strengthText');
-        const form = document.getElementById('registerForm');
+    $(document).ready(function() {
+        const $passwordInput = $('#password');
+        const $confirmPasswordInput = $('#confirmPassword');
+        const $strengthBar = $('#passwordStrength');
+        const $strengthText = $('#strengthText');
+        const $form = $('#registerForm');
 
-        passwordInput.addEventListener('input', updatePasswordStrength);
-        confirmPasswordInput.addEventListener('input', updatePasswordStrength);
+        $passwordInput.on('input', updatePasswordStrength);
+        $confirmPasswordInput.on('input', updatePasswordStrength);
 
         function updatePasswordStrength() {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
+            const password = $passwordInput.val();
+            const confirmPassword = $confirmPasswordInput.val();
             let strength = 0;
 
             if (password.length > 0) strength += 20;
@@ -141,51 +142,40 @@
             if (/[0-9]/.test(password)) strength += 20;
             if (/[^A-Za-z0-9]/.test(password)) strength += 20;
 
-            strengthBar.style.width = strength + '%';
-            strengthBar.setAttribute('aria-valuenow', strength);
+            $strengthBar.css('width', strength + '%').attr('aria-valuenow', strength);
 
             if (strength <= 40) {
-                strengthBar.className = 'progress-bar bg-danger';
-                strengthText.textContent = /*[[#{register.password.weak}]]*/ 'Weak';
+                $strengthBar.removeClass().addClass('progress-bar bg-danger');
+                $strengthText.text(/*[[#{register.password.weak}]]*/ 'Weak');
             } else if (strength <= 80) {
-                strengthBar.className = 'progress-bar bg-warning';
-                strengthText.textContent = /*[[#{register.password.moderate}]]*/ 'Moderate';
+                $strengthBar.removeClass().addClass('progress-bar bg-warning');
+                $strengthText.text(/*[[#{register.password.moderate}]]*/ 'Moderate');
             } else {
-                strengthBar.className = 'progress-bar bg-success';
-                strengthText.textContent = /*[[#{register.password.strong}]]*/ 'Strong';
+                $strengthBar.removeClass().addClass('progress-bar bg-success');
+                $strengthText.text(/*[[#{register.password.strong}]]*/ 'Strong');
             }
 
             if (password && confirmPassword && password !== confirmPassword) {
-                strengthText.textContent = /*[[#{register.password.noMatch}]]*/ 'Passwords do not match';
-                strengthText.style.color = '#dc3545';
+                $strengthText.text(/*[[#{register.password.noMatch}]]*/ 'Passwords do not match').css('color', '#dc3545');
             } else if (password && confirmPassword && password === confirmPassword && strength > 80) {
-                strengthText.textContent = /*[[#{register.password.strongMatching}]]*/ 'Strong and matching';
-                strengthText.style.color = '#28a745';
+                $strengthText.text(/*[[#{register.password.strongMatching}]]*/ 'Strong and matching').css('color', '#28a745');
             }
         }
 
-        form.addEventListener('submit', function (event) {
-            const password = passwordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
+        $form.submit(function(event) {
+            const password = $passwordInput.val();
+            const confirmPassword = $confirmPasswordInput.val();
             const recaptchaResponse = grecaptcha.getResponse();
 
-            // Validate password strength
             if (password.length < 8 || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
                 event.preventDefault();
-                strengthText.textContent = /*[[#{register.password.requirements}]]*/ 'Password must be at least 8 characters, with uppercase, numbers, and special characters.';
-                strengthText.style.color = '#dc3545';
-            }
-            // Validate password match
-            else if (password !== confirmPassword) {
+                $strengthText.text(/*[[#{register.password.requirements}]]*/ 'Password must be at least 8 characters, with uppercase, numbers, and special characters.').css('color', '#dc3545');
+            } else if (password !== confirmPassword) {
                 event.preventDefault();
-                strengthText.textContent = /*[[#{register.password.noMatch}]]*/ 'Passwords do not match.';
-                strengthText.style.color = '#dc3545';
-            }
-            // Validate reCAPTCHA
-            else if (!recaptchaResponse) {
+                $strengthText.text(/*[[#{register.password.noMatch}]]*/ 'Passwords do not match.').css('color', '#dc3545');
+            } else if (!recaptchaResponse) {
                 event.preventDefault();
-                strengthText.textContent = /*[[#{register.captcha.required}]]*/ 'Please complete the CAPTCHA.';
-                strengthText.style.color = '#dc3545';
+                $strengthText.text(/*[[#{register.captcha.required}]]*/ 'Please complete the CAPTCHA.').css('color', '#dc3545');
             }
         });
     });

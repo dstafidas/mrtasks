@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
+    <!-- Add jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -361,7 +363,7 @@
                     <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
                     <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
                     <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="${task.status}"></span></p>
+                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     <div>
                         <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
                         <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -391,7 +393,7 @@
                     <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
                     <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
                     <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="${task.status}"></span></p>
+                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     <div>
                         <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
                         <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -421,7 +423,7 @@
                     <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
                     <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
                     <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="${task.status}"></span></p>
+                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     <div>
                         <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
                         <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
@@ -584,115 +586,102 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
 <script th:inline="javascript">
+    // Utility functions
     function formatDate(dateStr) {
         if (!dateStr) return '';
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
-    function formatNumber(num) {
-        return num !== null && num !== undefined ? Number(num).toFixed(1) : '0.0';
+    function formatCurrency(num) {
+        return '$' + (num !== null && num !== undefined ? Number(num).toFixed(2) : '0.00');
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+    // jQuery setup for CSRF token
+    const csrfToken = $('meta[name="_csrf"]').attr('content');
+    const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+    $.ajaxSetup({
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader(csrfHeader, csrfToken);
+        }
+    });
+
+    $(document).ready(function() {
+        // Initialize Bootstrap tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
 
         // Profile dropdown toggle
-        const profileToggle = document.getElementById('profile-toggle');
-        const profileDropdown = document.getElementById('profile-dropdown');
-
-        profileToggle.addEventListener('click', function () {
-            profileDropdown.classList.toggle('active');
+        $('#profile-toggle').click(function() {
+            $('#profile-dropdown').toggleClass('active');
         });
 
-        document.addEventListener('click', function (event) {
-            if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
-                profileDropdown.classList.remove('active');
+        $(document).click(function(e) {
+            if (!$('#profile-toggle').is(e.target) && !$('#profile-dropdown').has(e.target).length) {
+                $('#profile-dropdown').removeClass('active');
             }
         });
 
+        // Dragula setup
         const containers = [
-            document.querySelector('#todo-column .task-list'),
-            document.querySelector('#in-progress-column .task-list'),
-            document.querySelector('#completed-column .task-list')
+            $('#todo-column .task-list')[0],
+            $('#in-progress-column .task-list')[0],
+            $('#completed-column .task-list')[0]
         ];
 
         if (typeof dragula !== 'undefined') {
             const drake = dragula(containers, {
                 revertOnSpill: true,
-                accepts: function (el, target) { return true; },
-                moves: function (el) { return el.classList.contains('task-card'); },
+                accepts: function(el, target) { return true; },
+                moves: function(el) { return $(el).hasClass('task-card'); },
                 direction: 'vertical'
             });
 
-            drake.on('drop', function (el, target, source) {
-                const taskId = el.getAttribute('data-id');
-                const newStatus = target.parentElement.getAttribute('data-status');
-                const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+            drake.on('drop', function(el, target, source) {
+                const taskId = $(el).data('id');
+                const newStatus = $(target).parent().data('status');
 
-                fetch(`/dashboard/task/${taskId}`, {
-                    method: 'GET',
-                    headers: { [csrfHeader]: csrfToken }
-                })
-                .then(response => response.json())
-                .then(task => {
-                    const formData = new FormData();
-                    formData.append('title', task.title || '');
-                    formData.append('description', task.description || '');
-                    formData.append('deadline', task.deadline || '');
-                    formData.append('billable', task.billable);
-                    formData.append('hoursWorked', task.hoursWorked || 0.0);
-                    formData.append('hourlyRate', task.hourlyRate || 0.0);
-                    formData.append('advancePayment', task.advancePayment || 0.0);
-                    formData.append('client.id', task.client ? task.client.id : '');
-                    formData.append('color', task.color || '#FFFFFF');
-                    formData.append('status', newStatus);
-                    formData.append('hidden', task.hidden || false);
+                $.getJSON(`/dashboard/task/${taskId}`, function(task) {
+                    const formData = {
+                        title: task.title || '',
+                        description: task.description || '',
+                        deadline: task.deadline || '',
+                        billable: task.billable,
+                        hoursWorked: task.hoursWorked || 0.0,
+                        hourlyRate: task.hourlyRate || 0.0,
+                        advancePayment: task.advancePayment || 0.0,
+                        'client.id': task.client ? task.client.id : '',
+                        color: task.color || '#FFFFFF',
+                        status: newStatus,
+                        hidden: task.hidden || false
+                    };
 
-                    return fetch(`/dashboard/task/${taskId}`, {
-                        method: 'PUT',
-                        headers: { [csrfHeader]: csrfToken },
-                        body: formData
-                    });
-                })
-                .then(response => response.json())
-                .then(task => {
-                    // Update UI with all task details
-                    el.querySelector('.task-select').disabled = !task.billable;
-                    el.querySelector('h6').textContent = task.title;
-                    el.querySelector('p:nth-child(3)').innerHTML = task.description && task.description.length > 0 ?
-                        (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
-                        'No description';
-                    el.querySelector('.client-name').textContent = task.client ? task.client.name : 'N/A';
-                    el.querySelector('.deadline').textContent = formatDate(task.deadline);
-                    el.querySelector('.hours-worked').textContent = task.hoursWorked || '0.0';
-                    el.querySelector('.hourly-rate').textContent = '$' + (task.hourlyRate || '0.00');
-                    el.querySelector('.total').textContent = '$' + (task.total !== null ? task.total.toFixed(2) : '0.00');
-                    el.querySelector('.advance-payment').textContent = '$' + (task.advancePayment !== null ? task.advancePayment.toFixed(2) : '0.00');
-                    el.querySelector('.remaining-due').textContent = '$' + (task.remainingDue !== null ? task.remainingDue.toFixed(2) : '0.00');
-                    el.querySelector('.status').textContent = task.status;
-                    el.style.backgroundColor = task.color;
+                    $.ajax({
+                        url: `/dashboard/task/${taskId}`,
+                        type: 'PUT',
+                        data: formData,
+                        success: function(updatedTask) {
+                            // Only update the status field on drag-and-drop
+                            const translatedStatus = {
+                                'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
+                                'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
+                                'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
+                            }[updatedTask.status];
+                            $(el).find('.status').text(translatedStatus);
 
-                    const taskIds = Array.from(target.children).map(child => child.getAttribute('data-id'));
-                    fetch('/dashboard/reorder', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                        body: JSON.stringify(taskIds)
-                    })
-                    .then(response => response.text())
-                    .then(text => {
-                        if (text === 'Order updated') {
-                            taskIds.forEach((id, index) => {
-                                const card = document.querySelector(`.task-card[data-id="${id}"]`);
-                                if (card) card.setAttribute('data-order', index);
+                            const taskIds = $(target).children().map(function() { return $(this).data('id'); }).get();
+                            $.ajax({
+                                url: '/dashboard/reorder',
+                                type: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify(taskIds),
+                                success: function(response) {
+                                    if (response === 'Order updated') {
+                                        taskIds.forEach(function(id, index) {
+                                            $(`.task-card[data-id="${id}"]`).attr('data-order', index);
+                                        });
+                                    }
+                                },
+                                dataType: 'text'
                             });
                         }
                     });
@@ -700,235 +689,199 @@
             });
         }
 
-        document.querySelectorAll('.task-card').forEach(card => attachEditAndDeleteListeners(card));
-    });
+        // Event delegation for task actions
+        $('.task-card').each(function() {
+            attachTaskListeners($(this));
+        });
 
-    function attachEditAndDeleteListeners(element) {
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+        // Add Task Form Submission
+        $('#addTaskForm').submit(function(e) {
+            e.preventDefault();
+            $.post('/dashboard', $(this).serialize(), function(task) {
+                const $targetColumn = $(`#${task.status.toLowerCase().replace('_', '-')}-column .task-list`);
+                const translatedStatus = {
+                    'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
+                    'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
+                    'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
+                }[task.status];
+                const $newCard = $(`
+                    <div class="task-card" data-id="${task.id}" data-order="${task.orderIndex}" style="background-color: ${task.color}">
+                        <input type="checkbox" class="task-select" data-id="${task.id}" ${task.billable ? '' : 'disabled'}>
+                        <h6>${task.title}</h6>
+                        <p>${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description'}</p>
+                        <p><strong>Client:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
+                        <p><strong>Deadline:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
+                        <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
+                        <p><strong>Rate:</strong> <span class="hourly-rate">${formatCurrency(task.hourlyRate)}</span></p>
+                        <p><strong>Total:</strong> <span class="total">${formatCurrency(task.total)}</span></p>
+                        <p><strong>Advance:</strong> <span class="advance-payment">${formatCurrency(task.advancePayment)}</span></p>
+                        <p><strong>Remaining:</strong> <span class="remaining-due">${formatCurrency(task.remainingDue)}</span></p>
+                        <p><strong>Status:</strong> <span class="status">${translatedStatus}</span></p>
+                        <div>
+                            <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                        </div>
+                        <div class="actions">
+                            <i class="bi bi-pencil-square text-primary edit-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Edit"></i>
+                            <i class="bi bi-trash text-danger delete-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Delete"></i>
+                            <i class="bi bi-eye-slash text-warning hide-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Hide"></i>
+                        </div>
+                    </div>
+                `);
+                $targetColumn.append($newCard);
+                $('#addTaskModal').modal('hide');
+                $('#addTaskForm')[0].reset();
+                attachTaskListeners($newCard);
 
-        element.querySelectorAll('.edit-task-btn').forEach(icon => {
-            icon.addEventListener('click', function () {
-                const taskId = this.getAttribute('data-id');
-                fetch(`/dashboard/task/${taskId}`, {
-                    method: 'GET',
-                    headers: { [csrfHeader]: csrfToken }
-                })
-                .then(response => response.json())
-                .then(task => {
-                    document.getElementById('editTaskId').value = task.id;
-                    document.getElementById('editTitle').value = task.title;
-                    document.getElementById('editDescription').value = task.description || '';
-                    document.getElementById('editDeadline').value = task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '';
-                    document.getElementById('editBillable').checked = task.billable;
-                    document.getElementById('editHoursWorked').value = task.hoursWorked || 0.0;
-                    document.getElementById('editHourlyRate').value = task.hourlyRate || 0.0;
-                    document.getElementById('editAdvancePayment').value = task.advancePayment || 0.0;
-                    document.getElementById('editClient').value = task.client ? task.client.id : '';
-                    document.getElementById('editColor').value = task.color;
-                    document.getElementById('editStatus').value = task.status;
-
-                    const editModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
-                    editModal.show();
+                const taskIds = $targetColumn.children().map(function() { return $(this).data('id'); }).get();
+                $.ajax({
+                    url: '/dashboard/reorder',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(taskIds)
                 });
-            });
+            }, 'json');
         });
 
-        element.querySelectorAll('.delete-task-btn').forEach(icon => {
-            icon.addEventListener('click', function () {
-                const taskId = this.getAttribute('data-id');
-                if (confirm(/*[[#{dashboard.confirm.deleteTask}]]*/ 'Are you sure you want to delete this task?')) {
-                    fetch(`/dashboard/task/${taskId}`, {
-                        method: 'DELETE',
-                        headers: { [csrfHeader]: csrfToken }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
-                            if (taskCard) taskCard.remove();
+        // Edit Task Form Submission
+        $('#editTaskForm').submit(function(e) {
+            e.preventDefault();
+            const taskId = $('#editTaskId').val();
+            $.ajax({
+                url: `/dashboard/task/${taskId}`,
+                type: 'PUT',
+                data: $(this).serialize(),
+                success: function(task) {
+                    const $taskCard = $(`.task-card[data-id="${task.id}"]`);
+                    if ($taskCard.length) {
+                        const $currentColumn = $taskCard.parent();
+                        const $newColumn = $(`#${task.status.toLowerCase().replace('_', '-')}-column .task-list`);
+                        if ($currentColumn[0] !== $newColumn[0]) {
+                            $newColumn.append($taskCard);
                         }
-                    });
+                        const translatedStatus = {
+                            'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
+                            'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
+                            'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
+                        }[task.status];
+                        $taskCard.find('.task-select').prop('disabled', !task.billable);
+                        $taskCard.find('h6').text(task.title);
+                        $taskCard.find('p:eq(2)').html(task.description && task.description.length > 0 ?
+                            (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
+                            'No description');
+                        $taskCard.find('.client-name').text(task.client ? task.client.name : 'N/A');
+                        $taskCard.find('.deadline').text(formatDate(task.deadline));
+                        $taskCard.find('.hours-worked').text(task.hoursWorked || '0.0');
+                        $taskCard.find('.hourly-rate').text(formatCurrency(task.hourlyRate));
+                        $taskCard.find('.total').text(formatCurrency(task.total));
+                        $taskCard.find('.advance-payment').text(formatCurrency(task.advancePayment));
+                        $taskCard.find('.remaining-due').text(formatCurrency(task.remainingDue));
+                        $taskCard.find('.status').text(translatedStatus);
+                        $taskCard.css('backgroundColor', task.color);
+
+                        if ($currentColumn[0] !== $newColumn[0]) {
+                            const taskIds = $newColumn.children().map(function() { return $(this).data('id'); }).get();
+                            $.post('/dashboard/reorder', JSON.stringify(taskIds));
+                        }
+                    }
+                    $('#editTaskModal').modal('hide');
                 }
             });
         });
 
-        element.querySelectorAll('.hide-task-btn').forEach(icon => {
-            icon.addEventListener('click', function () {
-                const taskId = this.getAttribute('data-id');
-                if (confirm(/*[[#{dashboard.confirm.hideTask}]]*/ 'Are you sure you want to hide this task?')) {
-                    fetch(`/dashboard/task/${taskId}/hide`, {
-                        method: 'POST',
-                        headers: { [csrfHeader]: csrfToken }
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            const taskCard = document.querySelector(`.task-card[data-id="${taskId}"]`);
-                            if (taskCard) taskCard.remove();
-                        }
-                    });
+        // Invoice Form Submission
+        $('#invoiceForm').submit(function(e) {
+            e.preventDefault();
+            const selectedTaskIds = $('.task-select:checked').map(function() { return $(this).data('id'); }).get();
+            if (selectedTaskIds.length === 0) {
+                alert(/*[[#{dashboard.alert.selectBillableTask}]]*/ 'Please select at least one billable task to generate an invoice.');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedTaskIds.forEach(id => formData.append('taskIds', id));
+
+            $.ajax({
+                url: '/invoice',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhr: function() {
+                    const xhr = new window.XMLHttpRequest();
+                    xhr.responseType = 'blob';
+                    return xhr;
+                },
+                success: function(blob) {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'invoice.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
                 }
             });
+        });
+    });
+
+    // Attach task listeners
+    function attachTaskListeners($card) {
+        $card.find('.edit-task-btn').click(function() {
+            const taskId = $(this).data('id');
+            $.getJSON(`/dashboard/task/${taskId}`, function(task) {
+                $('#editTaskId').val(task.id);
+                $('#editTitle').val(task.title);
+                $('#editDescription').val(task.description || '');
+                $('#editDeadline').val(task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '');
+                $('#editBillable').prop('checked', task.billable);
+                $('#editHoursWorked').val(task.hoursWorked || 0.0);
+                $('#editHourlyRate').val(task.hourlyRate || 0.0);
+                $('#editAdvancePayment').val(task.advancePayment || 0.0);
+                $('#editClient').val(task.client ? task.client.id : '');
+                $('#editColor').val(task.color);
+                $('#editStatus').val(task.status);
+                $('#editTaskModal').modal('show');
+            });
+        });
+
+        $card.find('.delete-task-btn').click(function() {
+            const taskId = $(this).data('id');
+            if (confirm(/*[[#{dashboard.confirm.deleteTask}]]*/ 'Are you sure you want to delete this task?')) {
+                $.ajax({
+                    url: `/dashboard/task/${taskId}`,
+                    type: 'DELETE',
+                    success: function() {
+                        $(`.task-card[data-id="${taskId}"]`).remove();
+                    }
+                });
+            }
+        });
+
+        $card.find('.hide-task-btn').click(function() {
+            const taskId = $(this).data('id');
+            if (confirm(/*[[#{dashboard.confirm.hideTask}]]*/ 'Are you sure you want to hide this task?')) {
+                $.post(`/dashboard/task/${taskId}/hide`, function() {
+                    $(`.task-card[data-id="${taskId}"]`).remove();
+                });
+            }
         });
     }
 
+    // Change color function
     function changeColor(element) {
-        const taskId = element.getAttribute('data-id');
-        const color = element.getAttribute('data-color');
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-        fetch(`/dashboard/color/${taskId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded', [csrfHeader]: csrfToken },
-            body: `color=${encodeURIComponent(color)}`
-        })
-        .then(response => response.text())
-        .then(text => {
-            if (text === 'Color updated') {
-                const taskCard = element.closest('.task-card');
-                taskCard.style.backgroundColor = color;
+        const taskId = $(element).data('id');
+        const color = $(element).data('color');
+        $.post(`/dashboard/color/${taskId}`, { color: color }, function(response) {
+            if (response === 'Color updated') {
+                $(element).closest('.task-card').css('backgroundColor', color);
             }
-        });
+        }, 'text');
     }
-
-    document.getElementById('addTaskForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const formData = new FormData(this);
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-        fetch('/dashboard', {
-            method: 'POST',
-            headers: { [csrfHeader]: csrfToken },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(task => {
-            const targetColumn = document.querySelector(`#${task.status.toLowerCase().replace('_', '-')}-column .task-list`);
-            const newCard = document.createElement('div');
-            newCard.className = 'task-card';
-            newCard.setAttribute('data-id', task.id);
-            newCard.setAttribute('data-order', task.orderIndex);
-            newCard.style.backgroundColor = task.color;
-            newCard.innerHTML = `
-                <input type="checkbox" class="task-select" data-id="${task.id}" ${task.billable ? '' : 'disabled'}>
-                <h6>${task.title}</h6>
-                <p>${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description'}</p>
-                <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
-                <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
-                <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
-                <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate">$${task.hourlyRate || '0.00'}</span></p>
-                <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total">$${task.total !== null ? task.total.toFixed(2) : '0.00'}</span></p>
-                <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment">$${task.advancePayment !== null ? task.advancePayment.toFixed(2) : '0.00'}</span></p>
-                <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due">$${task.remainingDue !== null ? task.remainingDue.toFixed(2) : '0.00'}</span></p>
-                <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status">${task.status}</span></p>
-                <div>
-                    <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
-                    <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
-                    <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
-                    <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" data-id="${task.id}" onclick="changeColor(this)"></span>
-                    <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
-                </div>
-                <div class="actions">
-                    <i class="bi bi-pencil-square text-primary edit-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
-                    <i class="bi bi-trash text-danger delete-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
-                    <i class="bi bi-eye-slash text-warning hide-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
-                </div>
-            `;
-            targetColumn.appendChild(newCard);
-            bootstrap.Modal.getInstance(document.getElementById('addTaskModal')).hide();
-            this.reset();
-            attachEditAndDeleteListeners(newCard);
-
-            const taskIds = Array.from(targetColumn.children).map(child => child.getAttribute('data-id'));
-            fetch('/dashboard/reorder', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                body: JSON.stringify(taskIds)
-            });
-        });
-    });
-
-    document.getElementById('editTaskForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const formData = new FormData(this);
-        const taskId = document.getElementById('editTaskId').value;
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-        fetch(`/dashboard/task/${taskId}`, {
-            method: 'PUT',
-            headers: { [csrfHeader]: csrfToken },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(task => {
-            const taskCard = document.querySelector(`.task-card[data-id="${task.id}"]`);
-            if (taskCard) {
-                const currentColumn = taskCard.parentElement;
-                const newColumn = document.querySelector(`#${task.status.toLowerCase().replace('_', '-')}-column .task-list`);
-                if (currentColumn !== newColumn) {
-                    newColumn.appendChild(taskCard);
-                }
-                taskCard.querySelector('.task-select').disabled = !task.billable;
-                taskCard.querySelector('h6').textContent = task.title;
-                taskCard.querySelector('p:nth-child(3)').innerHTML = task.description && task.description.length > 0 ?
-                    (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
-                    'No description';
-                taskCard.querySelector('.client-name').textContent = task.client ? task.client.name : 'N/A';
-                taskCard.querySelector('.deadline').textContent = formatDate(task.deadline);
-                taskCard.querySelector('.hours-worked').textContent = task.hoursWorked || '0.0';
-                taskCard.querySelector('.hourly-rate').textContent = '$' + (task.hourlyRate || '0.00');
-                taskCard.querySelector('.total').textContent = '$' + (task.total !== null ? task.total.toFixed(2) : '0.00');
-                taskCard.querySelector('.advance-payment').textContent = '$' + (task.advancePayment !== null ? task.advancePayment.toFixed(2) : '0.00');
-                taskCard.querySelector('.remaining-due').textContent = '$' + (task.remainingDue !== null ? task.remainingDue.toFixed(2) : '0.00');
-                taskCard.querySelector('.status').textContent = task.status;
-                taskCard.style.backgroundColor = task.color;
-
-                if (currentColumn !== newColumn) {
-                    const taskIds = Array.from(newColumn.children).map(child => child.getAttribute('data-id'));
-                    fetch('/dashboard/reorder', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', [csrfHeader]: csrfToken },
-                        body: JSON.stringify(taskIds)
-                    });
-                }
-            }
-            bootstrap.Modal.getInstance(document.getElementById('editTaskModal')).hide();
-        });
-    });
-
-    document.getElementById('invoiceForm').addEventListener('submit', function(event) {
-        event.preventDefault();
-        const formData = new FormData();
-        const selectedTaskIds = Array.from(document.querySelectorAll('.task-select:checked')).map(checkbox => checkbox.getAttribute('data-id'));
-
-        if (selectedTaskIds.length === 0) {
-            alert(/*[[#{dashboard.alert.selectBillableTask}]]*/ 'Please select at least one billable task to generate an invoice.');
-            return;
-        }
-
-        selectedTaskIds.forEach(id => formData.append('taskIds', id));
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
-
-        fetch('/invoice', {
-            method: 'POST',
-            headers: { [csrfHeader]: csrfToken },
-            body: formData
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'invoice.pdf';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-        });
-    });
 </script>
 </body>
 </html>

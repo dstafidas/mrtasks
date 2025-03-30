@@ -7,6 +7,7 @@
     <title th:text="#{clients.title}">Clients - Mr Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -391,123 +392,110 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script th:inline="javascript">
-    document.addEventListener('DOMContentLoaded', function () {
-        const csrfToken = document.querySelector('meta[name="_csrf"]').content;
-        const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+    $(document).ready(function() {
+        const csrfToken = $('meta[name="_csrf"]').attr('content');
+        const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
 
-        // Show/hide new client form
-        document.getElementById('showNewClientForm').addEventListener('click', function() {
-            document.getElementById('newClientSection').style.display = 'block';
-            this.style.display = 'none';
+        // jQuery AJAX setup for CSRF
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            }
         });
 
-        document.getElementById('hideNewClientForm').addEventListener('click', function() {
-            document.getElementById('newClientSection').style.display = 'none';
-            document.getElementById('showNewClientForm').style.display = 'inline-block';
+        // Show/hide new client form
+        $('#showNewClientForm').click(function() {
+            $('#newClientSection').show();
+            $(this).hide();
+        });
+
+        $('#hideNewClientForm').click(function() {
+            $('#newClientSection').hide();
+            $('#showNewClientForm').show();
         });
 
         // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('keyup', function() {
-            const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#clientsTable tbody tr');
-
-            rows.forEach(row => {
-                const name = row.cells[0].textContent.toLowerCase();
-                const email = row.cells[1].textContent.toLowerCase();
-                const phone = row.cells[2].textContent.toLowerCase();
-                const address = row.cells[3].textContent.toLowerCase();
-                const taxId = row.cells[4].textContent.toLowerCase();
-
-                if (name.includes(filter) || email.includes(filter) || phone.includes(filter) ||
-                    address.includes(filter) || taxId.includes(filter)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+        $('#searchInput').on('keyup', function() {
+            const filter = $(this).val().toLowerCase();
+            $('#clientsTable tbody tr').each(function() {
+                const name = $(this).find('td:eq(0)').text().toLowerCase();
+                const email = $(this).find('td:eq(1)').text().toLowerCase();
+                const phone = $(this).find('td:eq(2)').text().toLowerCase();
+                const address = $(this).find('td:eq(3)').text().toLowerCase();
+                const taxId = $(this).find('td:eq(4)').text().toLowerCase();
+                $(this).toggle(name.includes(filter) || email.includes(filter) || phone.includes(filter) || address.includes(filter) || taxId.includes(filter));
             });
         });
 
         // Edit client button
-        document.querySelectorAll('.edit-client-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const clientId = this.getAttribute('data-id');
-                fetch(`/clients/${clientId}`, {
-                    method: 'GET',
-                    headers: { [csrfHeader]: csrfToken }
-                })
-                .then(response => response.json())
-                .then(client => {
-                    document.getElementById('editClientId').value = client.id;
-                    document.getElementById('editName').value = client.name;
-                    document.getElementById('editEmail').value = client.email || '';
-                    document.getElementById('editPhone').value = client.phone || '';
-                    document.getElementById('editAddress').value = client.address || '';
-                    document.getElementById('editTaxId').value = client.taxId || '';
-                    const editModal = new bootstrap.Modal(document.getElementById('editClientModal'));
-                    editModal.show();
-                })
-                .catch(error => console.error('Error fetching client:', error));
+        $('.edit-client-btn').click(function() {
+            const clientId = $(this).data('id');
+            $.getJSON(`/clients/${clientId}`, function(client) {
+                $('#editClientId').val(client.id);
+                $('#editName').val(client.name);
+                $('#editEmail').val(client.email || '');
+                $('#editPhone').val(client.phone || '');
+                $('#editAddress').val(client.address || '');
+                $('#editTaxId').val(client.taxId || '');
+                $('#editClientModal').modal('show');
+            }).fail(function(error) {
+                console.error('Error fetching client:', error);
             });
         });
 
         // Edit client form submission
-        document.getElementById('editClientForm').addEventListener('submit', function (e) {
+        $('#editClientForm').submit(function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-            const clientId = document.getElementById('editClientId').value;
-            fetch(`/clients/${clientId}`, {
-                method: 'PUT',
-                headers: { [csrfHeader]: csrfToken },
-                body: formData
-            })
-            .then(response => response.json())
-            .then(client => {
-                const row = document.querySelector(`tr[data-id="${client.id}"]`);
-                row.cells[0].textContent = client.name;
-                row.cells[1].textContent = client.email || 'N/A';
-                row.cells[2].textContent = client.phone || 'N/A';
-                row.cells[3].textContent = client.address || 'N/A';
-                row.cells[4].textContent = client.taxId || 'N/A';
-                bootstrap.Modal.getInstance(document.getElementById('editClientModal')).hide();
-            })
-            .catch(error => console.error('Error updating client:', error));
-        });
-
-        // Delete client button
-        document.querySelectorAll('.delete-client-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const clientId = this.getAttribute('data-id');
-                if (confirm(/*[[#{clients.confirm.deleteClient}]]*/ 'Are you sure you want to delete this client?')) {
-                    fetch(`/clients/${clientId}`, {
-                        method: 'DELETE',
-                        headers: { [csrfHeader]: csrfToken }
-                    })
-                    .then(() => {
-                        document.querySelector(`tr[data-id="${clientId}"]`).remove();
-                    })
-                    .catch(error => console.error('Error deleting client:', error));
+            const clientId = $('#editClientId').val();
+            $.ajax({
+                url: `/clients/${clientId}`,
+                type: 'PUT',
+                data: new FormData(this),
+                processData: false,
+                contentType: false,
+                success: function(client) {
+                    const $row = $(`tr[data-id="${client.id}"]`);
+                    $row.find('td:eq(0)').text(client.name);
+                    $row.find('td:eq(1)').text(client.email || 'N/A');
+                    $row.find('td:eq(2)').text(client.phone || 'N/A');
+                    $row.find('td:eq(3)').text(client.address || 'N/A');
+                    $row.find('td:eq(4)').text(client.taxId || 'N/A');
+                    $('#editClientModal').modal('hide');
+                },
+                error: function(error) {
+                    console.error('Error updating client:', error);
                 }
             });
         });
 
-        // Tooltips
-        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+        // Delete client button
+        $('.delete-client-btn').click(function() {
+            const clientId = $(this).data('id');
+            if (confirm(/*[[#{clients.confirm.deleteClient}]]*/ 'Are you sure you want to delete this client?')) {
+                $.ajax({
+                    url: `/clients/${clientId}`,
+                    type: 'DELETE',
+                    success: function() {
+                        $(`tr[data-id="${clientId}"]`).remove();
+                    },
+                    error: function(error) {
+                        console.error('Error deleting client:', error);
+                    }
+                });
+            }
         });
+
+        // Tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
 
         // Profile dropdown toggle
-        const profileToggle = document.getElementById('profile-toggle');
-        const profileDropdown = document.getElementById('profile-dropdown');
-
-        profileToggle.addEventListener('click', function () {
-            profileDropdown.classList.toggle('active');
+        $('#profile-toggle').click(function() {
+            $('#profile-dropdown').toggleClass('active');
         });
 
-        document.addEventListener('click', function (event) {
-            if (!profileToggle.contains(event.target) && !profileDropdown.contains(event.target)) {
-                profileDropdown.classList.remove('active');
+        $(document).click(function(event) {
+            if (!$(event.target).closest('#profile-toggle, #profile-dropdown').length) {
+                $('#profile-dropdown').removeClass('active');
             }
         });
     });

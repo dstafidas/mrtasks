@@ -82,9 +82,6 @@ public class MessageConfig implements WebMvcConfigurer {
                     System.out.println("Invalid language in cookie; reset to default: " + language);
                 }
 
-                // Log the language being used
-                System.out.println("Setting locale to: " + language);
-
 
                 // Set the locale
                 Locale locale = new Locale(language);
