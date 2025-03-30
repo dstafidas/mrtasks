@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.css">
-    <!-- Add jQuery CDN -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
@@ -194,8 +193,8 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            background: #f0f0f0;
-            border: 2px dashed #ccc;
+            background: none;
+            border: none;
             border-radius: 5px;
             padding: 10px;
         }
@@ -205,12 +204,27 @@
             padding: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             background-color: #fff;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.3s ease;
             position: relative;
-            cursor: move;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
+            min-height: 80px;
+            overflow: hidden;
+        }
+        .task-card.expanded {
             min-height: 220px;
+            max-width: 300px;
+            width: 100%;
+        }
+        .task-card.collapsed .task-details {
+            display: none;
+        }
+        .task-card.expanded .task-description {
+            white-space: normal;
+        }
+        .task-card.collapsed .task-description {
+            display: none;
         }
         .task-card:hover {
             transform: translateY(-5px);
@@ -227,23 +241,38 @@
             font-size: 0.9rem;
             color: #555;
         }
-        .task-card .actions {
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-top: auto;
+        }
+        .color-swatch-container {
             display: flex;
             gap: 5px;
-            flex-wrap: wrap;
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
         }
         .color-swatch {
             width: 18px;
             height: 18px;
             border-radius: 50%;
             display: inline-block;
-            margin: 2px;
             border: 1px solid #ddd;
             cursor: pointer;
             transition: transform 0.2s;
         }
         .color-swatch:hover {
+            transform: scale(1.2);
+        }
+        .actions i {
+            transition: transform 0.2s ease;
+            cursor: pointer;
+        }
+
+        .actions i:hover {
             transform: scale(1.2);
         }
         .task-select {
@@ -355,26 +384,30 @@
                 <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
-                    <p th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
-                    <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
-                    <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                    <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                    <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
-                    <div>
-                        <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
+                    <div class="task-details">
+                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
+                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
-                    <div class="actions">
-                        <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
-                        <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
-                        <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
+                    <div class="task-footer">
+                        <div class="color-swatch-container">
+                            <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                        </div>
+                        <div class="actions">
+                            <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
+                            <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
+                            <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -385,26 +418,30 @@
                 <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'IN_PROGRESS'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
-                    <p th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
-                    <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
-                    <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                    <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                    <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
-                    <div>
-                        <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
+                    <div class="task-details">
+                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
+                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
-                    <div class="actions">
-                        <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
-                        <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
-                        <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
+                    <div class="task-footer">
+                        <div class="color-swatch-container">
+                            <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                        </div>
+                        <div class="actions">
+                            <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
+                            <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
+                            <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -415,26 +452,30 @@
                 <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'COMPLETED'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
-                    <p th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
-                    <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
-                    <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                    <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                    <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
-                    <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
-                    <div>
-                        <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
-                        <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                    <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
+                    <div class="task-details">
+                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
+                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
-                    <div class="actions">
-                        <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
-                        <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
-                        <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
+                    <div class="task-footer">
+                        <div class="color-swatch-container">
+                            <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                            <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" th:data-id="${task.id}" onclick="changeColor(this)"></span>
+                        </div>
+                        <div class="actions">
+                            <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
+                            <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
+                            <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -660,7 +701,6 @@
                         type: 'PUT',
                         data: formData,
                         success: function(updatedTask) {
-                            // Only update the status field on drag-and-drop
                             const translatedStatus = {
                                 'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
                                 'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
@@ -694,6 +734,80 @@
             attachTaskListeners($(this));
         });
 
+        // Toggle card expand/collapse
+        function toggleCard($card) {
+            if ($card.hasClass('collapsed')) {
+                $card.removeClass('collapsed').addClass('expanded');
+            } else {
+                $card.removeClass('expanded').addClass('collapsed');
+            }
+            $('[data-bs-toggle="tooltip"]').tooltip('dispose').tooltip();
+        }
+
+        // Attach task listeners
+        function attachTaskListeners($card) {
+            if (!$card.hasClass('expanded') && !$card.hasClass('collapsed')) {
+                $card.addClass('collapsed');
+            }
+
+            $card.click(function(e) {
+                if (!$(e.target).hasClass('edit-task-btn') &&
+                    !$(e.target).hasClass('delete-task-btn') &&
+                    !$(e.target).hasClass('hide-task-btn') &&
+                    !$(e.target).hasClass('color-swatch') &&
+                    !$(e.target).hasClass('task-select')) {
+                    toggleCard($card);
+                }
+            });
+
+            $card.find('.edit-task-btn').click(function(e) {
+                e.stopPropagation();
+                const taskId = $(this).data('id');
+                $.getJSON(`/dashboard/task/${taskId}`, function(task) {
+                    $('#editTaskId').val(task.id);
+                    $('#editTitle').val(task.title);
+                    $('#editDescription').val(task.description || '');
+                    $('#editDeadline').val(task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '');
+                    $('#editBillable').prop('checked', task.billable);
+                    $('#editHoursWorked').val(task.hoursWorked || 0.0);
+                    $('#editHourlyRate').val(task.hourlyRate || 0.0);
+                    $('#editAdvancePayment').val(task.advancePayment || 0.0);
+                    $('#editClient').val(task.client ? task.client.id : '');
+                    $('#editColor').val(task.color);
+                    $('#editStatus').val(task.status);
+                    $('#editTaskModal').modal('show');
+                });
+            });
+
+            $card.find('.delete-task-btn').click(function(e) {
+                e.stopPropagation();
+                const taskId = $(this).data('id');
+                if (confirm(/*[[#{dashboard.confirm.deleteTask}]]*/ 'Are you sure you want to delete this task?')) {
+                    $.ajax({
+                        url: `/dashboard/task/${taskId}`,
+                        type: 'DELETE',
+                        success: function() {
+                            $(`.task-card[data-id="${taskId}"]`).remove();
+                        }
+                    });
+                }
+            });
+
+            $card.find('.hide-task-btn').click(function(e) {
+                e.stopPropagation();
+                const taskId = $(this).data('id');
+                if (confirm(/*[[#{dashboard.confirm.hideTask}]]*/ 'Are you sure you want to hide this task?')) {
+                    $.post(`/dashboard/task/${taskId}/hide`, function() {
+                        $(`.task-card[data-id="${taskId}"]`).remove();
+                    });
+                }
+            });
+
+            $card.find('.color-swatch').click(function(e) {
+                e.stopPropagation();
+            });
+        }
+
         // Add Task Form Submission
         $('#addTaskForm').submit(function(e) {
             e.preventDefault();
@@ -708,26 +822,30 @@
                     <div class="task-card" data-id="${task.id}" data-order="${task.orderIndex}" style="background-color: ${task.color}">
                         <input type="checkbox" class="task-select" data-id="${task.id}" ${task.billable ? '' : 'disabled'}>
                         <h6>${task.title}</h6>
-                        <p>${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description'}</p>
-                        <p><strong>Client:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
-                        <p><strong>Deadline:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
-                        <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
-                        <p><strong>Rate:</strong> <span class="hourly-rate">${formatCurrency(task.hourlyRate)}</span></p>
-                        <p><strong>Total:</strong> <span class="total">${formatCurrency(task.total)}</span></p>
-                        <p><strong>Advance:</strong> <span class="advance-payment">${formatCurrency(task.advancePayment)}</span></p>
-                        <p><strong>Remaining:</strong> <span class="remaining-due">${formatCurrency(task.remainingDue)}</span></p>
-                        <p><strong>Status:</strong> <span class="status">${translatedStatus}</span></p>
-                        <div>
-                            <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
-                            <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
-                            <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
-                            <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" data-id="${task.id}" onclick="changeColor(this)"></span>
-                            <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                        <p class="task-description">${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description'}</p>
+                        <div class="task-details">
+                            <p><strong>Client:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
+                            <p><strong>Deadline:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
+                            <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
+                            <p><strong>Rate:</strong> <span class="hourly-rate">${formatCurrency(task.hourlyRate)}</span></p>
+                            <p><strong>Total:</strong> <span class="total">${formatCurrency(task.total)}</span></p>
+                            <p><strong>Advance:</strong> <span class="advance-payment">${formatCurrency(task.advancePayment)}</span></p>
+                            <p><strong>Remaining:</strong> <span class="remaining-due">${formatCurrency(task.remainingDue)}</span></p>
+                            <p><strong>Status:</strong> <span class="status">${translatedStatus}</span></p>
                         </div>
-                        <div class="actions">
-                            <i class="bi bi-pencil-square text-primary edit-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Edit"></i>
-                            <i class="bi bi-trash text-danger delete-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Delete"></i>
-                            <i class="bi bi-eye-slash text-warning hide-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Hide"></i>
+                        <div class="task-footer">
+                            <div class="color-swatch-container">
+                                <span class="color-swatch" style="background-color: #FFFFFF;" data-color="#FFFFFF" data-id="${task.id}" onclick="changeColor(this)"></span>
+                                <span class="color-swatch" style="background-color: #FFCCCC;" data-color="#FFCCCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                                <span class="color-swatch" style="background-color: #CCFFCC;" data-color="#CCFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                                <span class="color-swatch" style="background-color: #CCCCFF;" data-color="#CCCCFF" data-id="${task.id}" onclick="changeColor(this)"></span>
+                                <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
+                            </div>
+                            <div class="actions">
+                                <i class="bi bi-pencil-square text-primary edit-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Edit"></i>
+                                <i class="bi bi-trash text-danger delete-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Delete"></i>
+                                <i class="bi bi-eye-slash text-warning hide-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Hide"></i>
+                            </div>
                         </div>
                     </div>
                 `);
@@ -769,7 +887,7 @@
                         }[task.status];
                         $taskCard.find('.task-select').prop('disabled', !task.billable);
                         $taskCard.find('h6').text(task.title);
-                        $taskCard.find('p:eq(2)').html(task.description && task.description.length > 0 ?
+                        $taskCard.find('.task-description').html(task.description && task.description.length > 0 ?
                             (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
                             'No description');
                         $taskCard.find('.client-name').text(task.client ? task.client.name : 'N/A');
@@ -828,49 +946,6 @@
             });
         });
     });
-
-    // Attach task listeners
-    function attachTaskListeners($card) {
-        $card.find('.edit-task-btn').click(function() {
-            const taskId = $(this).data('id');
-            $.getJSON(`/dashboard/task/${taskId}`, function(task) {
-                $('#editTaskId').val(task.id);
-                $('#editTitle').val(task.title);
-                $('#editDescription').val(task.description || '');
-                $('#editDeadline').val(task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '');
-                $('#editBillable').prop('checked', task.billable);
-                $('#editHoursWorked').val(task.hoursWorked || 0.0);
-                $('#editHourlyRate').val(task.hourlyRate || 0.0);
-                $('#editAdvancePayment').val(task.advancePayment || 0.0);
-                $('#editClient').val(task.client ? task.client.id : '');
-                $('#editColor').val(task.color);
-                $('#editStatus').val(task.status);
-                $('#editTaskModal').modal('show');
-            });
-        });
-
-        $card.find('.delete-task-btn').click(function() {
-            const taskId = $(this).data('id');
-            if (confirm(/*[[#{dashboard.confirm.deleteTask}]]*/ 'Are you sure you want to delete this task?')) {
-                $.ajax({
-                    url: `/dashboard/task/${taskId}`,
-                    type: 'DELETE',
-                    success: function() {
-                        $(`.task-card[data-id="${taskId}"]`).remove();
-                    }
-                });
-            }
-        });
-
-        $card.find('.hide-task-btn').click(function() {
-            const taskId = $(this).data('id');
-            if (confirm(/*[[#{dashboard.confirm.hideTask}]]*/ 'Are you sure you want to hide this task?')) {
-                $.post(`/dashboard/task/${taskId}/hide`, function() {
-                    $(`.task-card[data-id="${taskId}"]`).remove();
-                });
-            }
-        });
-    }
 
     // Change color function
     function changeColor(element) {
