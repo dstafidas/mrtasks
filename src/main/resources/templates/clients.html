@@ -292,6 +292,17 @@
         <input type="text" id="searchInput" class="form-control" placeholder="Search clients..." th:placeholder="#{clients.search.placeholder}">
     </div>
 
+    <div class="toast-container p-3" style="position: relative;">
+        <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body" id="errorToastMessage">
+                    <!-- Message will be injected here -->
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <h2 th:text="#{clients.list}">All Clients</h2>
     <div class="table-container">
         <table class="table" id="clientsTable">
@@ -478,8 +489,19 @@
                     success: function() {
                         $(`tr[data-id="${clientId}"]`).remove();
                     },
-                    error: function(error) {
-                        console.error('Error deleting client:', error);
+                    error: function(xhr) {
+                        if (xhr.status === 409) {
+                            const message = /*[[#{clients.error.delete.associatedTasks}]]*/ 'Cannot delete client because it is associated with one or more tasks.';
+                            $('#errorToastMessage').text(message);
+                            const toast = new bootstrap.Toast($('#errorToast'));
+                            toast.show();
+                        } else {
+                            console.error('Error deleting client:', xhr);
+                            const genericMessage = /*[[#{clients.error.delete.generic}]]*/ 'Failed to delete client.';
+                            $('#errorToastMessage').text(genericMessage);
+                            const toast = new bootstrap.Toast($('#errorToast'));
+                            toast.show();
+                        }
                     }
                 });
             }

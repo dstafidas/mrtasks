@@ -1,10 +1,13 @@
 package com.mrtasks.controller;
 
 import com.mrtasks.model.Client;
+import com.mrtasks.model.Task;
 import com.mrtasks.model.User;
 import com.mrtasks.repository.ClientRepository;
+import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -19,6 +22,7 @@ public class ClientController {
 
     private final ClientRepository clientRepository;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
 
     @GetMapping("/clients")
     public String listClients(Model model, Authentication auth) {
@@ -73,6 +77,14 @@ public class ClientController {
         if (client == null) {
             return ResponseEntity.notFound().build();
         }
+
+        // Check if any tasks exist for this client
+        if (taskRepository.existsByClient(client)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .header("X-Error-Message", "clients.error.delete.associatedTasks")
+                    .build();
+        }
+
         clientRepository.delete(client);
         return ResponseEntity.noContent().build();
     }
