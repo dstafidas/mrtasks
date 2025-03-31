@@ -19,4 +19,7 @@ public class User {
 
     @Column(nullable = false)
     private String role;
+
+    @Column(nullable = true)
+    private String provider; // e.g., "google"
 }

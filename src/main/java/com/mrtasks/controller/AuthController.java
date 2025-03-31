@@ -2,7 +2,6 @@ package com.mrtasks.controller;
 
 import com.mrtasks.model.User;
 import com.mrtasks.repository.UserRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -65,7 +64,6 @@ public class AuthController {
             @RequestParam("g-recaptcha-response") String recaptchaResponse,
             Model model) {
         try {
-            // Verify reCAPTCHA
             RestTemplate restTemplate = new RestTemplate();
             String verificationUrl = RECAPTCHA_VERIFY_URL + "?secret=" + RECAPTCHA_SECRET_KEY + "&response=" + recaptchaResponse;
             String result = restTemplate.postForObject(verificationUrl, null, String.class);
@@ -81,6 +79,7 @@ public class AuthController {
             }
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             user.setRole("ROLE_USER");
+            user.setProvider("local"); // Distinguish local users
             userRepository.save(user);
             return "redirect:/login?registered=true";
         } catch (Exception e) {

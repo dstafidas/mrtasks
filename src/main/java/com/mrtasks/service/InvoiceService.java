@@ -50,8 +50,7 @@ public class InvoiceService {
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUser(user);
         UserProfile profile = profileOpt.orElse(new UserProfile());
-        String sender = profile.getCompanyName() != null && !profile.getCompanyName().isEmpty() ?
-                profile.getCompanyName() : user.getUsername();
+        String sender = StringUtils.hasText(profile.getCompanyName()) ? profile.getCompanyName() : "";
 
         // Load the user's preferred language
         String language = profile.getLanguage() != null ? profile.getLanguage() : "en";
