@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="#{profile.title}">Profile - Mr Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -29,79 +30,6 @@
         .profile-details-container {
             max-width: 700px;
             width: 100%;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #dee2e6;
-            box-shadow: none;
-            border-top-left-radius: 15px;
-            border-top-right-radius: 15px;
-            margin-bottom: 10px;
-            width: 100%;
-        }
-        .navbar-brand .profile-header {
-            margin: 0;
-            color: #2c3e50;
-            font-weight: 700;
-            font-size: 1.5rem;
-        }
-        .navbar-links {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
-        .nav-link {
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        .nav-link:hover {
-            background-color: #e9ecef;
-            color: #2980b9;
-        }
-        .navbar-profile {
-            position: relative;
-        }
-        .bi-person-circle {
-            font-size: 2rem;
-            color: #2c3e50;
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-        .bi-person-circle:hover {
-            color: #2980b9;
-        }
-        .profile-dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            min-width: 150px;
-            z-index: 1000;
-        }
-        .profile-dropdown.active {
-            display: block;
-        }
-        .dropdown-item {
-            display: block;
-            padding: 0.5rem 1rem;
-            color: #2c3e50;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
-        }
-        .dropdown-item:hover {
-            background-color: #f8f9fa;
-            color: #3498db;
         }
         .form-label {
             font-weight: 500;
@@ -179,45 +107,16 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        @media (max-width: 768px) {
+        @media (max-width: 912px) {
             .profile-container {
                 padding: 0 1.5rem 1.5rem;
-            }
-            .navbar {
-                flex-direction: column;
-                padding: 1rem;
-            }
-            .navbar-links {
-                flex-direction: column;
-                gap: 10px;
-                margin-top: 1rem;
-            }
-            .navbar-profile {
-                margin-top: 1rem;
             }
         }
     </style>
 </head>
 <body>
 <div class="profile-container">
-    <nav class="navbar">
-        <div class="navbar-brand">
-            <h1 class="profile-header" th:text="#{profile.title}">Profile</h1>
-        </div>
-        <div class="navbar-links">
-            <a href="/dashboard" class="nav-link" th:text="#{dashboard.title}">Dashboard</a>
-            <a href="/tasks" class="nav-link" th:text="#{dashboard.allTasks}">All Tasks</a>
-            <a href="/clients" class="nav-link" th:text="#{dashboard.clients}">Clients</a>
-            <a href="/admin" sec:authorize="hasRole('ROLE_ADMIN')" class="nav-link" th:text="#{dashboard.admin}">Admin</a>
-        </div>
-        <div class="navbar-profile">
-            <i class="bi bi-person-circle" id="profile-toggle"></i>
-            <div class="profile-dropdown" id="profile-dropdown">
-                <a href="/profile" class="dropdown-item" th:text="#{dashboard.profile}">Profile</a>
-                <a href="/logout" class="dropdown-item" th:text="#{dashboard.logout}">Logout</a>
-            </div>
-        </div>
-    </nav>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <div class="profile-details-container">
         <div th:if="${message}" th:classappend="${messageType == 'danger'} ? 'alert alert-danger' : 'alert alert-success'" th:text="${message}"></div>
@@ -259,14 +158,13 @@
                 <div class="mb-3">
                     <label for="email" class="form-label" th:text="#{profile.email}">Email</label>
                     <input type="email" id="email" th:field="*{email}" class="form-control">
-                    <div class="invalid-feedback">Please enter a valid email address (e.g., <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="abcdcdcbdcce">[email protected]</a>).</div>
+                    <div class="invalid-feedback">Please enter a valid email address (e.g., user@example.com).</div>
                 </div>
                 <div class="mb-3">
                     <label for="phone" class="form-label" th:text="#{profile.phone}">Phone</label>
                     <input type="tel" id="phone" th:field="*{phone}" class="form-control" pattern="^\+?[1-9]\d{1,14}$">
                     <div class="invalid-feedback">Please enter a valid phone number (e.g., +1234567890).</div>
                 </div>
-
                 <div class="mb-3">
                     <label for="language" class="form-label" th:text="#{profile.language.label}">Preferred Language</label>
                     <select id="language" th:field="*{language}" class="form-select" name="language">
@@ -278,7 +176,6 @@
                         <option value="it" th:text="'Italiano'">Italian</option>
                     </select>
                 </div>
-
                 <button type="submit" class="btn btn-primary" th:text="#{profile.submit}">Update Profile</button>
             </form>
         </div>

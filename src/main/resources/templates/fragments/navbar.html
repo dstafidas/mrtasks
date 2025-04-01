@@ -1,0 +1,120 @@
+<th:block th:fragment="navbar">
+    <nav class="navbar navbar-expand-md">
+        <div class="navbar-brand">
+            <img th:src="@{/images/logo2.png}" alt="MrTasks Logo" class="login-logo">
+        </div>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <div class="navbar-links ms-auto">
+                <a href="/dashboard" class="nav-link" th:text="#{dashboard.title}">Dashboard</a>
+                <a href="/tasks" class="nav-link" th:text="#{dashboard.allTasks}">All Tasks</a>
+                <a href="/clients" class="nav-link" th:text="#{dashboard.clients}">Clients</a>
+                <a href="/admin" class="nav-link" th:classappend="${#authorization.expression('hasRole(''ROLE_ADMIN'')')} ? '' : 'd-none'" th:text="#{dashboard.admin}">Admin</a>
+            </div>
+            <div class="navbar-profile">
+                <i class="bi bi-person-circle" id="profile-toggle"></i>
+                <div class="profile-dropdown" id="profile-dropdown">
+                    <a href="/profile" class="dropdown-item" th:text="#{dashboard.profile}">Profile</a>
+                    <a href="/logout" class="dropdown-item" th:text="#{dashboard.logout}">Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Navbar-specific styles -->
+    <style>
+        .navbar {
+        background: #ffffff;
+        padding: 1rem 2rem;
+        border-bottom: 1px solid #dee2e6;
+        border-top-left-radius: 15px;
+        border-top-right-radius: 15px;
+        margin-bottom: 10px;
+        }
+        .navbar-brand .login-logo {
+        max-height: 80px;
+        width: auto;
+        }
+        .navbar-toggler {
+        border: none;
+        }
+        .navbar-links {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        }
+        .nav-link {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+        background-color: #e9ecef;
+        color: #2980b9;
+        }
+        .navbar-profile {
+        position: relative;
+        }
+        .bi-person-circle {
+        font-size: 2rem;
+        color: #2c3e50;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        }
+        .bi-person-circle:hover {
+        color: #2980b9;
+        }
+        .profile-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+        z-index: 1000;
+        }
+        .profile-dropdown.active {
+        display: block;
+        }
+        .dropdown-item {
+        display: block;
+        padding: 0.5rem 1rem;
+        color: #2c3e50;
+        text-decoration: none;
+        transition: background-color 0.3s ease;
+        }
+        .dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #3498db;
+        }
+        @media (max-width: 800px) {
+        .navbar {
+        padding: 1rem;
+        }
+        .navbar-brand {
+        flex-grow: 1;
+        }
+        .navbar-links {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        text-align: center;
+        margin-top: 1rem;
+        }
+        .navbar-profile {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+        }
+        }
+    </style>
+</th:block>
