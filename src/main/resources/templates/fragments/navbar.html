@@ -1,4 +1,4 @@
-<th:block th:fragment="navbar">
+<th:block th:fragment="navbar" xmlns:th="http://www.w3.org/1999/xhtml">
     <nav class="navbar navbar-expand-md">
         <div class="navbar-brand">
             <img th:src="@{/images/logo2.png}" alt="MrTasks Logo" class="login-logo">
@@ -26,95 +26,116 @@
     <!-- Navbar-specific styles -->
     <style>
         .navbar {
-        background: #ffffff;
-        padding: 1rem 2rem;
-        border-bottom: 1px solid #dee2e6;
-        border-top-left-radius: 15px;
-        border-top-right-radius: 15px;
-        margin-bottom: 10px;
+            background: #ffffff;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #dee2e6;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+            margin-bottom: 10px;
         }
         .navbar-brand .login-logo {
-        max-height: 80px;
-        width: auto;
+            max-height: 80px;
+            width: auto;
         }
         .navbar-toggler {
-        border: none;
+            border: none;
         }
         .navbar-links {
-        display: flex;
-        gap: 20px;
-        align-items: center;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-right: auto;
         }
         .nav-link {
-        color: #3498db;
-        text-decoration: none;
-        font-weight: 500;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        transition: all 0.3s ease;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
         }
         .nav-link:hover {
-        background-color: #e9ecef;
-        color: #2980b9;
+            background-color: #e9ecef;
+            color: #2980b9;
+        }
+        .nav-link.active {
+            background-color: #3498db; /* Highlight background for active link */
+            color: #ffffff; /* Highlight text color for active link */
+            font-weight: bold; /* Optional: make active link bolder */
         }
         .navbar-profile {
-        position: relative;
+            position: relative;
         }
         .bi-person-circle {
-        font-size: 2rem;
-        color: #2c3e50;
-        cursor: pointer;
-        transition: color 0.3s ease;
+            font-size: 2rem;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: color 0.3s ease;
         }
         .bi-person-circle:hover {
-        color: #2980b9;
+            color: #2980b9;
         }
         .profile-dropdown {
-        display: none;
-        position: absolute;
-        top: 100%;
-        right: 0;
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        min-width: 150px;
-        z-index: 1000;
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            z-index: 1000;
         }
         .profile-dropdown.active {
-        display: block;
+            display: block;
         }
         .dropdown-item {
-        display: block;
-        padding: 0.5rem 1rem;
-        color: #2c3e50;
-        text-decoration: none;
-        transition: background-color 0.3s ease;
+            display: block;
+            padding: 0.5rem 1rem;
+            color: #2c3e50;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
         }
         .dropdown-item:hover {
-        background-color: #f8f9fa;
-        color: #3498db;
+            background-color: #f8f9fa;
+            color: #3498db;
         }
         @media (max-width: 800px) {
-        .navbar {
-        padding: 1rem;
-        }
-        .navbar-brand {
-        flex-grow: 1;
-        }
-        .navbar-links {
-        flex-direction: column;
-        gap: 10px;
-        width: 100%;
-        text-align: center;
-        margin-top: 1rem;
-        }
-        .navbar-profile {
-        display: flex;
-        justify-content: center;
-        width: 100%;
-        margin-top: 1rem;
-        margin-bottom: 1rem;
-        }
+            .navbar {
+                padding: 1rem;
+            }
+            .navbar-brand {
+                flex-grow: 1;
+            }
+            .navbar-links {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+                text-align: center;
+                margin-top: 1rem;
+            }
+            .navbar-profile {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+                margin-top: 1rem;
+                margin-bottom: 1rem;
+            }
         }
     </style>
+
+    <!-- JavaScript for active link highlighting -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPath = window.location.pathname; // e.g., "/dashboard"
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            navLinks.forEach(link => {
+                const linkPath = link.getAttribute('href'); // e.g., "/dashboard"
+                if (linkPath === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </th:block>
