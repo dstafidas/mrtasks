@@ -46,17 +46,17 @@ public class DashboardController {
         return "dashboard";
     }
 
-    @GetMapping("/tasks")
-    public String listAllTasks(Model model, Authentication auth) {
-        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        List<Task> tasks = taskService.getTasksForUser(user).stream()
-                .sorted(Comparator.comparingInt(Task::getOrderIndex))
-                .toList();
-        List<Client> clients = clientRepository.findByUser(user);
-        model.addAttribute("tasks", tasks);
-        model.addAttribute("clients", clients);
-        return "tasks";
-    }
+//    @GetMapping("/tasks")
+//    public String listAllTasks(Model model, Authentication auth) {
+//        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+//        List<Task> tasks = taskService.getTasksForUser(user).stream()
+//                .sorted(Comparator.comparingInt(Task::getOrderIndex))
+//                .toList();
+//        List<Client> clients = clientRepository.findByUser(user);
+//        model.addAttribute("tasks", tasks);
+//        model.addAttribute("clients", clients);
+//        return "tasks";
+//    }
 
     @PostMapping("/dashboard")
     @ResponseBody

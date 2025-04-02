@@ -25,16 +25,20 @@
         max-width: 1400px;
         width: 100%;
     }
-    .search-group {
+    .filter-group {
         margin-bottom: 20px;
-        max-width: 300px;
+        display: inline;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
     }
-    .search-group .form-control {
+    .filter-group .form-control, .filter-group .form-select {
         border-radius: 20px;
         box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
+        max-width: 300px;
     }
-    .search-group .form-control:focus {
+    .filter-group .form-control:focus, .filter-group .form-select:focus {
         box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
         border-color: #3498db;
     }
@@ -44,6 +48,7 @@
         box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         overflow: hidden;
         border: 1px solid #dee2e6;
+        overflow-x: auto; /* Enable horizontal scrolling */
     }
     .table {
         width: 100%;
@@ -51,6 +56,8 @@
         color: #2c3e50;
         border-collapse: separate;
         border-spacing: 0;
+        min-width: 1000px; /* Set a minimum width to trigger scrolling */
+
     }
     .table thead th {
         background-color: #3498db;
@@ -160,13 +167,54 @@
         margin-top: 2rem;
         margin-bottom: 1rem;
     }
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+    .pagination {
+        margin: 0;
+    }
+    .pagination .page-link {
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: #3498db;
+        border-color: #3498db;
+    }
+    .pagination .page-link:hover {
+        background-color: #e9ecef;
+    }
+    .page-size-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .page-size-group label {
+        margin-bottom: 0;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+    .page-size-group .form-select {
+        width: auto;
+        max-width: 100px;
+        border-radius: 8px;
+    }
     @media (max-width: 912px) {
         .tasks-container {
             padding: 0 1.5rem 1.5rem;
         }
+        .table-container {
+            overflow-x: initial; /* Disable horizontal scrolling in mobile mode */
+        }
         .table {
             display: table;
             overflow-x: auto;
+            min-width: 0; /* Remove min-width in mobile mode */
         }
         .table thead {
             display: none;
@@ -196,8 +244,22 @@
 <div class="tasks-container">
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <div class="search-group">
-    <input type="text" id="searchInput" class="form-control" placeholder="Search tasks..." th:placeholder="#{tasks.search.placeholder}">
+  <div class="filter-group">
+    <form th:action="@{/tasks}" method="get" class="d-flex gap-3 flex-wrap align-items-center">
+      <input type="text" id="searchInput" name="search" class="form-control" th:value="${search}" placeholder="Search tasks..." th:placeholder="#{tasks.search.placeholder}">
+      <select id="clientFilter" name="clientId" class="form-select">
+        <option value="" th:text="#{tasks.filter.client.all}">All Clients</option>
+        <option th:each="client : ${clients}" th:value="${client.id}" th:text="${client.name}" th:selected="${client.id == clientId}"></option>
+      </select>
+      <select id="statusFilter" name="status" class="form-select">
+        <option value="" th:text="#{tasks.filter.status.all}">All Statuses</option>
+        <option value="TODO" th:text="#{dashboard.status.todo}" th:selected="${status == 'TODO'}">To Do</option>
+        <option value="IN_PROGRESS" th:text="#{dashboard.status.in_progress}" th:selected="${status == 'IN_PROGRESS'}">In Progress</option>
+        <option value="COMPLETED" th:text="#{dashboard.status.completed}" th:selected="${status == 'COMPLETED'}">Completed</option>
+      </select>
+      <input type="hidden" name="size" th:value="${pageSize}">
+      <button type="submit" class="btn btn-primary" th:text="#{tasks.search.button}">Search</button>
+    </form>
   </div>
 
   <h2 th:text="#{tasks.list}">All Tasks</h2>
@@ -218,8 +280,8 @@
       <tr th:each="task : ${tasks}" th:data-id="${task.id}">
         <td data-label="Title" th:text="${task.title}">Title</td>
         <td data-label="Description">
-          <span th:if="${task.description != null and task.description.length() > 0}"
-                th:utext="${task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')}">Description</span>
+                    <span th:if="${task.description != null and task.description.length() > 0}"
+                          th:utext="${task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')}">Description</span>
           <span th:unless="${task.description != null and task.description.length() > 0}"
                 th:utext="#{dashboard.table.noDescription}">No description</span>
         </td>
@@ -238,6 +300,29 @@
       </tbody>
     </table>
   </div>
+  <nav aria-label="Task pagination">
+    <div class="pagination-container">
+      <ul class="pagination">
+        <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+          <a class="page-link" th:href="@{/tasks(page=${currentPage - 1}, size=${pageSize}, search=${search}, clientId=${clientId}, status=${status})}">Previous</a>
+        </li>
+        <li class="page-item" th:each="page : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${page == currentPage ? 'active' : ''}">
+          <a class="page-link" th:href="@{/tasks(page=${page}, size=${pageSize}, search=${search}, clientId=${clientId}, status=${status})}" th:text="${page + 1}">1</a>
+        </li>
+        <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+          <a class="page-link" th:href="@{/tasks(page=${currentPage + 1}, size=${pageSize}, search=${search}, clientId=${clientId}, status=${status})}">Next</a>
+        </li>
+      </ul>
+      <div class="page-size-group">
+        <select id="pageSizeSelect" class="form-select" onchange="updatePageSize(this)">
+          <option value="5" th:selected="${pageSize == 5}" th:text="5">5</option>
+          <option value="10" th:selected="${pageSize == 10}" th:text="10">10</option>
+          <option value="20" th:selected="${pageSize == 20}" th:text="20">20</option>
+          <option value="50" th:selected="${pageSize == 50}" th:text="50">50</option>
+        </select>
+      </div>
+    </div>
+  </nav>
 
   <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -330,7 +415,6 @@
           attachListeners($(this));
       });
 
-      // Fix status badge colors on load
       $('#tasksTable tbody tr').each(function() {
           const $statusBadge = $(this).find('.status-badge');
           const statusText = $statusBadge.text().toLowerCase();
@@ -344,7 +428,6 @@
           }
       });
 
-      // Format deadline dates on load
       $('#tasksTable tbody tr').each(function() {
           const $deadlineCell = $(this).find('td:eq(2)');
           const deadlineText = $deadlineCell.text();
@@ -357,17 +440,6 @@
                   $deadlineCell.text(formatted);
               }
           }
-      });
-
-      $('#searchInput').on('keyup', function() {
-          const filter = $(this).val().toLowerCase();
-          $('#tasksTable tbody tr').each(function() {
-              const title = $(this).find('td:eq(0)').text().toLowerCase();
-              const description = $(this).find('td:eq(1)').text().toLowerCase();
-              const status = $(this).find('td:eq(3)').text().toLowerCase();
-              const client = $(this).find('td:eq(5)').text().toLowerCase();
-              $(this).toggle(title.includes(filter) || description.includes(filter) || status.includes(filter) || client.includes(filter));
-          });
       });
 
       $('#profile-toggle').click(function() {
@@ -489,6 +561,14 @@
       });
 
       $row.find('[data-bs-toggle="tooltip"]').tooltip();
+  }
+
+  function updatePageSize(select) {
+      const size = select.value;
+      const url = new URL(window.location.href);
+      url.searchParams.set('size', size);
+      url.searchParams.set('page', '0'); // Reset to first page when size changes
+      window.location.href = url.toString();
   }
 </script>
 </body>

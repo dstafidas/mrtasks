@@ -45,6 +45,7 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
             overflow: hidden;
             border: 1px solid #dee2e6;
+            overflow-x: auto;
         }
         .table {
             width: 100%;
@@ -52,6 +53,7 @@
             color: #2c3e50;
             border-collapse: separate;
             border-spacing: 0;
+             min-width: 800px;
         }
         .table thead th {
             background-color: #3498db;
@@ -151,13 +153,54 @@
             box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
             border-color: #3498db;
         }
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .pagination {
+            margin: 0;
+        }
+        .pagination .page-link {
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .pagination .page-link:hover {
+            background-color: #e9ecef;
+        }
+        .page-size-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .page-size-group label {
+            margin-bottom: 0;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .page-size-group .form-select {
+            width: auto;
+            max-width: 100px;
+            border-radius: 8px;
+        }
         @media (max-width: 912px) {
             .clients-container {
                 padding: 0 1.5rem 1.5rem;
             }
+            .table-container {
+                overflow-x: initial; /* Disable horizontal scrolling in mobile mode */
+            }
             .table {
                 display: table;
                 overflow-x: auto;
+                min-width: 0;
             }
             .table thead {
                 display: none;
@@ -188,15 +231,17 @@
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <div class="search-group">
-        <input type="text" id="searchInput" class="form-control" placeholder="Search clients..." th:placeholder="#{clients.search.placeholder}">
+        <form th:action="@{/clients}" method="get" class="d-flex">
+            <input type="text" id="searchInput" name="search" class="form-control me-2" th:value="${search}" placeholder="Search clients..." th:placeholder="#{clients.search.placeholder}">
+            <input type="hidden" name="size" th:value="${pageSize}">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
     </div>
 
     <div class="toast-container p-3" style="position: relative;">
         <div id="errorToast" class="toast align-items-center text-white bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="5000">
             <div class="d-flex">
-                <div class="toast-body" id="errorToastMessage">
-                    <!-- Message will be injected here -->
-                </div>
+                <div class="toast-body" id="errorToastMessage"></div>
                 <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
         </div>
@@ -230,6 +275,29 @@
             </tbody>
         </table>
     </div>
+    <nav aria-label="Client pagination">
+        <div class="pagination-container">
+            <ul class="pagination">
+                <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/clients(page=${currentPage - 1}, size=${pageSize}, search=${search})}">Previous</a>
+                </li>
+                <li class="page-item" th:each="page : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${page == currentPage ? 'active' : ''}">
+                    <a class="page-link" th:href="@{/clients(page=${page}, size=${pageSize}, search=${search})}" th:text="${page + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/clients(page=${currentPage + 1}, size=${pageSize}, search=${search})}">Next</a>
+                </li>
+            </ul>
+            <div class="page-size-group">
+                <select id="pageSizeSelect" class="form-select" onchange="updatePageSize(this)">
+                    <option value="5" th:selected="${pageSize == 5}" th:text="5">5</option>
+                    <option value="10" th:selected="${pageSize == 10}" th:text="10">10</option>
+                    <option value="20" th:selected="${pageSize == 20}" th:text="20">20</option>
+                    <option value="50" th:selected="${pageSize == 50}" th:text="50">50</option>
+                </select>
+            </div>
+        </div>
+    </nav>
     <button class="btn btn-success" id="showNewClientForm" th:text="#{clients.new}">New Client</button>
 
     <!-- New Client Form (Initially Hidden) -->
@@ -306,14 +374,12 @@
         const csrfToken = $('meta[name="_csrf"]').attr('content');
         const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
 
-        // jQuery AJAX setup for CSRF
         $.ajaxSetup({
             beforeSend: function(xhr) {
                 xhr.setRequestHeader(csrfHeader, csrfToken);
             }
         });
 
-        // Show/hide new client form
         $('#showNewClientForm').click(function() {
             $('#newClientSection').show();
             $(this).hide();
@@ -324,20 +390,6 @@
             $('#showNewClientForm').show();
         });
 
-        // Search functionality
-        $('#searchInput').on('keyup', function() {
-            const filter = $(this).val().toLowerCase();
-            $('#clientsTable tbody tr').each(function() {
-                const name = $(this).find('td:eq(0)').text().toLowerCase();
-                const email = $(this).find('td:eq(1)').text().toLowerCase();
-                const phone = $(this).find('td:eq(2)').text().toLowerCase();
-                const address = $(this).find('td:eq(3)').text().toLowerCase();
-                const taxId = $(this).find('td:eq(4)').text().toLowerCase();
-                $(this).toggle(name.includes(filter) || email.includes(filter) || phone.includes(filter) || address.includes(filter) || taxId.includes(filter));
-            });
-        });
-
-        // Edit client button
         $('.edit-client-btn').click(function() {
             const clientId = $(this).data('id');
             $.getJSON(`/clients/${clientId}`, function(client) {
@@ -353,7 +405,6 @@
             });
         });
 
-        // Edit client form submission
         $('#editClientForm').submit(function(e) {
             e.preventDefault();
             const clientId = $('#editClientId').val();
@@ -378,7 +429,6 @@
             });
         });
 
-        // Delete client button
         $('.delete-client-btn').click(function() {
             const clientId = $(this).data('id');
             if (confirm(/*[[#{clients.confirm.deleteClient}]]*/ 'Are you sure you want to delete this client?')) {
@@ -406,10 +456,8 @@
             }
         });
 
-        // Tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-        // Profile dropdown toggle
         $('#profile-toggle').click(function() {
             $('#profile-dropdown').toggleClass('active');
         });
@@ -420,6 +468,14 @@
             }
         });
     });
+
+    function updatePageSize(select) {
+        const size = select.value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('size', size);
+        url.searchParams.set('page', '0'); // Reset to first page when size changes
+        window.location.href = url.toString();
+    }
 </script>
 </body>
 </html>
