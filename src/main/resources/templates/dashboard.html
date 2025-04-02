@@ -140,10 +140,11 @@
             flex-direction: column;
             min-height: 80px;
             overflow: hidden;
+            touch-action: none; /* Prevent scrolling on touch */
+            user-select: none; /* Prevent text selection during drag */
         }
         .task-card.expanded {
             min-height: 220px;
-            max-width: 300px;
             width: 100%;
         }
         .task-card.collapsed .task-details {
@@ -381,7 +382,7 @@
     </div>
 
     <!-- Add Task Modal -->
-    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -451,7 +452,7 @@
     </div>
 
     <!-- Edit Task Modal -->
-    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -573,6 +574,13 @@
                 accepts: function(el, target) { return true; },
                 moves: function(el) { return $(el).hasClass('task-card'); },
                 direction: 'vertical'
+            });
+
+            // Enhance touch support by preventing default touchmove behavior
+            containers.forEach(container => {
+                container.addEventListener('touchmove', (e) => {
+                    e.preventDefault();
+                }, { passive: false });
             });
 
             drake.on('drop', function(el, target, source) {
