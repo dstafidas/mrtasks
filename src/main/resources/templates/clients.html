@@ -53,7 +53,6 @@
             color: #2c3e50;
             border-collapse: separate;
             border-spacing: 0;
-             min-width: 800px;
         }
         .table thead th {
             background-color: #3498db;
@@ -192,36 +191,72 @@
         }
         @media (max-width: 912px) {
             .clients-container {
-                padding: 0 1.5rem 1.5rem;
+                padding: 0 1rem 1rem;
             }
             .table-container {
-                overflow-x: initial; /* Disable horizontal scrolling in mobile mode */
+                overflow-x: hidden; /* Prevent horizontal scrolling */
             }
             .table {
-                display: table;
-                overflow-x: auto;
-                min-width: 0;
+                width: 100%; /* Ensure table fits container */
+                min-width: unset; /* Remove min-width to prevent scrolling */
             }
             .table thead {
-                display: none;
+                display: none; /* Headers hidden, replaced by data-label */
             }
             .table tbody tr {
-                display: block;
+                display: flex;
+                flex-wrap: wrap;
                 margin-bottom: 1rem;
                 border: 1px solid #dee2e6;
                 border-radius: 8px;
+                padding: 0.5rem;
+                background-color: #fff;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             }
-            .table tbody td {
-                display: block;
-                text-align: right;
+            .table tbody td.collapsible {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
                 padding: 0.75rem;
-                border-bottom: none;
-            }
-            .table tbody td:before {
-                content: attr(data-label);
-                float: left;
+                cursor: pointer;
                 font-weight: 600;
-                color: #3498db;
+                color: #2c3e50;
+                word-break: break-word; /* Allow long names to wrap */
+            }
+            .table tbody td.details {
+                display: none;
+                width: 100%;
+                padding: 0.5rem 0.75rem;
+                border-bottom: none;
+                flex-wrap: wrap; /* Allow content to wrap */
+                word-break: break-word; /* Break long words to fit */
+            }
+            .table tbody td.details:before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #1a73e8;
+                margin-right: 0.5rem;
+                flex-shrink: 0; /* Prevent label from shrinking */
+            }
+            .table tbody tr.expanded td.details {
+                display: block; /* Changed from flex to block for better wrapping */
+            }
+            .table tbody td:last-child {
+                display: flex; /* Keep actions horizontal */
+                justify-content: center;
+                gap: 1rem;
+            }
+            .table tbody tr.expanded .toggle-icon {
+                transform: rotate(180deg);
+            }
+            .bi {
+                font-size: 1rem;
+            }
+        }
+        @media (min-width: 913px) {
+            .table {
+                min-width: 800px; /* Keep horizontal scrolling for desktop */
             }
         }
     </style>
@@ -234,7 +269,7 @@
         <form th:action="@{/clients}" method="get" class="d-flex">
             <input type="text" id="searchInput" name="search" class="form-control me-2" th:value="${search}" placeholder="Search clients..." th:placeholder="#{clients.search.placeholder}">
             <input type="hidden" name="size" th:value="${pageSize}">
-            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="submit" class="btn btn-primary" th:text="#{clients.search.button}">Search</button>
         </form>
     </div>
 
@@ -257,17 +292,19 @@
                 <th th:text="#{clients.table.phone}">Phone</th>
                 <th th:text="#{clients.table.address}">Address</th>
                 <th th:text="#{clients.table.taxId}">Tax ID</th>
-                <th th:text="#{clients.table.actions}">Actions</th>
+                <th></th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="client : ${clients}" th:data-id="${client.id}">
-                <td data-label="Name" th:text="${client.name}">Name</td>
-                <td data-label="Email" th:text="${client.email ?: 'N/A'}">Email</td>
-                <td data-label="Phone" th:text="${client.phone ?: 'N/A'}">Phone</td>
-                <td data-label="Address" th:text="${client.address ?: 'N/A'}">Address</td>
-                <td data-label="Tax ID" th:text="${client.taxId ?: 'N/A'}">Tax ID</td>
-                <td data-label="Actions">
+                <td class="collapsible" th:attr="data-label=#{clients.table.name}" th:text="${client.name}">
+                    <i class="bi bi-chevron-down toggle-icon"></i>
+                </td>
+                <td class="details" th:attr="data-label=#{clients.table.email}" th:text="${client.email ?: 'N/A'}"></td>
+                <td class="details" th:attr="data-label=#{clients.table.phone}" th:text="${client.phone ?: 'N/A'}"></td>
+                <td class="details" th:attr="data-label=#{clients.table.address}" th:text="${client.address ?: 'N/A'}"></td>
+                <td class="details" th:attr="data-label=#{clients.table.taxId}" th:text="${client.taxId ?: 'N/A'}"></td>
+                <td class="details">
                     <i class="bi bi-pencil-square text-primary edit-client-btn" th:data-id="${client.id}" data-bs-toggle="tooltip" th:data-bs-title="#{clients.tooltip.edit}"></i>
                     <i class="bi bi-trash text-danger delete-client-btn" th:data-id="${client.id}" data-bs-toggle="tooltip" th:data-bs-title="#{clients.tooltip.delete}"></i>
                 </td>
@@ -380,6 +417,11 @@
             }
         });
 
+        // Toggle collapsible rows on mobile
+        $('.collapsible').on('click', function() {
+            $(this).closest('tr').toggleClass('expanded');
+        });
+
         $('#showNewClientForm').click(function() {
             $('#newClientSection').show();
             $(this).hide();
@@ -473,7 +515,7 @@
         const size = select.value;
         const url = new URL(window.location.href);
         url.searchParams.set('size', size);
-        url.searchParams.set('page', '0'); // Reset to first page when size changes
+        url.searchParams.set('page', '0');
         window.location.href = url.toString();
     }
 </script>

@@ -57,7 +57,6 @@
         border-collapse: separate;
         border-spacing: 0;
         min-width: 1000px; /* Set a minimum width to trigger scrolling */
-
     }
     .table thead th {
         background-color: #3498db;
@@ -209,33 +208,63 @@
             padding: 0 1.5rem 1.5rem;
         }
         .table-container {
-            overflow-x: initial; /* Disable horizontal scrolling in mobile mode */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
         }
         .table {
-            display: table;
-            overflow-x: auto;
-            min-width: 0; /* Remove min-width in mobile mode */
+            width: 100%; /* Fit to container */
+            min-width: unset; /* Remove min-width for mobile */
         }
         .table thead {
-            display: none;
+            display: none; /* Hide headers */
         }
         .table tbody tr {
-            display: block;
+            display: flex;
+            flex-wrap: wrap;
             margin-bottom: 1rem;
             border: 1px solid #dee2e6;
             border-radius: 8px;
+            padding: 0.5rem;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        .table tbody td {
-            display: block;
-            text-align: right;
+        .table tbody td.collapsible {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
             padding: 0.75rem;
-            border-bottom: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #2c3e50;
+            word-break: break-word; /* Allow long titles to wrap */
         }
-        .table tbody td:before {
+        .table tbody td.details {
+            display: none; /* Hidden by default */
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border-bottom: none;
+            word-break: break-word; /* Wrap long text */
+        }
+        .table tbody td.details:before {
             content: attr(data-label);
-            float: left;
             font-weight: 600;
             color: #3498db;
+            margin-right: 0.5rem;
+            display: inline-block;
+        }
+        .table tbody tr.expanded td.details {
+            display: block; /* Show details when expanded */
+        }
+        .table tbody td:last-child {
+            display: flex; /* Keep actions horizontal */
+            justify-content: center;
+            gap: 1rem;
+        }
+        .table tbody tr.expanded .toggle-icon {
+            transform: rotate(180deg); /* Rotate chevron when expanded */
+        }
+        .bi {
+            font-size: 1rem;
         }
     }
   </style>
@@ -273,25 +302,27 @@
         <th th:text="#{dashboard.form.status}">Status</th>
         <th th:text="#{dashboard.table.hidden}">Hidden</th>
         <th th:text="#{dashboard.form.client}">Client</th>
-        <th th:text="#{dashboard.table.actions}">Actions</th>
+        <th></th>
       </tr>
       </thead>
       <tbody>
       <tr th:each="task : ${tasks}" th:data-id="${task.id}">
-        <td data-label="Title" th:text="${task.title}">Title</td>
-        <td data-label="Description">
-                    <span th:if="${task.description != null and task.description.length() > 0}"
-                          th:utext="${task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')}">Description</span>
+        <td class="collapsible" th:attr="data-label=#{dashboard.table.title}" th:text="${task.title}">
+          <i class="bi bi-chevron-down toggle-icon"></i>
+        </td>
+        <td class="details" th:attr="data-label=#{dashboard.table.description}">
+          <span th:if="${task.description != null and task.description.length() > 0}"
+                th:utext="${task.description.length() > 50 ? task.description.substring(0, 50) + '...' : task.description.replaceAll('\n', '<br>')}">Description</span>
           <span th:unless="${task.description != null and task.description.length() > 0}"
                 th:utext="#{dashboard.table.noDescription}">No description</span>
         </td>
-        <td data-label="Deadline" th:text="${task.deadline}">Deadline</td>
-        <td data-label="Status">
+        <td class="details" th:attr="data-label=#{dashboard.table.deadline}" th:text="${task.deadline}">Deadline</td>
+        <td class="details" th:attr="data-label=#{dashboard.form.status}">
           <span class="status-badge" th:classappend="${task.status == 'TODO' ? 'status-todo' : task.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed'}" th:text="#{dashboard.status.__${task.status.name().toLowerCase()}__}">Status</span>
         </td>
-        <td data-label="Hidden" th:text="${task.hidden} ? #{dashboard.table.yes} : #{dashboard.table.no}">Hidden</td>
-        <td data-label="Client" th:text="${task.client != null} ? ${task.client.name} : #{dashboard.table.na}">Client</td>
-        <td data-label="Actions">
+        <td class="details" th:attr="data-label=#{dashboard.table.hidden}" th:text="${task.hidden} ? #{dashboard.table.yes} : #{dashboard.table.no}">Hidden</td>
+        <td class="details" th:attr="data-label=#{dashboard.form.client}" th:text="${task.client != null} ? ${task.client.name} : #{dashboard.table.na}">Client</td>
+        <td class="details">
           <i class="bi bi-pencil-square text-primary edit-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.edit}"></i>
           <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
           <i class="bi bi-eye text-success unhide-task-btn" th:data-id="${task.id}" th:unless="${!task.hidden}" data-bs-toggle="tooltip" th:data-bs-title="#{tasks.unhide.button}"></i>
@@ -409,6 +440,11 @@
           beforeSend: function(xhr) {
               xhr.setRequestHeader(csrfHeader, csrfToken);
           }
+      });
+
+      // Toggle collapsible rows on mobile
+      $('.collapsible').on('click', function() {
+          $(this).closest('tr').toggleClass('expanded');
       });
 
       $('tr').each(function() {
