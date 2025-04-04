@@ -1,10 +1,7 @@
 package com.mrtasks.controller;
 
-import com.mrtasks.service.PremiumService;
 import com.mrtasks.service.StripeService;
-import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
-import com.stripe.model.checkout.Session;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -19,9 +16,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PaymentController {
 
     private final StripeService stripeService;
-
-    private final PremiumService premiumService;
-
     private final MessageSource messageSource;
 
     @Value("${stripe.api.key}")
@@ -34,13 +28,8 @@ public class PaymentController {
     }
 
     @GetMapping("/success")
-    public String paymentSuccess(@RequestParam("session_id") String sessionId, RedirectAttributes redirectAttributes) throws StripeException {
-        Stripe.apiKey = stripeApiKey;
-        Session session = Session.retrieve(sessionId);
-        String[] parts = session.getClientReferenceId().split("_");
-        Long userId = Long.valueOf(parts[0]);
-        int months = Integer.parseInt(parts[1]);
-        premiumService.upgradeToPremium(userId, months);
+    public String paymentSuccess(RedirectAttributes redirectAttributes) {
+        // Add success message and redirect to profile
         String message = messageSource.getMessage("profile.payment.success", null, LocaleContextHolder.getLocale());
         redirectAttributes.addFlashAttribute("message", message);
         redirectAttributes.addFlashAttribute("messageType", "success");
@@ -49,6 +38,7 @@ public class PaymentController {
 
     @GetMapping("/cancel")
     public String paymentCanceled(RedirectAttributes redirectAttributes) {
+        // Add failure message and redirect to profile
         String message = messageSource.getMessage("profile.payment.failed", null, LocaleContextHolder.getLocale());
         redirectAttributes.addFlashAttribute("message", message);
         redirectAttributes.addFlashAttribute("messageType", "danger");

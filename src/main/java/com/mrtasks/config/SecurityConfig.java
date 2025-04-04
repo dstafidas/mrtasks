@@ -24,11 +24,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(csrf -> csrf // Disable CSRF for the webhook endpoint, it uses signature to validate request from stripe.
+                        .ignoringRequestMatchers("/stripe/webhook")
+                )
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/dashboard", "/invoice", "/invoice/email", "/profile", "/tasks", "/clients").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/register", "/login").permitAll()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/register", "/login", "/images/**", "/stripe/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
