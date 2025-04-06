@@ -11,3 +11,4 @@ artifacts:
   files:
     - target/mrtasks-0.0.1-SNAPSHOT.jar
     - Procfile
+    - .ebextensions/**/*
