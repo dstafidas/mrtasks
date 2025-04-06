@@ -6,9 +6,10 @@ phases:
       java: corretto21
   build:
     commands:
+      - echo "Building the application"
       - mvn clean package
 artifacts:
   files:
-    - target/mrtasks-0.0.1-SNAPSHOT.jar
-    - Procfile
+    - target/*.jar
+    - .platform/**/*
     - .ebextensions/**/*
