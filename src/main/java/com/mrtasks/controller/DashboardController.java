@@ -6,7 +6,6 @@ import com.mrtasks.model.User;
 import com.mrtasks.repository.ClientRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.InvoiceService;
-import com.mrtasks.service.PremiumService;
 import com.mrtasks.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -25,7 +24,6 @@ public class DashboardController {
 
     private final TaskService taskService;
     private final InvoiceService invoiceService;
-    private final PremiumService premiumService;
     private final UserRepository userRepository;
     private final ClientRepository clientRepository;
 
@@ -40,8 +38,6 @@ public class DashboardController {
         model.addAttribute("tasks", tasks);
         model.addAttribute("clients", clients);
         model.addAttribute("newTask", new Task());
-        model.addAttribute("isPremium", premiumService.isPremiumUser(user));
-        model.addAttribute("expiresAt", premiumService.getExpirationDate(user));
         model.addAttribute("totalTaskCount", taskService.getTasksForUser(user).size());
         return "dashboard";
     }
@@ -62,9 +58,6 @@ public class DashboardController {
     @ResponseBody
     public ResponseEntity<?> addTask(@ModelAttribute Task task, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        if (!premiumService.isPremiumUser(user) && taskService.getTasksForUser(user).size() >= 5) {
-            return ResponseEntity.status(403).body("Non-premium users are limited to 5 tasks. Upgrade to premium to create more.");
-        }
         task.setUser(user);
         if (task.getClient() != null && task.getClient().getId() != null) {
             Client client = clientRepository.findByIdAndUser(task.getClient().getId(), user);
@@ -182,9 +175,6 @@ public class DashboardController {
             @RequestParam("taskIds") List<Long> taskIds,
             Authentication auth) throws Exception {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-        if (!premiumService.isPremiumUser(user)) {
-            return ResponseEntity.status(403).body("Premium subscription required".getBytes());
-        }
         byte[] invoice = invoiceService.generateInvoice(user, taskIds);
         return ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=invoice_" + user.getUsername() + ".pdf")

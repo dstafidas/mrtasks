@@ -266,14 +266,9 @@
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
             <span>+</span> <span th:text="#{dashboard.add}">Add New Task</span>
         </button>
-        <div th:if="${isPremium}">
-            <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
-                <button type="submit" class="btn btn-success" th:text="#{dashboard.invoice.download}">Download Invoice</button>
-            </form>
-        </div>
-        <div th:unless="${isPremium}">
-            <button type="button" class="btn btn-success" disabled th:text="#{dashboard.invoice.download}" data-bs-toggle="tooltip" data-bs-placement="top" title="Premium feature - Upgrade to unlock">Download Invoice</button>
-        </div>
+        <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
+            <button type="submit" class="btn btn-success" th:text="#{dashboard.invoice.download}">Download Invoice</button>
+        </form>
     </div>
 
     <div class="task-columns">
