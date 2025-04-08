@@ -35,6 +35,7 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // true indicates HTML
             helper.setFrom("no-reply@mrtasks.com");
+            helper.setReplyTo("support@mrtasks.com");
 
             mailSender.send(message);
         } catch (Exception e) {
@@ -59,6 +60,7 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(htmlBody, true);
             helper.setFrom("no-reply@mrtasks.com");
+            helper.setReplyTo("support@mrtasks.com");
 
             mailSender.send(message);
         } catch (Exception e) {
