@@ -6,6 +6,7 @@ import com.mrtasks.model.UserSubscription;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
+import com.mrtasks.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -19,6 +20,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Locale;
+import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,6 +30,7 @@ public class ProfileController {
     private final UserProfileRepository userProfileRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final MessageSource messageSource;
+    private final EmailService emailService;
 
     @GetMapping("/profile")
     public String showProfile(Model model, Authentication auth) {
@@ -64,13 +67,30 @@ public class ProfileController {
                     return newProfile;
                 });
 
+        // Check if email has changed and is valid
+        String oldEmail = existingProfile.getEmail();
+        String newEmail = profile.getEmail();
+        boolean emailChanged = newEmail != null && !newEmail.trim().isEmpty() &&
+                (oldEmail == null || !oldEmail.equals(newEmail));
+
         existingProfile.setCompanyName(profile.getCompanyName());
         existingProfile.setLogoUrl(profile.getLogoUrl());
-        existingProfile.setEmail(profile.getEmail());
+        existingProfile.setEmail(newEmail);
         existingProfile.setPhone(profile.getPhone());
         existingProfile.setLanguage(profile.getLanguage() != null ? profile.getLanguage() : "en");
 
+        // Save profile first
         userProfileRepository.save(existingProfile);
+
+        // Handle email verification if email changed
+        if (emailChanged) {
+            String verificationToken = UUID.randomUUID().toString();
+            existingProfile.setEmailVerificationToken(verificationToken);
+            existingProfile.setEmailVerified(false);
+            userProfileRepository.save(existingProfile);
+
+            emailService.sendVerificationEmail(newEmail, verificationToken, existingProfile.getLanguage());
+        }
 
         // Set the language in a cookie
         String newLanguage = existingProfile.getLanguage();
@@ -79,8 +99,8 @@ public class ProfileController {
         languageCookie.setPath("/"); // Cookie is available for the entire application
         response.addCookie(languageCookie);
 
-        // Set the locale for the current request (for the success message)
-        LocaleContextHolder.setLocale(new Locale(newLanguage));
+        // Set the locale for the current request
+        LocaleContextHolder.setLocale(Locale.forLanguageTag(newLanguage));
 
         redirectAttributes.addFlashAttribute("message",
                 messageSource.getMessage("profile.updated.success", null, LocaleContextHolder.getLocale()));

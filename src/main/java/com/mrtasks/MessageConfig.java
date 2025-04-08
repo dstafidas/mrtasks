@@ -84,7 +84,7 @@ public class MessageConfig implements WebMvcConfigurer {
 
 
                 // Set the locale
-                Locale locale = new Locale(language);
+                Locale locale = Locale.forLanguageTag(language);
                 LocaleContextHolder.setLocale(locale);
                 request.getSession().setAttribute(SessionLocaleResolver.LOCALE_SESSION_ATTRIBUTE_NAME, locale);
                 return true;

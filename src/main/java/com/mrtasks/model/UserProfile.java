@@ -24,4 +24,10 @@ public class UserProfile {
 
     @Column(name = "language", nullable = false, columnDefinition = "varchar(5) default 'en'")
     private String language = "en";
+
+    private String emailVerificationToken;
+    @Column(columnDefinition = "boolean default false")
+    private boolean emailVerified;
+
+    private String resetPasswordToken;
 }

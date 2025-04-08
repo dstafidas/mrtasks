@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -98,12 +98,12 @@
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        .register-link {
+        .register-link, .forgot-password-link {
             color: #3498db;
             text-decoration: none;
             transition: color 0.3s ease;
         }
-        .register-link:hover {
+        .register-link:hover, .forgot-password-link:hover {
             color: #2980b9;
             text-decoration: underline;
         }
@@ -139,6 +139,12 @@
     <div th:if="${param.error}" class="alert alert-danger">
         <p th:text="#{login.error}">Invalid username or password.</p>
     </div>
+    <div th:if="${param.reset}" class="alert alert-success">
+        <p th:text="#{login.reset}">Your password has been reset. Please log in.</p>
+    </div>
+    <div th:if="${param.sent}" class="alert alert-info">
+        <p th:text="#{forgot.password.sent}">If the provided username and email exist in our system, a password reset link will be sent to your email.</p>
+    </div>
     <form th:action="@{/login}" method="post">
         <div class="mb-3">
             <label for="username" class="form-label" th:text="#{login.username}">Username</label>
@@ -164,7 +170,10 @@
     <p class="mt-3 text-center">
         <span th:text="#{login.noaccount}">Don't have an account?</span>
         <a href="/register" class="register-link" th:text="#{login.register.link}"> Create an account</a>
-        <span> or sign in with Google.</span>
+        <span th:text="#{login.googleoption}"> or sign in with Google.</span>
+    </p>
+    <p class="mt-3 text-center">
+        <a href="/forgot-password" class="forgot-password-link" th:text="#{login.forgot.password}">Forgot Password?</a>
     </p>
 </div>
 </body>

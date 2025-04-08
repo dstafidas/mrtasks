@@ -54,7 +54,7 @@ public class InvoiceService {
 
         // Load the user's preferred language
         String language = profile.getLanguage() != null ? profile.getLanguage() : "en";
-        Locale locale = new Locale(language);
+        Locale locale = Locale.forLanguageTag(language);
         ResourceBundle messages = ResourceBundle.getBundle("messages", locale);
 
         Document document = new Document(PageSize.A4, 36, 36, 54, 36);
