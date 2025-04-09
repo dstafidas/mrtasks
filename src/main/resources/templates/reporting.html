@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="#{reporting.title}">Reporting - Mr Tasks</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .reporting-container {
+            background: white;
+            padding: 0 2.5rem 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .reporting-container .navbar {
+            width: 100%;
+            margin-left: -2.5rem;
+            margin-right: -2.5rem;
+            padding-left: 2.5rem;
+            padding-right: 2.5rem;
+        }
+        .charts-container {
+            width: 100%;
+            max-width: 1200px;
+        }
+        .section-box {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .range-selector {
+            margin-bottom: 1rem;
+            max-width: 300px;
+        }
+        .notes-section {
+            font-size: 0.9rem;
+            color: #34495e;
+            margin-bottom: 2rem;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        .notes-section h3 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        .notes-section ul {
+            padding-left: 1.5rem;
+            margin-bottom: 0;
+        }
+        .notes-section li {
+            margin-bottom: 0.3rem;
+        }
+        @media (max-width: 912px) {
+            .reporting-container {
+                padding: 0 1.5rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="reporting-container">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="charts-container">
+        <div class="range-selector">
+            <label for="timeRange" class="form-label" th:text="#{reporting.timeRange}">Time Range</label>
+            <select id="timeRange" class="form-select">
+                <option value="last-month" selected th:text="#{reporting.lastMonth}">Last Month</option>
+                <option value="last-3-months" th:text="#{reporting.last3Months}">Last 3 Months</option>
+                <option value="last-6-months" th:text="#{reporting.last6Months}">Last 6 Months</option>
+                <option value="one-year" th:text="#{reporting.oneYear}">One Year</option>
+                <option value="ytd" th:text="#{reporting.ytd}">Year to Date</option>
+            </select>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="notes-section">
+            <h3 th:text="#{reporting.notesTitle}">Calculation Notes</h3>
+            <ul>
+                <li th:text="#{reporting.note.deadlineBased}">Charts are based on task deadlines, not creation or completion dates.</li>
+                <li th:text="#{reporting.note.timeRangeFilter}">Tasks are filtered by the selected time range (e.g., "Last Month" includes tasks with deadlines after the start of the range).</li>
+                <li th:text="#{reporting.note.tasksCountAll}">Task counts include all tasks, regardless of status or billability.</li>
+                <li th:text="#{reporting.note.revenueBillableOnly}">Revenue calculations only include billable tasks.</li>
+            </ul>
+        </div>
+
+        <!-- Combined Tasks and Revenue per Month -->
+        <div class="section-box">
+            <h2 th:text="#{reporting.tasksAndRevenuePerMonth}">Tasks and Revenue per Month</h2>
+            <canvas id="tasksAndRevenuePerMonthChart"></canvas>
+        </div>
+
+        <!-- Combined Tasks and Revenue per Client -->
+        <div class="section-box">
+            <h2 th:text="#{reporting.tasksAndRevenuePerClient}">Tasks and Revenue per Client</h2>
+            <canvas id="tasksAndRevenuePerClientChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Profile dropdown toggle
+        $('#profile-toggle').click(function() {
+            $('#profile-dropdown').toggleClass('active');
+        });
+
+        $(document).click(function(e) {
+            if (!$('#profile-toggle').is(e.target) && !$('#profile-dropdown').has(e.target).length) {
+                $('#profile-dropdown').removeClass('active');
+            }
+        });
+
+        const combinedBarOptions = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { color: '#34495e', font: { size: 12 } }
+                },
+                tooltip: {
+                    backgroundColor: '#34495e',
+                    cornerRadius: 4,
+                    titleFont: { size: 12 },
+                    bodyFont: { size: 12 }
+                },
+                title: {
+                    display: true,
+                    text: '',
+                    color: '#2c3e50',
+                    font: { size: 16, weight: '600' }
+                },
+                datalabels: {
+                    display: true,
+                    color: '#34495e',
+                    font: { size: 10 },
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (value) => value
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#34495e' },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#34495e',
+                        precision: 0,
+                        stepSize: 10
+                    },
+                    grid: { color: '#e9ecef', drawBorder: false },
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Revenue',
+                        color: '#34495e',
+                        font: { size: 12 }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#34495e',
+                        precision: 0,
+                        stepSize: 1
+                    },
+                    grid: { display: false },
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Tasks',
+                        color: '#34495e',
+                        font: { size: 12 }
+                    }
+                }
+            }
+        };
+
+        const combinedLineOptions = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { color: '#34495e', font: { size: 12 } }
+                },
+                tooltip: {
+                    backgroundColor: '#34495e',
+                    cornerRadius: 4,
+                    titleFont: { size: 12 },
+                    bodyFont: { size: 12 }
+                },
+                title: {
+                    display: true,
+                    text: '',
+                    color: '#2c3e50',
+                    font: { size: 16, weight: '600' }
+                },
+                datalabels: {
+                    display: true,
+                    color: '#34495e',
+                    font: { size: 10 },
+                    anchor: 'end',
+                    align: 'top',
+                    formatter: (value) => value
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#34495e' },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#34495e',
+                        precision: 0,
+                        stepSize: 10
+                    },
+                    grid: { color: '#e9ecef', drawBorder: false },
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Revenue',
+                        color: '#34495e',
+                        font: { size: 12 }
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#34495e',
+                        precision: 0,
+                        stepSize: 1
+                    },
+                    grid: { display: false },
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Tasks',
+                        color: '#34495e',
+                        font: { size: 12 }
+                    }
+                }
+            },
+            elements: {
+                point: { radius: 0 },
+                line: { borderWidth: 2 }
+            }
+        };
+
+        let charts = {};
+
+        function fetchAndRenderCharts(range) {
+            Object.values(charts).forEach(chart => chart.destroy());
+
+            // Combined Tasks and Revenue per Month
+            Promise.all([
+                $.ajax({ url: '/reporting/tasks-per-month', method: 'GET', data: { range: range } }),
+                $.ajax({ url: '/reporting/revenue-per-month', method: 'GET', data: { range: range } })
+            ]).then(([tasksData, revenueData]) => {
+                combinedLineOptions.plugins.title.text = $('#tasksAndRevenuePerMonthChart').prev('h2').text();
+                charts.tasksAndRevenuePerMonth = new Chart($('#tasksAndRevenuePerMonthChart')[0].getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: tasksData.labels,
+                        datasets: [
+                            {
+                                label: 'Tasks',
+                                data: tasksData.values,
+                                borderColor: '#4682b4',
+                                backgroundColor: 'rgba(70, 130, 180, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'Revenue',
+                                data: revenueData.values,
+                                borderColor: '#9370db',
+                                backgroundColor: 'rgba(147, 112, 219, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y'
+                            }
+                        ]
+                    },
+                    options: combinedLineOptions
+                });
+            }).catch(err => {
+                console.error('Error fetching combined tasks and revenue per month:', err);
+            });
+
+            // Combined Tasks and Revenue per Client
+            Promise.all([
+                $.ajax({ url: '/reporting/tasks-per-client', method: 'GET', data: { range: range } }),
+                $.ajax({ url: '/reporting/revenue-per-client', method: 'GET', data: { range: range } })
+            ]).then(([tasksData, revenueData]) => {
+                combinedBarOptions.plugins.title.text = $('#tasksAndRevenuePerClientChart').prev('h2').text();
+                charts.tasksAndRevenuePerClient = new Chart($('#tasksAndRevenuePerClientChart')[0].getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: tasksData.labels,
+                        datasets: [
+                            {
+                                label: 'Tasks',
+                                data: tasksData.values,
+                                backgroundColor: '#4682b4',
+                                borderRadius: 5,
+                                borderWidth: 1,
+                                borderColor: '#ffffff',
+                                yAxisID: 'y1'
+                            },
+                            {
+                                label: 'Revenue',
+                                data: revenueData.values,
+                                backgroundColor: '#9370db',
+                                borderRadius: 5,
+                                borderWidth: 1,
+                                borderColor: '#ffffff',
+                                yAxisID: 'y'
+                            }
+                        ]
+                    },
+                    options: combinedBarOptions
+                });
+            }).catch(err => {
+                console.error('Error fetching combined tasks and revenue per client:', err);
+            });
+        }
+
+        // Initial load with default range (last-month)
+        fetchAndRenderCharts($('#timeRange').val());
+
+        // Update charts on range change
+        $('#timeRange').on('change', function() {
+            fetchAndRenderCharts($(this).val());
+        });
+    });
+</script>
+</body>
+</html>

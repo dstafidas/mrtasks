@@ -11,6 +11,7 @@
                 <a href="/dashboard" class="nav-link" th:text="#{dashboard.title}">Dashboard</a>
                 <a href="/tasks" class="nav-link" th:text="#{dashboard.allTasks}">All Tasks</a>
                 <a href="/clients" class="nav-link" th:text="#{dashboard.clients}">Clients</a>
+                <a href="/reporting" class="nav-link" th:text="#{dashboard.reporting}">Reporting</a>
                 <a href="/admin" class="nav-link" th:classappend="${#authorization.expression('hasRole(''ROLE_ADMIN'')')} ? '' : 'd-none'" th:text="#{dashboard.admin}">Admin</a>
             </div>
             <div class="navbar-profile">
@@ -59,9 +60,9 @@
             color: #2980b9;
         }
         .nav-link.active {
-            background-color: #3498db; /* Highlight background for active link */
-            color: #ffffff; /* Highlight text color for active link */
-            font-weight: bold; /* Optional: make active link bolder */
+            background-color: #3498db;
+            color: #ffffff;
+            font-weight: bold;
         }
         .navbar-profile {
             position: relative;
