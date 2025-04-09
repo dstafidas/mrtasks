@@ -1,19 +1,18 @@
-// EmailVerificationController.java
 package com.mrtasks.controller;
 
 import com.mrtasks.model.UserProfile;
 import com.mrtasks.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Locale;
 
-@RestController
+@Controller
 @RequiredArgsConstructor
 @RequestMapping()
 public class EmailVerificationController {
@@ -22,20 +21,28 @@ public class EmailVerificationController {
     private final MessageSource messageSource;
 
     @GetMapping("/email-verify")
-    public ResponseEntity<String> verifyEmail(String token, @RequestParam(defaultValue = "en") String lang) {
+    public String verifyEmail(@RequestParam String token,
+                              @RequestParam(defaultValue = "en") String lang,
+                              Model model) {
         UserProfile profile = userProfileRepository.findByEmailVerificationToken(token)
                 .orElse(null);
+
+        Locale locale = Locale.forLanguageTag(lang);
 
         if (profile != null) {
             profile.setEmailVerified(true);
             profile.setEmailVerificationToken(null);
             userProfileRepository.save(profile);
-
-            String successMessage = messageSource.getMessage("email.verified.success", null, Locale.forLanguageTag(lang));
-            return ResponseEntity.ok(successMessage);
+            model.addAttribute("success", true);
+            model.addAttribute("message", messageSource.getMessage("email.verified.success", null, locale));
         } else {
-            String errorMessage = messageSource.getMessage("email.verified.error", null, Locale.forLanguageTag(lang));
-            return ResponseEntity.badRequest().body(errorMessage);
+            model.addAttribute("success", false);
+            model.addAttribute("message", messageSource.getMessage("email.verified.error", null, locale));
         }
+
+        model.addAttribute("title", messageSource.getMessage("email.verification.title", null, locale));
+        model.addAttribute("returnButton", messageSource.getMessage("email.verification.return", null, locale));
+
+        return "email-verification-result";
     }
 }

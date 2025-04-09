@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Email Verification - Mr Tasks</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .verification-container {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        .verification-header {
+            color: #2c3e50;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+        .verification-logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 1rem;
+            background: transparent;
+        }
+        .checkmark {
+            color: #34A853;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .cross {
+            color: #EA4335;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .message {
+            font-size: 1.2rem;
+            color: #34495e;
+            margin-bottom: 2rem;
+        }
+        .btn-primary {
+            padding: 0.6rem 1.2rem;
+            width: 100%;
+            border-radius: 8px;
+            min-height: 48px;
+            background-color: #3498db;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        @media (max-width: 912px) {
+            .verification-container {
+                padding: 1.5rem;
+                margin: 1rem;
+                max-width: 90%;
+            }
+            .verification-logo {
+                max-width: 150px;
+            }
+            .verification-header {
+                font-size: 1.5rem;
+            }
+            .checkmark, .cross {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="verification-container">
+    <div class="text-center mb-3">
+        <img th:src="@{/images/logo2.png}" alt="MrTasks Logo" class="verification-logo">
+    </div>
+    <h1 class="verification-header" th:text="${title}">Email Verification</h1>
+
+    <div th:if="${success}">
+        <div class="checkmark">✔</div>
+        <p class="message" th:text="${message}">Email successfully verified!</p>
+    </div>
+    <div th:unless="${success}">
+        <div class="cross">✘</div>
+        <p class="message" th:text="${message}">Invalid or expired verification link.</p>
+    </div>
+
+    <a th:href="@{/login}" class="btn btn-primary" th:text="${returnButton}">Return</a>
+</div>
+</body>
+</html>
