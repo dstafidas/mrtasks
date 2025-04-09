@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Admin</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .profile-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: auto;
+        }
+        .profile-field {
+            margin-bottom: 1.5rem;
+        }
+        .profile-field label {
+            font-weight: 600;
+            color: #3498db;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .form-control, .form-check-input {
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
+            border-color: #3498db;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .alert {
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .status-item label {
+            margin-bottom: 0;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .form-check-input:disabled {
+            opacity: 1;
+        }
+        .form-check-input {
+            margin-top: 0;
+            vertical-align: middle;
+        }
+        .update-history-list {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 0;
+            max-height: 100px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+        }
+        .update-history-list:empty::before {
+            content: "No updates recorded";
+            color: #6c757d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<div class="profile-container">
+    <h2>User Profile</h2>
+
+    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <form th:action="@{/admin/profile/{username}(username=${user.username})}" th:object="${profile}" method="post">
+        <div class="row">
+            <div class="col-md-6 profile-field">
+                <label>Username:</label>
+                <input type="text" class="form-control" th:value="${user.username}" readonly>
+            </div>
+            <div class="col-md-6 profile-field">
+                <label>Role:</label>
+                <input type="text" class="form-control" th:value="${user.role}" readonly>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 profile-field">
+                <label>Company Name:</label>
+                <input type="text" class="form-control" th:field="*{companyName}" placeholder="Not Set">
+            </div>
+            <div class="col-md-6 profile-field">
+                <label>Email:</label>
+                <input type="email" class="form-control" th:field="*{email}" placeholder="Not Set">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 profile-field">
+                <label>Phone:</label>
+                <input type="text" class="form-control" th:field="*{phone}" placeholder="Not Set">
+            </div>
+            <div class="col-md-6 profile-field">
+                <label>Language:</label>
+                <input type="text" class="form-control" th:field="*{language}" placeholder="en">
+            </div>
+        </div>
+        <div class="profile-field">
+            <label>Status:</label>
+            <div class="status-row">
+                <div class="status-item">
+                    <label>Verification Email sent:</label>
+                    <input type="checkbox" class="form-check-input" th:checked="${profile.emailVerificationToken != null}" disabled>
+                </div>
+                <div class="status-item">
+                    <label>Email Verified:</label>
+                    <input type="checkbox" class="form-check-input" th:checked="${profile.emailVerified}" disabled>
+                </div>
+                <div class="status-item">
+                    <label>Password Reset Email sent:</label>
+                    <input type="checkbox" class="form-check-input" th:checked="${profile.resetPasswordToken != null}" disabled>
+                </div>
+            </div>
+        </div>
+        <div class="profile-field">
+            <label>Update History:</label>
+            <ul class="update-history-list">
+                <li th:each="entry : ${profile.updateHistory == null || profile.updateHistory.isEmpty() ? new java.lang.String[0] : profile.updateHistory.split(';') }"
+                    th:text="${entry.trim()}" th:unless="${#strings.isEmpty(entry.trim())}"></li>
+            </ul>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a th:href="@{/admin}" class="btn btn-secondary ms-2">Back to Dashboard</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

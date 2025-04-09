@@ -30,4 +30,7 @@ public class UserProfile {
     private boolean emailVerified;
 
     private String resetPasswordToken;
+
+    @Column(columnDefinition = "TEXT")
+    private String updateHistory = "";
 }

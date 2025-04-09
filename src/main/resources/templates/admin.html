@@ -224,6 +224,7 @@
                 </td>
                 <td data-label="Actions">
                     <div class="action-group">
+                        <a th:href="@{/admin/profile/{username}(username=${user.username})}" class="btn btn-info btn-sm">View Profile</a>
                         <form th:action="@{/admin/upgrade}" method="post">
                             <input type="hidden" name="username" th:value="${user.username}">
                             <input type="hidden" name="page" th:value="${currentPage}">
@@ -238,6 +239,13 @@
                             <input type="hidden" name="size" value="10">
                             <input type="hidden" name="search" th:value="${search}">
                             <button type="submit" class="btn btn-warning btn-sm" th:text="#{admin.downgrade}">Downgrade</button>
+                        </form>
+                        <form th:action="@{/admin/reset-password}" method="post" onsubmit="return confirm('Reset password for this user?');">
+                            <input type="hidden" name="username" th:value="${user.username}">
+                            <input type="hidden" name="page" th:value="${currentPage}">
+                            <input type="hidden" name="size" value="10">
+                            <input type="hidden" name="search" th:value="${search}">
+                            <button type="submit" class="btn btn-danger btn-sm">Reset Password</button>
                         </form>
                     </div>
                 </td>
