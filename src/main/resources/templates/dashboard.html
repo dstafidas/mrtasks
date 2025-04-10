@@ -283,10 +283,10 @@
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                         <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
-                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
-                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
                         <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
@@ -317,10 +317,10 @@
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                         <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
-                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
-                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
                         <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
@@ -351,10 +351,10 @@
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                         <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${task.hourlyRate}"></span></p>
-                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${task.total != null ? task.total : '0.00'}"></span></p>
-                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${task.advancePayment != null ? task.advancePayment : '0.00'}"></span></p>
-                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${task.remainingDue != null ? task.remainingDue : '0.00'}"></span></p>
+                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
                         <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
@@ -549,7 +549,6 @@
         $('#profile-toggle').click(function() {
             $('#profile-dropdown').toggleClass('active');
         });
-
         $(document).click(function(e) {
             if (!$('#profile-toggle').is(e.target) && !$('#profile-dropdown').has(e.target).length) {
                 $('#profile-dropdown').removeClass('active');
@@ -581,51 +580,28 @@
             drake.on('drop', function(el, target, source) {
                 const taskId = $(el).data('id');
                 const newStatus = $(target).parent().data('status');
+                const taskIds = $(target).children().map(function() { return $(this).data('id'); }).get();
 
-                $.getJSON(`/dashboard/task/${taskId}`, function(task) {
-                    const formData = {
-                        title: task.title || '',
-                        description: task.description || '',
-                        deadline: task.deadline || '',
-                        billable: task.billable,
-                        hoursWorked: task.hoursWorked || 0.0,
-                        hourlyRate: task.hourlyRate || 0.0,
-                        advancePayment: task.advancePayment || 0.0,
-                        'client.id': task.client ? task.client.id : '',
-                        color: task.color || '#FFFFFF',
-                        status: newStatus,
-                        hidden: task.hidden || false
-                    };
-
-                    $.ajax({
-                        url: `/dashboard/task/${taskId}`,
-                        type: 'PUT',
-                        data: formData,
-                        success: function(updatedTask) {
-                            const translatedStatus = {
-                                'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
-                                'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
-                                'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
-                            }[updatedTask.status];
-                            $(el).find('.status').text(translatedStatus);
-
-                            const taskIds = $(target).children().map(function() { return $(this).data('id'); }).get();
-                            $.ajax({
-                                url: '/dashboard/reorder',
-                                type: 'POST',
-                                contentType: 'application/json',
-                                data: JSON.stringify(taskIds),
-                                success: function(response) {
-                                    if (response === 'Order updated') {
-                                        taskIds.forEach(function(id, index) {
-                                            $(`.task-card[data-id="${id}"]`).attr('data-order', index);
-                                        });
-                                    }
-                                },
-                                dataType: 'text'
-                            });
-                        }
-                    });
+                $.ajax({
+                    url: `/dashboard/move?taskId=${taskId}&status=${newStatus}`,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(taskIds), // Send only taskIds in the body
+                    success: function(updatedTask) {
+                        const translatedStatus = {
+                            'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
+                            'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
+                            'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
+                        }[updatedTask.status];
+                        $(el).find('.status').text(translatedStatus);
+                        taskIds.forEach(function(id, index) {
+                            $(`.task-card[data-id="${id}"]`).attr('data-order', index);
+                        });
+                    },
+                    error: function(xhr) {
+                        console.error("Error moving task:", xhr.responseText);
+                        alert("Failed to move task: " + xhr.responseText);
+                    }
                 });
             });
         }
@@ -635,7 +611,6 @@
             attachTaskListeners($(this));
         });
 
-        // Toggle card expand/collapse
         function toggleCard($card) {
             if ($card.hasClass('collapsed')) {
                 $card.removeClass('collapsed').addClass('expanded');
@@ -645,7 +620,6 @@
             $('[data-bs-toggle="tooltip"]').tooltip('dispose').tooltip();
         }
 
-        // Attach task listeners
         function attachTaskListeners($card) {
             if (!$card.hasClass('expanded') && !$card.hasClass('collapsed')) {
                 $card.addClass('collapsed');
@@ -703,10 +677,6 @@
                     });
                 }
             });
-
-            $card.find('.color-swatch').click(function(e) {
-                e.stopPropagation();
-            });
         }
 
         // Add Task Form Submission
@@ -754,14 +724,6 @@
                 $('#addTaskModal').modal('hide');
                 $('#addTaskForm')[0].reset();
                 attachTaskListeners($newCard);
-
-                const taskIds = $targetColumn.children().map(function() { return $(this).data('id'); }).get();
-                $.ajax({
-                    url: '/dashboard/reorder',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(taskIds)
-                });
             }, 'json');
         });
 
@@ -800,11 +762,6 @@
                         $taskCard.find('.remaining-due').text(formatCurrency(task.remainingDue));
                         $taskCard.find('.status').text(translatedStatus);
                         $taskCard.css('backgroundColor', task.color);
-
-                        if ($currentColumn[0] !== $newColumn[0]) {
-                            const taskIds = $newColumn.children().map(function() { return $(this).data('id'); }).get();
-                            $.post('/dashboard/reorder', JSON.stringify(taskIds));
-                        }
                     }
                     $('#editTaskModal').modal('hide');
                 }
@@ -819,10 +776,8 @@
                 alert(/*[[#{dashboard.alert.selectBillableTask}]]*/ 'Please select at least one billable task to generate an invoice.');
                 return;
             }
-
             const formData = new FormData();
             selectedTaskIds.forEach(id => formData.append('taskIds', id));
-
             $.ajax({
                 url: '/invoice',
                 type: 'POST',

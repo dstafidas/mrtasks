@@ -42,18 +42,6 @@ public class DashboardController {
         return "dashboard";
     }
 
-//    @GetMapping("/tasks")
-//    public String listAllTasks(Model model, Authentication auth) {
-//        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-//        List<Task> tasks = taskService.getTasksForUser(user).stream()
-//                .sorted(Comparator.comparingInt(Task::getOrderIndex))
-//                .toList();
-//        List<Client> clients = clientRepository.findByUser(user);
-//        model.addAttribute("tasks", tasks);
-//        model.addAttribute("clients", clients);
-//        return "tasks";
-//    }
-
     @PostMapping("/dashboard")
     @ResponseBody
     public ResponseEntity<?> addTask(@ModelAttribute Task task, Authentication auth) {
@@ -162,12 +150,22 @@ public class DashboardController {
         return ResponseEntity.ok("Color updated");
     }
 
-    @PostMapping("/dashboard/reorder")
+    @PostMapping("/dashboard/move")
     @ResponseBody
-    public ResponseEntity<String> reorderTasks(@RequestBody List<Long> taskIds, Authentication auth) {
+    public ResponseEntity<Task> moveTask(
+            @RequestParam("taskId") Long taskId,
+            @RequestParam("status") String status,
+            @RequestBody List<Long> taskIds,
+            Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        Task task = taskService.getTaskByIdAndUser(taskId, user);
+        if (task == null) {
+            return ResponseEntity.status(403).body(null);
+        }
+        task.setStatus(Task.TaskStatus.valueOf(status));
+        taskService.updateTask(task);
         taskService.reorderTasks(taskIds, user);
-        return ResponseEntity.ok("Order updated");
+        return ResponseEntity.ok(task);
     }
 
     @PostMapping("/invoice")
