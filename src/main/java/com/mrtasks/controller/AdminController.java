@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
@@ -36,6 +37,7 @@ public class AdminController {
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserProfileRepository userProfileRepository;
     private final EmailService emailService;
+    private final SessionRegistry sessionRegistry; // only works when app runs one instance, if there are more, share memory like redis is needed
 
     @GetMapping
     public String adminDashboard(
@@ -57,11 +59,24 @@ public class AdminController {
         Map<Long, UserSubscription> subscriptionMap = subscriptions.stream()
                 .collect(Collectors.toMap(sub -> sub.getUser().getId(), sub -> sub));
 
+        // KPIs
+        long totalUsers = userRepository.count();
+        long premiumUsers = userSubscriptionRepository.countByIsPremiumTrueAndExpiresAtAfter(LocalDateTime.now());
+        long recentActivity = userRepository.countByLastLoginAfter(LocalDateTime.now().minusHours(24));
+        long usersOnline = sessionRegistry.getAllPrincipals().stream()
+                .filter(principal -> !sessionRegistry.getAllSessions(principal, false).isEmpty())
+                .count();
+
         model.addAttribute("users", userPage.getContent());
         model.addAttribute("subscriptions", subscriptionMap);
         model.addAttribute("currentPage", userPage.getNumber());
         model.addAttribute("totalPages", userPage.getTotalPages());
         model.addAttribute("search", search);
+        model.addAttribute("totalUsers", totalUsers);
+        model.addAttribute("premiumUsers", premiumUsers);
+        model.addAttribute("recentActivity", recentActivity);
+        model.addAttribute("usersOnline", usersOnline);
+
         return "admin";
     }
 
@@ -82,7 +97,7 @@ public class AdminController {
             @PathVariable String username,
             @ModelAttribute UserProfile profile,
             Model model,
-            Principal principal) { // Add Principal to get the admin user
+            Principal principal) {
         try {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
@@ -107,6 +122,9 @@ public class AdminController {
 
             // Log the update with the admin's username
             logUpdate(existingProfile, "Profile updated", principal);
+
+            // Save the profile after all changes
+            userProfileRepository.save(existingProfile);
 
             model.addAttribute("message", "Profile for " + username + " updated successfully");
         } catch (Exception e) {
@@ -136,7 +154,12 @@ public class AdminController {
                 newProfile.setUser(user);
                 return newProfile;
             });
+
             logUpdate(userProfile, "Upgraded to Premium for " + months + " months", principal);
+
+            // Save the profile after all changes
+            userProfileRepository.save(userProfile);
+
             model.addAttribute("message", "User " + username + " upgraded to Premium for " + months + " months");
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -158,7 +181,12 @@ public class AdminController {
                 newProfile.setUser(user);
                 return newProfile;
             });
+
             logUpdate(userProfile, "Downgraded from Premium", principal);
+
+            // Save the profile after all changes
+            userProfileRepository.save(userProfile);
+
             model.addAttribute("message", "User " + username + " downgraded from Premium");
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -179,12 +207,18 @@ public class AdminController {
                 newProfile.setUser(user);
                 return newProfile;
             });
+
             if (StringUtils.hasText(profile.getEmail())) {
                 String resetPasswordToken = UUID.randomUUID().toString();
                 profile.setResetPasswordToken(resetPasswordToken);
                 emailService.sendPasswordResetEmail(profile.getEmail(), resetPasswordToken, profile.getLanguage());
-                model.addAttribute("message", "Password reset link sent to " + profile.getEmail());
+
                 logUpdate(profile, "Reset password email sent to " + profile.getEmail(), principal);
+
+                // Save the profile after all changes
+                userProfileRepository.save(profile);
+
+                model.addAttribute("message", "Password reset link sent to " + profile.getEmail());
             } else {
                 model.addAttribute("error", "No email available to send reset email");
             }
@@ -201,6 +235,6 @@ public class AdminController {
         profile.setUpdateHistory(profile.getUpdateHistory() != null
                 ? updateEntry + "; " + profile.getUpdateHistory()
                 : updateEntry);
-        userProfileRepository.save(profile);
+        // Save is handled by the calling method
     }
 }

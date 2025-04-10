@@ -69,7 +69,7 @@
         }
         .table tbody tr {
             transition: all 0.3s ease;
-            cursor: pointer; /* Indicate clickable row */
+            cursor: pointer;
         }
         .table tbody tr:nth-child(even) {
             background-color: #f8f9fa;
@@ -121,6 +121,24 @@
         .pagination .page-link:hover {
             background-color: #e9ecef;
         }
+        .kpi-card {
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            text-align: center;
+            padding: 1rem;
+        }
+        .kpi-card h5 {
+            color: #3498db;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .kpi-card p {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
         @media (max-width: 912px) {
             .admin-container {
                 padding: 0 1.5rem 1.5rem;
@@ -155,10 +173,42 @@
 </head>
 <body>
 <div class="admin-container">
+    <!-- Assuming you have a navbar fragment; adjust if not -->
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <!-- KPI Section -->
+    <div class="mb-4">
+        <h2 th:text="#{admin.title}">Admin Dashboard</h2>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <h5>Total Users</h5>
+                    <p th:text="${totalUsers}">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <h5>Premium Users</h5>
+                    <p th:text="${premiumUsers}">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <h5>Active Last 24h</h5>
+                    <p th:text="${recentActivity}">0</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <h5>Users Online</h5>
+                    <p th:text="${usersOnline}">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <h2 th:text="#{admin.users}">Users</h2>
     <div class="mb-3">
@@ -174,6 +224,7 @@
                 <th th:text="#{admin.username}">Username</th>
                 <th th:text="#{admin.role}">Role</th>
                 <th>Subscription Status</th>
+                <th>Last Login</th>
             </tr>
             </thead>
             <tbody>
@@ -194,6 +245,11 @@
                         <span th:unless="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
                             Free
                         </span>
+                    </a>
+                </td>
+                <td data-label="Last Login">
+                    <a th:href="@{/admin/profile/{username}(username=${user.username})}">
+                        <span th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'yyyy-MM-dd HH:mm') : 'Never'}">Never</span>
                     </a>
                 </td>
             </tr>
@@ -218,25 +274,23 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Make entire row clickable
         $('#userTable tbody tr').on('click', function(e) {
-            if (!$(e.target).is('input, button, a')) { // Avoid triggering if clicking interactive elements
+            if (!$(e.target).is('input, button, a')) {
                 window.location = $(this).data('url');
             }
         });
 
-        // Search functionality
         $('#userSearch').on('input', function() {
             const filter = $(this).val().toLowerCase();
             $('#userTable tbody tr').each(function() {
                 const username = $(this).find('td:eq(0)').text().toLowerCase();
                 const role = $(this).find('td:eq(1)').text().toLowerCase();
                 const status = $(this).find('td:eq(2)').text().toLowerCase();
-                $(this).toggle(username.includes(filter) || role.includes(filter) || status.includes(filter));
+                const lastLogin = $(this).find('td:eq(3)').text().toLowerCase();
+                $(this).toggle(username.includes(filter) || role.includes(filter) || status.includes(filter) || lastLogin.includes(filter));
             });
         });
 
-        // Profile dropdown toggle
         $('#profile-toggle').click(function() {
             $('#profile-dropdown').toggleClass('active');
         });

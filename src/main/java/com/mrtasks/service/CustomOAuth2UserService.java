@@ -37,6 +37,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     profile.setUser(savedUser);
                     profile.setEmail(email);
                     profile.setCompanyName(name);
+                    profile.setEmailVerified(true);
                     userProfileRepository.save(profile);
 
                     return savedUser;

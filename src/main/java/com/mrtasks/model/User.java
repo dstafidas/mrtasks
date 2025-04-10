@@ -23,5 +23,8 @@ public class User {
     private String role;
 
     @Column(nullable = true)
-    private String provider; // e.g., "google"
+    private String provider;
+
+    @Column(name = "last_login", nullable = true)
+    private LocalDateTime lastLogin;
 }
