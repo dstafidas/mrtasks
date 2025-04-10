@@ -121,30 +121,69 @@ public class AdminController {
         return "admin-profile";
     }
 
-    @PostMapping("/reset-password")
-    public String resetPassword(
+    @PostMapping("/upgrade")
+    public String upgradeUser(
             @RequestParam String username,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
+            @RequestParam int months,
             Model model,
             Principal principal) {
         try {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-
-            UserProfile profile = userProfileRepository.findByUser(user).orElseGet(() -> {
+            premiumService.upgradeToPremiumFromAdmin(user, months);
+            UserProfile userProfile = userProfileRepository.findByUser(user).orElseGet(() -> {
                 UserProfile newProfile = new UserProfile();
-                newProfile.setUser(user); // Set user for new profiles
+                newProfile.setUser(user);
                 return newProfile;
             });
+            logUpdate(userProfile, "Upgraded to Premium for " + months + " months", principal);
+            model.addAttribute("message", "User " + username + " upgraded to Premium for " + months + " months");
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        return viewProfile(username, model); // Redirect to profile page
+    }
 
+    @PostMapping("/downgrade")
+    public String downgradeUser(
+            @RequestParam String username,
+            Model model,
+            Principal principal) {
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+            premiumService.downgradeFromPremium(user);
+            UserProfile userProfile = userProfileRepository.findByUser(user).orElseGet(() -> {
+                UserProfile newProfile = new UserProfile();
+                newProfile.setUser(user);
+                return newProfile;
+            });
+            logUpdate(userProfile, "Downgraded from Premium", principal);
+            model.addAttribute("message", "User " + username + " downgraded from Premium");
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        return viewProfile(username, model); // Redirect to profile page
+    }
+
+    @PostMapping("/reset-password")
+    public String resetPassword(
+            @RequestParam String username,
+            Model model,
+            Principal principal) {
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+            UserProfile profile = userProfileRepository.findByUser(user).orElseGet(() -> {
+                UserProfile newProfile = new UserProfile();
+                newProfile.setUser(user);
+                return newProfile;
+            });
             if (StringUtils.hasText(profile.getEmail())) {
                 String resetPasswordToken = UUID.randomUUID().toString();
                 profile.setResetPasswordToken(resetPasswordToken);
                 emailService.sendPasswordResetEmail(profile.getEmail(), resetPasswordToken, profile.getLanguage());
                 model.addAttribute("message", "Password reset link sent to " + profile.getEmail());
-                // Log the update with the admin's username
                 logUpdate(profile, "Reset password email sent to " + profile.getEmail(), principal);
             } else {
                 model.addAttribute("error", "No email available to send reset email");
@@ -152,64 +191,7 @@ public class AdminController {
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
-        return adminDashboard(page, size, search, model);
-    }
-
-    @PostMapping("/upgrade")
-    public String upgradeUser(
-            @RequestParam String username,
-            @RequestParam int months,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
-            Model model,
-            Principal principal) {
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-            premiumService.upgradeToPremiumFromAdmin(user, months);
-
-            UserProfile userProfile = userProfileRepository.findByUser(user).orElseGet(() -> {
-                UserProfile newProfile = new UserProfile();
-                newProfile.setUser(user); // Explicitly set the user
-                return newProfile;
-            });
-
-            // Log the update with the admin's username
-            logUpdate(userProfile, "Upgraded to Premium for " + months + " months", principal);
-            model.addAttribute("message", "User " + username + " upgraded to Premium for " + months + " months");
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
-        return adminDashboard(page, size, search, model);
-    }
-
-    @PostMapping("/downgrade")
-    public String downgradeUser(
-            @RequestParam String username,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
-            Model model,
-            Principal principal) {
-        try {
-            User user = userRepository.findByUsername(username)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-            premiumService.downgradeFromPremium(user);
-
-            UserProfile userProfile = userProfileRepository.findByUser(user).orElseGet(() -> {
-                UserProfile newProfile = new UserProfile();
-                newProfile.setUser(user); // Explicitly set the user
-                return newProfile;
-            });
-
-            // Log the update with the admin's username
-            logUpdate(userProfile, "Downgraded from Premium", principal);
-            model.addAttribute("message", "User " + username + " downgraded from Premium");
-        } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
-        }
-        return adminDashboard(page, size, search, model);
+        return viewProfile(username, model); // Redirect to profile page
     }
 
     private void logUpdate(UserProfile profile, String action, Principal principal) {

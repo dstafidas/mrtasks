@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: linear-gradient(135deg, #F5F7FA 0%, #C3CFE2 100%);
             min-height: 100vh;
             padding: 2rem;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -25,7 +25,7 @@
         }
         .profile-field label {
             font-weight: 600;
-            color: #3498db;
+            color: #3498DB;
             display: block;
             margin-bottom: 0.5rem;
         }
@@ -36,17 +36,50 @@
         }
         .form-control:focus {
             box-shadow: 0 0 8px rgba(52, 152, 219, 0.5);
-            border-color: #3498db;
+            border-color: #3498DB;
         }
         .btn-primary {
-            background-color: #3498db;
+            background-color: #3498DB;
             border: none;
             border-radius: 8px;
             padding: 0.6rem 1.2rem;
             transition: all 0.3s ease;
         }
         .btn-primary:hover {
-            background-color: #2980b9;
+            background-color: #2980B9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-success {
+            background-color: #28A745;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-warning {
+            background-color: #FFC107;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-warning:hover {
+            background-color: #E0A800;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-danger {
+            background-color: #DC3545;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-danger:hover {
+            background-color: #C82333;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .alert {
@@ -68,7 +101,7 @@
         .status-item label {
             margin-bottom: 0;
             font-weight: 500;
-            color: #2c3e50;
+            color: #2C3E50;
         }
         .form-check-input:disabled {
             opacity: 1;
@@ -83,14 +116,41 @@
             margin-bottom: 0;
             max-height: 100px;
             overflow-y: auto;
-            border: 1px solid #dee2e6;
+            border: 1px solid #DEE2E6;
             border-radius: 8px;
-            background-color: #f8f9fa;
+            background-color: #F8F9FA;
         }
         .update-history-list:empty::before {
             content: "No updates recorded";
-            color: #6c757d;
+            color: #6C757D;
             font-style: italic;
+        }
+        .actions-section {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+        }
+        .actions-section h3 {
+            color: #2C3E50;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .action-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .action-buttons form {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .action-buttons input[type="number"] {
+            width: 70px;
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 1px solid #CED4DA;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -101,6 +161,7 @@
     <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
+    <!-- Profile Update Form -->
     <form th:action="@{/admin/profile/{username}(username=${user.username})}" th:object="${profile}" method="post">
         <div class="row">
             <div class="col-md-6 profile-field">
@@ -161,6 +222,26 @@
             <a th:href="@{/admin}" class="btn btn-secondary ms-2">Back to Dashboard</a>
         </div>
     </form>
+
+    <!-- Actions Section (Outside the Profile Form) -->
+    <div class="actions-section">
+        <h3>Actions</h3>
+        <div class="action-buttons">
+            <form th:action="@{/admin/upgrade}" method="post">
+                <input type="hidden" name="username" th:value="${user.username}">
+                <input type="number" name="months" min="1" value="1" required>
+                <button type="submit" class="btn btn-success" th:text="#{admin.upgrade}">Upgrade to Premium</button>
+            </form>
+            <form th:action="@{/admin/downgrade}" method="post" onsubmit="return confirm('Are you sure you want to downgrade this user?');">
+                <input type="hidden" name="username" th:value="${user.username}">
+                <button type="submit" class="btn btn-warning" th:text="#{admin.downgrade}">Downgrade</button>
+            </form>
+            <form th:action="@{/admin/reset-password}" method="post" onsubmit="return confirm('Reset password for this user?');">
+                <input type="hidden" name="username" th:value="${user.username}">
+                <button type="submit" class="btn btn-danger">Reset Password</button>
+            </form>
+        </div>
+    </div>
 </div>
 </body>
 </html>

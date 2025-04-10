@@ -44,28 +44,6 @@
             background-color: #2980b9;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .btn-success {
-            background-color: #28a745;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-        }
-        .btn-success:hover {
-            background-color: #218838;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .btn-warning {
-            background-color: #ffc107;
-            border: none;
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            transition: all 0.3s ease;
-        }
-        .btn-warning:hover {
-            background-color: #e0a800;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
         .table-container {
             background: white;
             border-radius: 10px;
@@ -91,6 +69,7 @@
         }
         .table tbody tr {
             transition: all 0.3s ease;
+            cursor: pointer; /* Indicate clickable row */
         }
         .table tbody tr:nth-child(even) {
             background-color: #f8f9fa;
@@ -106,6 +85,13 @@
             border: none;
             border-bottom: 1px solid #dee2e6;
         }
+        .table a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
         .alert {
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -115,25 +101,6 @@
             font-weight: 600;
             margin-top: 2rem;
             margin-bottom: 1rem;
-        }
-        .action-group {
-            display: flex;
-            flex-direction: row;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .action-group form {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .action-group input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            border-radius: 8px;
-            border: 1px solid #ced4da;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         .badge {
             font-size: 0.9rem;
@@ -207,47 +174,27 @@
                 <th th:text="#{admin.username}">Username</th>
                 <th th:text="#{admin.role}">Role</th>
                 <th>Subscription Status</th>
-                <th th:text="#{admin.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="user : ${users}">
-                <td data-label="Username" th:text="${user.username}"></td>
-                <td data-label="Role"><span th:class="'badge ' + (${user.role == 'ADMIN'} ? 'bg-primary' : 'bg-secondary')" th:text="${user.role}"></span></td>
-                <td data-label="Subscription Status" class="subscription-status">
-                    <span th:if="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-success">
-                        Premium until <span th:text="${#temporals.format(subscriptions[user.id].expiresAt, 'yyyy-MM-dd')}"></span>
-                    </span>
-                    <span th:unless="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
-                        Free
-                    </span>
+            <tr th:each="user : ${users}" th:attr="data-url=@{/admin/profile/{username}(username=${user.username})}">
+                <td data-label="Username">
+                    <a th:href="@{/admin/profile/{username}(username=${user.username})}" th:text="${user.username}"></a>
                 </td>
-                <td data-label="Actions">
-                    <div class="action-group">
-                        <a th:href="@{/admin/profile/{username}(username=${user.username})}" class="btn btn-info btn-sm">View Profile</a>
-                        <form th:action="@{/admin/upgrade}" method="post">
-                            <input type="hidden" name="username" th:value="${user.username}">
-                            <input type="hidden" name="page" th:value="${currentPage}">
-                            <input type="hidden" name="size" value="10">
-                            <input type="hidden" name="search" th:value="${search}">
-                            <input type="number" name="months" min="1" value="1" required>
-                            <button type="submit" class="btn btn-success btn-sm" th:text="#{admin.upgrade}">Upgrade to Premium</button>
-                        </form>
-                        <form th:action="@{/admin/downgrade}" method="post" onsubmit="return confirm('Are you sure you want to downgrade this user?');">
-                            <input type="hidden" name="username" th:value="${user.username}">
-                            <input type="hidden" name="page" th:value="${currentPage}">
-                            <input type="hidden" name="size" value="10">
-                            <input type="hidden" name="search" th:value="${search}">
-                            <button type="submit" class="btn btn-warning btn-sm" th:text="#{admin.downgrade}">Downgrade</button>
-                        </form>
-                        <form th:action="@{/admin/reset-password}" method="post" onsubmit="return confirm('Reset password for this user?');">
-                            <input type="hidden" name="username" th:value="${user.username}">
-                            <input type="hidden" name="page" th:value="${currentPage}">
-                            <input type="hidden" name="size" value="10">
-                            <input type="hidden" name="search" th:value="${search}">
-                            <button type="submit" class="btn btn-danger btn-sm">Reset Password</button>
-                        </form>
-                    </div>
+                <td data-label="Role">
+                    <a th:href="@{/admin/profile/{username}(username=${user.username})}">
+                        <span th:class="'badge ' + (${user.role == 'ADMIN'} ? 'bg-primary' : 'bg-secondary')" th:text="${user.role}"></span>
+                    </a>
+                </td>
+                <td data-label="Subscription Status" class="subscription-status">
+                    <a th:href="@{/admin/profile/{username}(username=${user.username})}">
+                        <span th:if="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-success">
+                            Premium until <span th:text="${#temporals.format(subscriptions[user.id].expiresAt, 'yyyy-MM-dd')}"></span>
+                        </span>
+                        <span th:unless="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
+                            Free
+                        </span>
+                    </a>
                 </td>
             </tr>
             </tbody>
@@ -271,6 +218,13 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Make entire row clickable
+        $('#userTable tbody tr').on('click', function(e) {
+            if (!$(e.target).is('input, button, a')) { // Avoid triggering if clicking interactive elements
+                window.location = $(this).data('url');
+            }
+        });
+
         // Search functionality
         $('#userSearch').on('input', function() {
             const filter = $(this).val().toLowerCase();

@@ -3,6 +3,8 @@ package com.mrtasks.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Data
