@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <title th:text="#{admin.title}">Admin Dashboard - Mr Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
@@ -173,11 +175,16 @@
 </head>
 <body>
 <div class="admin-container">
-    <!-- Assuming you have a navbar fragment; adjust if not -->
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-    <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+    <div id="ajax-message" class="alert alert-success alert-dismissible fade show" style="display: none;" role="alert">
+        <span id="ajax-message-text"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div id="ajax-error" class="alert alert-danger alert-dismissible fade show" style="display: none;" role="alert">
+        <span id="ajax-error-text"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
     <!-- KPI Section -->
     <div class="mb-4">
@@ -212,7 +219,7 @@
 
     <h2 th:text="#{admin.users}">Users</h2>
     <div class="mb-3">
-        <form th:action="@{/admin}" method="get" class="d-flex">
+        <form id="searchForm" class="d-flex">
             <input type="text" class="form-control me-2" placeholder="Search users..." id="userSearch" name="search" th:value="${search}">
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
@@ -228,7 +235,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="user : ${users}" th:attr="data-url=@{/admin/profile/{username}(username=${user.username})}">
+            <tr th:each="user : ${users.content}" th:attr="data-url=@{/admin/profile/{username}(username=${user.username})}">
                 <td data-label="Username">
                     <a th:href="@{/admin/profile/{username}(username=${user.username})}" th:text="${user.username}"></a>
                 </td>
@@ -239,10 +246,10 @@
                 </td>
                 <td data-label="Subscription Status" class="subscription-status">
                     <a th:href="@{/admin/profile/{username}(username=${user.username})}">
-                        <span th:if="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-success">
-                            Premium until <span th:text="${#temporals.format(subscriptions[user.id].expiresAt, 'yyyy-MM-dd')}"></span>
+                        <span th:if="${user.isPremium and user.expiresAt != null and user.expiresAt.isAfter(#temporals.createNow())}" class="badge bg-success">
+                            Premium until <span th:text="${#temporals.format(user.expiresAt, 'yyyy-MM-dd')}"></span>
                         </span>
-                        <span th:unless="${subscriptions[user.id] != null and subscriptions[user.id].isPremium and subscriptions[user.id].expiresAt != null and subscriptions[user.id].expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
+                        <span th:unless="${user.isPremium and user.expiresAt != null and user.expiresAt.isAfter(#temporals.createNow())}" class="badge bg-secondary">
                             Free
                         </span>
                     </a>
@@ -258,14 +265,14 @@
     </div>
     <nav aria-label="User pagination">
         <ul class="pagination justify-content-center mt-3">
-            <li class="page-item" th:classappend="${currentPage == 0 ? 'disabled' : ''}">
-                <a class="page-link" th:href="@{/admin(page=${currentPage - 1}, size=10, search=${search})}">Previous</a>
+            <li class="page-item" th:classappend="${users.pageNumber == 0 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/admin(page=${users.pageNumber - 1}, size=${users.pageSize})}">Previous</a>
             </li>
-            <li class="page-item" th:each="page : ${#numbers.sequence(0, totalPages - 1)}" th:classappend="${page == currentPage ? 'active' : ''}">
-                <a class="page-link" th:href="@{/admin(page=${page}, size=10, search=${search})}" th:text="${page + 1}">1</a>
+            <li class="page-item" th:each="page : ${#numbers.sequence(0, users.totalPages - 1)}" th:classappend="${page == users.pageNumber ? 'active' : ''}">
+                <a class="page-link" th:href="@{/admin(page=${page}, size=${users.pageSize})}" th:text="${page + 1}">1</a>
             </li>
-            <li class="page-item" th:classappend="${currentPage == totalPages - 1 ? 'disabled' : ''}">
-                <a class="page-link" th:href="@{/admin(page=${currentPage + 1}, size=10, search=${search})}">Next</a>
+            <li class="page-item" th:classappend="${users.pageNumber == users.totalPages - 1 ? 'disabled' : ''}">
+                <a class="page-link" th:href="@{/admin(page=${users.pageNumber + 1}, size=${users.pageSize})}">Next</a>
             </li>
         </ul>
     </nav>
@@ -274,20 +281,44 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function() {
+        const csrfToken = $('meta[name="_csrf"]').attr('content');
+        const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
+
+        $.ajaxSetup({
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader(csrfHeader, csrfToken);
+            }
+        });
+
         $('#userTable tbody tr').on('click', function(e) {
             if (!$(e.target).is('input, button, a')) {
                 window.location = $(this).data('url');
             }
         });
 
-        $('#userSearch').on('input', function() {
-            const filter = $(this).val().toLowerCase();
-            $('#userTable tbody tr').each(function() {
-                const username = $(this).find('td:eq(0)').text().toLowerCase();
-                const role = $(this).find('td:eq(1)').text().toLowerCase();
-                const status = $(this).find('td:eq(2)').text().toLowerCase();
-                const lastLogin = $(this).find('td:eq(3)').text().toLowerCase();
-                $(this).toggle(username.includes(filter) || role.includes(filter) || status.includes(filter) || lastLogin.includes(filter));
+        // Handle search form submission
+        $('#searchForm').submit(function(e) {
+            e.preventDefault();
+            const search = $('#userSearch').val();
+            $.ajax({
+                url: '/admin/search',
+                type: 'GET',
+                data: { search: search, size: 10, page: 0 },
+                success: function(pageDto) {
+                    updateTable(pageDto);
+                    updatePagination(pageDto, search);
+                },
+                error: function(xhr) {
+                    let errorMessage = /*[[#{admin.search.error}]]*/ 'Failed to search users.';
+                    if (xhr.status === 429) {
+                        errorMessage = /*[[#{error.rate.limit.search}]]*/ 'Rate limit exceeded for search.';
+                    }
+                    $('#ajax-error-text').text(errorMessage);
+                    $('#ajax-error').show();
+                    setTimeout(() => {
+                        $('#ajax-error').fadeOut();
+                    }, 5000);
+                }
             });
         });
 
@@ -300,6 +331,74 @@
                 $('#profile-dropdown').removeClass('active');
             }
         });
+
+        function updateTable(pageDto) {
+            const $tbody = $('#userTable tbody');
+            $tbody.empty();
+            pageDto.content.forEach(user => {
+                const row = `
+                    <tr data-url="/admin/profile/${user.username}">
+                        <td data-label="Username"><a href="/admin/profile/${user.username}">${user.username}</a></td>
+                        <td data-label="Role"><a href="/admin/profile/${user.username}"><span class="badge ${user.role === 'ADMIN' ? 'bg-primary' : 'bg-secondary'}">${user.role}</span></a></td>
+                        <td data-label="Subscription Status" class="subscription-status">
+                            <a href="/admin/profile/${user.username}">
+                                ${user.isPremium && user.expiresAt && new Date(user.expiresAt) > new Date() ?
+                                    `<span class="badge bg-success">Premium until ${new Date(user.expiresAt).toISOString().split('T')[0]}</span>` :
+                                    `<span class="badge bg-secondary">Free</span>`}
+                            </a>
+                        </td>
+                        <td data-label="Last Login">
+                            <a href="/admin/profile/${user.username}">
+                                ${user.lastLogin ? new Date(user.lastLogin).toLocaleString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Never'}
+                            </a>
+                        </td>
+                    </tr>`;
+                $tbody.append(row);
+            });
+        }
+
+        function updatePagination(pageDto, search) {
+            const $pagination = $('.pagination');
+            $pagination.empty();
+            if (pageDto.pageNumber > 0) {
+                $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${pageDto.pageNumber - 1}">Previous</a></li>`);
+            } else {
+                $pagination.append(`<li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>`);
+            }
+            for (let i = 0; i < pageDto.totalPages; i++) {
+                $pagination.append(`<li class="page-item ${i === pageDto.pageNumber ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i + 1}</a></li>`);
+            }
+            if (pageDto.pageNumber < pageDto.totalPages - 1) {
+                $pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${pageDto.pageNumber + 1}">Next</a></li>`);
+            } else {
+                $pagination.append(`<li class="page-item disabled"><a class="page-link" href="#">Next</a></li>`);
+            }
+
+            $pagination.find('a[data-page]').click(function(e) {
+                e.preventDefault();
+                const page = $(this).data('page');
+                $.ajax({
+                    url: '/admin/search',
+                    type: 'GET',
+                    data: { search: search, size: pageDto.pageSize, page: page },
+                    success: function(newPageDto) {
+                        updateTable(newPageDto);
+                        updatePagination(newPageDto, search);
+                    },
+                    error: function(xhr) {
+                        let errorMessage = /*[[#{admin.search.error}]]*/ 'Failed to search users.';
+                        if (xhr.status === 429) {
+                            errorMessage = /*[[#{error.rate.limit.search}]]*/ 'Rate limit exceeded for search.';
+                        }
+                        $('#ajax-error-text').text(errorMessage);
+                        $('#ajax-error').show();
+                        setTimeout(() => {
+                            $('#ajax-error').fadeOut();
+                        }, 5000);
+                    }
+                });
+            });
+        }
     });
 </script>
 </body>

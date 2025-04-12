@@ -13,4 +13,5 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     Page<Client> findByUserAndNameContainingIgnoreCase(User user, String name, Pageable pageable);
     Client findByIdAndUser(Long id, User user);
     List<Client> findByUser(User user);
+    long countByUser(User user);
 }

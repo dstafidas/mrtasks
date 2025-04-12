@@ -25,4 +25,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Page<Task> findByUserAndTitleContainingIgnoreCaseAndClientIdAndStatus(User user, String title, Long clientId, Task.TaskStatus status, Pageable pageable);
     boolean existsByClient(Client client);
     List<Task> findByUserAndDeadlineAfter(User user, LocalDateTime deadline);
+    long countByUser(User user);
+
 }

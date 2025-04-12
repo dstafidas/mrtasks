@@ -1,28 +1,33 @@
 package com.mrtasks.controller;
 
+import com.mrtasks.config.RateLimitConfig;
 import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
 import com.mrtasks.model.UserSubscription;
+import com.mrtasks.model.dto.ProfileDto;
+import com.mrtasks.model.dto.mapper.DtoMapper;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
 import com.mrtasks.service.EmailService;
+import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Locale;
 import java.util.UUID;
 
 @Controller
+@RequestMapping("/profile")
 @RequiredArgsConstructor
 public class ProfileController {
 
@@ -31,8 +36,10 @@ public class ProfileController {
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final MessageSource messageSource;
     private final EmailService emailService;
+    private final RateLimitConfig rateLimitConfig;
+    private final DtoMapper dtoMapper;
 
-    @GetMapping("/profile")
+    @GetMapping
     public String showProfile(Model model, Authentication auth) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         UserProfile profile = userProfileRepository.findByUser(user)
@@ -45,18 +52,16 @@ public class ProfileController {
         UserSubscription userSubscription = userSubscriptionRepository.findByUser(user)
                 .orElse(new UserSubscription());
 
-        model.addAttribute("user", user);
-        model.addAttribute("profile", profile);
+        model.addAttribute("profile", dtoMapper.toProfileDto(profile));
         model.addAttribute("subscription", userSubscription);
         return "profile";
     }
 
-    @PostMapping("/profile")
-    public String updateProfile(
-            @ModelAttribute UserProfile profile,
+    @PostMapping
+    @ResponseBody
+    public ResponseEntity<?> updateProfile(
+            @ModelAttribute ProfileDto profileDto,
             Authentication auth,
-            RedirectAttributes redirectAttributes,
-            HttpServletRequest request,
             HttpServletResponse response) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         UserProfile existingProfile = userProfileRepository.findByUser(user)
@@ -69,43 +74,62 @@ public class ProfileController {
 
         // Check if email has changed and is valid
         String oldEmail = existingProfile.getEmail();
-        String newEmail = profile.getEmail();
+        String newEmail = profileDto.getEmail();
         boolean emailChanged = newEmail != null && !newEmail.trim().isEmpty() &&
                 (oldEmail == null || !oldEmail.equals(newEmail));
 
-        existingProfile.setCompanyName(profile.getCompanyName());
-        existingProfile.setLogoUrl(profile.getLogoUrl());
-        existingProfile.setEmail(newEmail);
-        existingProfile.setPhone(profile.getPhone());
-        existingProfile.setLanguage(profile.getLanguage() != null ? profile.getLanguage() : "en");
+        // Rate limiting for email changes
+        if (emailChanged) {
+            Bucket bucket = rateLimitConfig.getEmailChangeBucket(user.getUsername());
+            if (!bucket.tryConsume(1)) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(messageSource.getMessage("error.rate.limit.email.change", null, LocaleContextHolder.getLocale()));
+            }
+        }
 
-        // Save profile first
-        userProfileRepository.save(existingProfile);
+        // Validate email format
+        if (newEmail != null && !newEmail.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(messageSource.getMessage("profile.email.invalid", null, LocaleContextHolder.getLocale()));
+        }
 
-        // Handle email verification if email changed
+        // Validate phone format
+        String phone = profileDto.getPhone();
+        if (phone != null && !phone.matches("^\\+?[1-9]\\d{1,14}$")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(messageSource.getMessage("profile.phone.invalid", null, LocaleContextHolder.getLocale()));
+        }
+
+        // Validate logo URL
+        String logoUrl = profileDto.getLogoUrl();
+        if (logoUrl != null && !logoUrl.matches("^(https?:\\/\\/)?([\\w-]+\\.)+[\\w-]+(\\/[\\w-.\\/?%&=]*)?$")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(messageSource.getMessage("profile.logoUrl.invalid", null, LocaleContextHolder.getLocale()));
+        }
+
+        // Update profile
+        dtoMapper.toUserProfile(profileDto, existingProfile);
+
+        // Handle email verification if changed
         if (emailChanged) {
             String verificationToken = UUID.randomUUID().toString();
             existingProfile.setEmailVerificationToken(verificationToken);
             existingProfile.setEmailVerified(false);
-            userProfileRepository.save(existingProfile);
-
             emailService.sendVerificationEmail(newEmail, verificationToken, existingProfile.getLanguage());
         }
 
-        // Set the language in a cookie
+        userProfileRepository.save(existingProfile);
+
+        // Set language cookie
         String newLanguage = existingProfile.getLanguage();
         Cookie languageCookie = new Cookie("userLanguage", newLanguage);
-        languageCookie.setMaxAge(30 * 24 * 60 * 60); // Cookie expires in 30 days
-        languageCookie.setPath("/"); // Cookie is available for the entire application
+        languageCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+        languageCookie.setPath("/");
         response.addCookie(languageCookie);
 
-        // Set the locale for the current request
+        // Set locale
         LocaleContextHolder.setLocale(Locale.forLanguageTag(newLanguage));
 
-        redirectAttributes.addFlashAttribute("message",
-                messageSource.getMessage("profile.updated.success", null, LocaleContextHolder.getLocale()));
-        redirectAttributes.addFlashAttribute("messageType", "success");
-
-        return "redirect:/profile";
+        return ResponseEntity.ok(dtoMapper.toProfileDto(existingProfile));
     }
 }

@@ -261,6 +261,8 @@
 
     <div th:if="${param.message != null}" class="alert alert-success" th:text="${param.message}"></div>
     <div th:if="${param.error != null}" class="alert alert-danger" th:text="${param.error}"></div>
+    <div id="ajax-error" class="alert alert-danger" style="display: none;"></div>
+    <div th:if="${rateLimitMessage != null}" class="alert alert-danger" th:text="#{${rateLimitMessage}}">Rate limit exceeded</div>
 
     <div class="button-group">
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
@@ -275,7 +277,7 @@
         <div class="column" id="todo-column" data-status="TODO">
             <h3 th:text="#{dashboard.status.todo}">To Do</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
@@ -287,7 +289,7 @@
                         <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
                         <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
                         <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
+                        <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
                         <div class="color-swatch-container">
@@ -586,7 +588,7 @@
                     url: `/dashboard/move?taskId=${taskId}&status=${newStatus}`,
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify(taskIds), // Send only taskIds in the body
+                    data: JSON.stringify(taskIds),
                     success: function(updatedTask) {
                         const translatedStatus = {
                             'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
@@ -723,8 +725,18 @@
                 $targetColumn.append($newCard);
                 $('#addTaskModal').modal('hide');
                 $('#addTaskForm')[0].reset();
+                $('#ajax-error').hide();
                 attachTaskListeners($newCard);
-            }, 'json');
+            }, 'json').fail(function(xhr) {
+                let errorMessage = 'An error occurred while adding the task.';
+                if (xhr.status === 403 && xhr.responseText === 'error.task.limit.unverified') {
+                    errorMessage = /*[[#{error.task.limit.unverified}]]*/ 'Unverified users are limited to 10 tasks. Please verify your email to add more tasks.';
+                } else if (xhr.status === 429 && xhr.responseText === 'error.rate.limit.task') {
+                    errorMessage = /*[[#{error.rate.limit.task}]]*/ 'You have reached the task creation limit. Please try again later.';
+                }
+                $('#ajax-error').text(errorMessage).show();
+                setTimeout(() => $('#ajax-error').fadeOut(), 5000);
+            });
         });
 
         // Edit Task Form Submission
@@ -798,6 +810,18 @@
                     a.click();
                     a.remove();
                     window.URL.revokeObjectURL(url);
+                },
+                error: function(xhr) {
+                    let errorMessage = 'An error occurred while generating the invoice.';
+                    if (xhr.status === 429) {
+                        errorMessage = /*[[#{error.rate.limit.invoice}]]*/ 'Report generation limit exceeded. Please try again later.';
+                    }
+                    $('#ajax-error').text(errorMessage).show();
+                    setTimeout(() => {
+                        if ($('#ajax-error').is(':visible')) {
+                            $('#ajax-error').fadeOut();
+                        }
+                    }, 10000);
                 }
             });
         });
@@ -808,10 +832,10 @@
         const taskId = $(element).data('id');
         const color = $(element).data('color');
         $.post(`/dashboard/color/${taskId}`, { color: color }, function(response) {
-            if (response === 'Color updated') {
+            if (response === 'success.color.updated') {
                 $(element).closest('.task-card').css('backgroundColor', color);
             }
-        }, 'text');
+        });
     }
 </script>
 </body>

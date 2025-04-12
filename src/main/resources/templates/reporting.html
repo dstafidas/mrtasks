@@ -82,6 +82,15 @@
         .notes-section li {
             margin-bottom: 0.3rem;
         }
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid #f5c6cb;
+        }
         @media (max-width: 912px) {
             .reporting-container {
                 padding: 0 1.5rem 1.5rem;
@@ -94,6 +103,7 @@
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <div class="charts-container">
+        <div class="error-message" id="errorMessage"></div>
         <div class="range-selector">
             <label for="timeRange" class="form-label" th:text="#{reporting.timeRange}">Time Range</label>
             <select id="timeRange" class="form-select">
@@ -288,8 +298,14 @@
 
         let charts = {};
 
+        function showErrorMessage(message) {
+            $('#errorMessage').text(message).show();
+            setTimeout(() => $('#errorMessage').hide(), 5000);
+        }
+
         function fetchAndRenderCharts(range) {
             Object.values(charts).forEach(chart => chart.destroy());
+            $('#errorMessage').hide();
 
             // Combined Tasks and Revenue per Month
             Promise.all([
@@ -326,6 +342,11 @@
                 });
             }).catch(err => {
                 console.error('Error fetching combined tasks and revenue per month:', err);
+                if (err.status === 429) {
+                    showErrorMessage('[[#{error.rate.limit.report}]]');
+                } else {
+                    showErrorMessage('An error occurred while fetching data.');
+                }
             });
 
             // Combined Tasks and Revenue per Client
@@ -363,6 +384,11 @@
                 });
             }).catch(err => {
                 console.error('Error fetching combined tasks and revenue per client:', err);
+                if (err.status === 429) {
+                    showErrorMessage('[[#{error.rate.limit.report}]]');
+                } else {
+                    showErrorMessage('An error occurred while fetching data.');
+                }
             });
         }
 

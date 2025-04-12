@@ -3,26 +3,31 @@ package com.mrtasks.controller;
 import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
 import com.mrtasks.model.UserSubscription;
+import com.mrtasks.model.dto.PageDto;
+import com.mrtasks.model.dto.UserDto;
+import com.mrtasks.model.dto.mapper.DtoMapper;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
 import com.mrtasks.service.EmailService;
 import com.mrtasks.service.PremiumService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,14 +42,46 @@ public class AdminController {
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserProfileRepository userProfileRepository;
     private final EmailService emailService;
-    private final SessionRegistry sessionRegistry; // only works when app runs one instance, if there are more, share memory like redis is needed
+    private final SessionRegistry sessionRegistry;
+    private final DtoMapper dtoMapper;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String adminDashboard(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
             Model model) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userRepository.findAll(pageable);
+
+        PageDto<UserDto> pageDto = createPageDto(userPage, pageable);
+
+        long totalUsers = userRepository.count();
+        long premiumUsers = userSubscriptionRepository.countByIsPremiumTrueAndExpiresAtAfter(LocalDateTime.now());
+        long recentActivity = userRepository.countByLastLoginAfter(LocalDateTime.now().minusHours(24));
+        long usersOnline = sessionRegistry.getAllPrincipals().stream()
+                .filter(principal -> !sessionRegistry.getAllSessions(principal, false).isEmpty())
+                .count();
+
+        model.addAttribute("users", pageDto);
+        model.addAttribute("currentPage", pageDto.getPageNumber());
+        model.addAttribute("totalPages", pageDto.getTotalPages());
+        model.addAttribute("search", null);
+        model.addAttribute("totalUsers", totalUsers);
+        model.addAttribute("premiumUsers", premiumUsers);
+        model.addAttribute("recentActivity", recentActivity);
+        model.addAttribute("usersOnline", usersOnline);
+
+        return "admin";
+    }
+
+    @GetMapping("/search")
+    @ResponseBody
+    public ResponseEntity<?> searchUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+
         Pageable pageable = PageRequest.of(page, size);
         Page<User> userPage;
 
@@ -54,49 +91,31 @@ public class AdminController {
             userPage = userRepository.findAll(pageable);
         }
 
-        List<Long> userIds = userPage.getContent().stream().map(User::getId).toList();
-        List<UserSubscription> subscriptions = userSubscriptionRepository.findByUserIdIn(userIds);
-        Map<Long, UserSubscription> subscriptionMap = subscriptions.stream()
-                .collect(Collectors.toMap(sub -> sub.getUser().getId(), sub -> sub));
-
-        // KPIs
-        long totalUsers = userRepository.count();
-        long premiumUsers = userSubscriptionRepository.countByIsPremiumTrueAndExpiresAtAfter(LocalDateTime.now());
-        long recentActivity = userRepository.countByLastLoginAfter(LocalDateTime.now().minusHours(24));
-        long usersOnline = sessionRegistry.getAllPrincipals().stream()
-                .filter(principal -> !sessionRegistry.getAllSessions(principal, false).isEmpty())
-                .count();
-
-        model.addAttribute("users", userPage.getContent());
-        model.addAttribute("subscriptions", subscriptionMap);
-        model.addAttribute("currentPage", userPage.getNumber());
-        model.addAttribute("totalPages", userPage.getTotalPages());
-        model.addAttribute("search", search);
-        model.addAttribute("totalUsers", totalUsers);
-        model.addAttribute("premiumUsers", premiumUsers);
-        model.addAttribute("recentActivity", recentActivity);
-        model.addAttribute("usersOnline", usersOnline);
-
-        return "admin";
+        PageDto<UserDto> pageDto = createPageDto(userPage, pageable);
+        return ResponseEntity.ok(pageDto);
     }
 
     @GetMapping("/profile/{username}")
     public String viewProfile(@PathVariable String username, Model model) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-        UserProfile profile = userProfileRepository.findByUser(user)
-                .orElse(new UserProfile()); // Default to empty profile if not found
+        UserProfile profile = userProfileRepository.findByUser(user).orElseGet(() -> {
+            UserProfile newProfile = new UserProfile();
+            newProfile.setUser(user);
+            return newProfile;
+        });
+        UserSubscription subscription = userSubscriptionRepository.findByUser(user)
+                .orElse(new UserSubscription());
 
-        model.addAttribute("user", user);
-        model.addAttribute("profile", profile);
+        model.addAttribute("user", dtoMapper.toUserDto(user, profile, subscription));
         return "admin-profile";
     }
 
     @PostMapping("/profile/{username}")
-    public String updateProfile(
+    @ResponseBody
+    public ResponseEntity<?> updateProfile(
             @PathVariable String username,
-            @ModelAttribute UserProfile profile,
-            Model model,
+            @ModelAttribute UserDto userDto,
             Principal principal) {
         try {
             User user = userRepository.findByUsername(username)
@@ -104,100 +123,116 @@ public class AdminController {
             UserProfile existingProfile = userProfileRepository.findByUser(user)
                     .orElseGet(() -> {
                         UserProfile newProfile = new UserProfile();
-                        newProfile.setUser(user); // Set user for new profiles
+                        newProfile.setUser(user);
                         return newProfile;
                     });
 
-            // Set the user relationship and update fields
-            existingProfile.setUser(user);
-            existingProfile.setCompanyName(profile.getCompanyName());
-            existingProfile.setEmail(profile.getEmail());
-            existingProfile.setPhone(profile.getPhone());
-            existingProfile.setLanguage(profile.getLanguage());
-            existingProfile.setEmailVerified(profile.isEmailVerified());
+            // Validate inputs
+            if (userDto.getEmail() != null && !userDto.getEmail().isEmpty() &&
+                    !userDto.getEmail().matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(messageSource.getMessage("profile.email.invalid", null, LocaleContextHolder.getLocale()));
+            }
+            if (userDto.getPhone() != null && !userDto.getPhone().isEmpty() &&
+                    !userDto.getPhone().matches("^\\+?[1-9]\\d{1,14}$")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(messageSource.getMessage("profile.phone.invalid", null, LocaleContextHolder.getLocale()));
+            }
+            if (userDto.getCompanyName() != null && userDto.getCompanyName().length() > 100) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(messageSource.getMessage("profile.companyName.invalid", null, LocaleContextHolder.getLocale()));
+            }
 
-            // Preserve tokens if not part of the form update
-            existingProfile.setResetPasswordToken(existingProfile.getResetPasswordToken());
+            // Update profile
+            existingProfile.setCompanyName(userDto.getCompanyName());
+            existingProfile.setEmail(userDto.getEmail());
+            existingProfile.setPhone(userDto.getPhone());
+            existingProfile.setLanguage(userDto.getLanguage() != null ? userDto.getLanguage() : "en");
+            existingProfile.setEmailVerified(userDto.isEmailVerified());
             existingProfile.setEmailVerificationToken(existingProfile.getEmailVerificationToken());
+            existingProfile.setResetPasswordToken(existingProfile.getResetPasswordToken());
 
-            // Log the update with the admin's username
             logUpdate(existingProfile, "Profile updated", principal);
-
-            // Save the profile after all changes
             userProfileRepository.save(existingProfile);
 
-            model.addAttribute("message", "Profile for " + username + " updated successfully");
+            UserSubscription subscription = userSubscriptionRepository.findByUser(user)
+                    .orElse(new UserSubscription());
+            return ResponseEntity.ok(dtoMapper.toUserDto(user, existingProfile, subscription));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update profile: " + e.getMessage());
         }
-
-        // Reload the user and profile to ensure the view reflects the latest data
-        User updatedUser = userRepository.findByUsername(username).get();
-        UserProfile updatedProfile = userProfileRepository.findByUser(updatedUser).orElse(new UserProfile());
-        model.addAttribute("user", updatedUser);
-        model.addAttribute("profile", updatedProfile);
-        return "admin-profile";
     }
 
     @PostMapping("/upgrade")
-    public String upgradeUser(
+    @ResponseBody
+    public ResponseEntity<?> upgradeUser(
             @RequestParam String username,
             @RequestParam int months,
-            Model model,
             Principal principal) {
         try {
+            if (months < 1) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Months must be at least 1.");
+            }
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
             premiumService.upgradeToPremiumFromAdmin(user, months);
-            UserProfile userProfile = userProfileRepository.findByUser(user).orElseGet(() -> {
+            UserProfile profile = userProfileRepository.findByUser(user).orElseGet(() -> {
                 UserProfile newProfile = new UserProfile();
                 newProfile.setUser(user);
                 return newProfile;
             });
 
-            logUpdate(userProfile, "Upgraded to Premium for " + months + " months", principal);
+            logUpdate(profile, "Upgraded to Premium for " + months + " months", principal);
+            userProfileRepository.save(profile);
 
-            // Save the profile after all changes
-            userProfileRepository.save(userProfile);
-
-            model.addAttribute("message", "User " + username + " upgraded to Premium for " + months + " months");
+            UserSubscription subscription = userSubscriptionRepository.findByUser(user)
+                    .orElse(new UserSubscription());
+            return ResponseEntity.ok(dtoMapper.toUserDto(user, profile, subscription));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to upgrade user: " + e.getMessage());
         }
-        return viewProfile(username, model); // Redirect to profile page
     }
 
     @PostMapping("/downgrade")
-    public String downgradeUser(
+    @ResponseBody
+    public ResponseEntity<?> downgradeUser(
             @RequestParam String username,
-            Model model,
             Principal principal) {
         try {
             User user = userRepository.findByUsername(username)
                     .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
             premiumService.downgradeFromPremium(user);
-            UserProfile userProfile = userProfileRepository.findByUser(user).orElseGet(() -> {
+            UserProfile profile = userProfileRepository.findByUser(user).orElseGet(() -> {
                 UserProfile newProfile = new UserProfile();
                 newProfile.setUser(user);
                 return newProfile;
             });
 
-            logUpdate(userProfile, "Downgraded from Premium", principal);
+            logUpdate(profile, "Downgraded from Premium", principal);
+            userProfileRepository.save(profile);
 
-            // Save the profile after all changes
-            userProfileRepository.save(userProfile);
-
-            model.addAttribute("message", "User " + username + " downgraded from Premium");
+            UserSubscription subscription = userSubscriptionRepository.findByUser(user)
+                    .orElse(new UserSubscription());
+            return ResponseEntity.ok(dtoMapper.toUserDto(user, profile, subscription));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to downgrade user: " + e.getMessage());
         }
-        return viewProfile(username, model); // Redirect to profile page
     }
 
     @PostMapping("/reset-password")
-    public String resetPassword(
+    @ResponseBody
+    public ResponseEntity<?> resetPassword(
             @RequestParam String username,
-            Model model,
             Principal principal) {
         try {
             User user = userRepository.findByUsername(username)
@@ -208,33 +243,60 @@ public class AdminController {
                 return newProfile;
             });
 
-            if (StringUtils.hasText(profile.getEmail())) {
-                String resetPasswordToken = UUID.randomUUID().toString();
-                profile.setResetPasswordToken(resetPasswordToken);
-                emailService.sendPasswordResetEmail(profile.getEmail(), resetPasswordToken, profile.getLanguage());
-
-                logUpdate(profile, "Reset password email sent to " + profile.getEmail(), principal);
-
-                // Save the profile after all changes
-                userProfileRepository.save(profile);
-
-                model.addAttribute("message", "Password reset link sent to " + profile.getEmail());
-            } else {
-                model.addAttribute("error", "No email available to send reset email");
+            if (profile.getEmail() == null || profile.getEmail().isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("No email available to send reset email");
             }
+
+            String resetPasswordToken = UUID.randomUUID().toString();
+            profile.setResetPasswordToken(resetPasswordToken);
+            emailService.sendPasswordResetEmail(profile.getEmail(), resetPasswordToken,
+                    profile.getLanguage() != null ? profile.getLanguage() : "en");
+
+            logUpdate(profile, "Reset password email sent to " + profile.getEmail(), principal);
+            userProfileRepository.save(profile);
+
+            UserSubscription subscription = userSubscriptionRepository.findByUser(user)
+                    .orElse(new UserSubscription());
+            return ResponseEntity.ok(dtoMapper.toUserDto(user, profile, subscription));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to reset password: " + e.getMessage());
         }
-        return viewProfile(username, model); // Redirect to profile page
+    }
+
+    private PageDto<UserDto> createPageDto(Page<User> userPage, Pageable pageable) {
+        List<Long> userIds = userPage.getContent().stream().map(User::getId).collect(Collectors.toList());
+        List<UserProfile> profiles = userProfileRepository.findByUserIdIn(userIds);
+        List<UserSubscription> subscriptions = userSubscriptionRepository.findByUserIdIn(userIds);
+
+        PageDto<UserDto> pageDto = new PageDto<>();
+        pageDto.setContent(userPage.getContent().stream().map(user -> {
+            UserProfile profile = profiles.stream()
+                    .filter(p -> p.getUser().getId().equals(user.getId()))
+                    .findFirst()
+                    .orElse(null);
+            UserSubscription subscription = subscriptions.stream()
+                    .filter(s -> s.getUser().getId().equals(user.getId()))
+                    .findFirst()
+                    .orElse(null);
+            return dtoMapper.toUserDto(user, profile, subscription);
+        }).collect(Collectors.toList()));
+        pageDto.setPageNumber(userPage.getNumber());
+        pageDto.setPageSize(pageable.getPageSize());
+        pageDto.setTotalPages(userPage.getTotalPages());
+        pageDto.setTotalElements(userPage.getTotalElements());
+        return pageDto;
     }
 
     private void logUpdate(UserProfile profile, String action, Principal principal) {
-        String adminUsername = principal != null ? principal.getName() : "";
+        String adminUsername = principal != null ? principal.getName() : "unknown";
         String timestamp = LocalDateTime.now().toString();
         String updateEntry = action + " by " + adminUsername + " at " + timestamp;
         profile.setUpdateHistory(profile.getUpdateHistory() != null
                 ? updateEntry + "; " + profile.getUpdateHistory()
                 : updateEntry);
-        // Save is handled by the calling method
     }
 }
