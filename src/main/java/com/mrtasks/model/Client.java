@@ -2,11 +2,13 @@ package com.mrtasks.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "clients")
 @Data
-public class Client {
+@EqualsAndHashCode(callSuper = true)
+public class Client extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

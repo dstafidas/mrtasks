@@ -2,13 +2,15 @@ package com.mrtasks.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tasks")
 @Data
-public class Task {
+@EqualsAndHashCode(callSuper = true)
+public class Task extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
