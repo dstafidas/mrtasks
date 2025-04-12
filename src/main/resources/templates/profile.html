@@ -126,17 +126,20 @@
                 <div class="mb-3">
                     <label for="logoUrl" class="form-label" th:text="#{profile.logoUrl}">Logo URL</label>
                     <input type="url" id="logoUrl" th:field="*{logoUrl}" class="form-control">
-                    <div class="invalid-feedback">Please enter a valid URL (e.g., https://example.com/logo.png).</div>
+                    <div class="invalid-feedback" th:text="#{profile.logoUrl.invalid}">Please enter a valid URL (e.g., https://example.com/logo.png).</div>
                 </div>
                 <div class="mb-3">
-                    <label for="email" class="form-label" th:text="#{profile.email}">Email</label>
+                    <label for="email" class="form-label">
+                        <span th:text="#{profile.email}">Email</span>
+                        <span th:text="${profile.emailVerified} ? #{profile.email.verified} : #{profile.email.unverified}"></span>
+                    </label>
                     <input type="email" id="email" th:field="*{email}" class="form-control">
-                    <div class="invalid-feedback">Please enter a valid email address (e.g., example@example.com).</div>
+                    <div class="invalid-feedback" th:text="#{profile.email.invalid}">Please enter a valid email address (e.g., example@example.com).</div>
                 </div>
                 <div class="mb-3">
                     <label for="phone" class="form-label" th:text="#{profile.phone}">Phone</label>
                     <input type="tel" id="phone" th:field="*{phone}" class="form-control" pattern="^\+?[1-9]\d{1,14}$">
-                    <div class="invalid-feedback">Please enter a valid phone number (e.g., +1234567890).</div>
+                    <div class="invalid-feedback" th:text="#{profile.phone.invalid}">Please enter a valid phone number (e.g., +1234567890).</div>
                 </div>
             </div>
 
