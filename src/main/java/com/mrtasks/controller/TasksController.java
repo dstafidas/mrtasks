@@ -13,6 +13,7 @@ import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.TaskService;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -50,10 +51,11 @@ public class TasksController {
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) String status,
             Model model,
-            Authentication auth) {
+            Authentication auth,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getTaskSearchBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), request.getRemoteAddr());
+        if (!canSearchTasks) {
             User user = userRepository.findByUsername(auth.getName()).orElseThrow();
             model.addAttribute("error", "error.rate.limit.task.search");
             model.addAttribute("tasks", List.of());
@@ -111,10 +113,11 @@ public class TasksController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long clientId,
             @RequestParam(required = false) String status,
-            Authentication auth) {
+            Authentication auth,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getTaskSearchBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), request.getRemoteAddr());
+        if (!canSearchTasks) {
             return ResponseEntity.status(429).body("error.rate.limit.task.search");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();

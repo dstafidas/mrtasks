@@ -11,6 +11,7 @@ import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
 import com.mrtasks.service.EmailService;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -62,7 +63,8 @@ public class ProfileController {
     public ResponseEntity<?> updateProfile(
             @ModelAttribute ProfileDto profileDto,
             Authentication auth,
-            HttpServletResponse response) {
+            HttpServletResponse response,
+            HttpServletRequest request) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         UserProfile existingProfile = userProfileRepository.findByUser(user)
                 .orElseGet(() -> {
@@ -80,8 +82,8 @@ public class ProfileController {
 
         // Rate limiting for email changes
         if (emailChanged) {
-            Bucket bucket = rateLimitConfig.getEmailChangeBucket(user.getUsername());
-            if (!bucket.tryConsume(1)) {
+            boolean canChangeEmail = rateLimitConfig.canChangeEmail(user.getUsername(), request.getRemoteAddr());
+            if (!canChangeEmail) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                         .body(messageSource.getMessage("error.rate.limit.email.change", null, LocaleContextHolder.getLocale()));
             }

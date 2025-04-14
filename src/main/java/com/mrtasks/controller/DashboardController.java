@@ -1,20 +1,20 @@
 package com.mrtasks.controller;
 
 import com.mrtasks.config.RateLimitConfig;
-import com.mrtasks.model.dto.ClientDto;
-import com.mrtasks.model.dto.mapper.DtoMapper;
-import com.mrtasks.model.dto.TaskDto;
 import com.mrtasks.exception.RateLimitExceededException;
 import com.mrtasks.model.Client;
 import com.mrtasks.model.Task;
 import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
+import com.mrtasks.model.dto.ClientDto;
+import com.mrtasks.model.dto.TaskDto;
+import com.mrtasks.model.dto.mapper.DtoMapper;
 import com.mrtasks.repository.ClientRepository;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.TaskService;
-import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,12 +39,11 @@ public class DashboardController {
     private final DtoMapper dtoMapper;
 
     @GetMapping("/dashboard")
-    public String listTasks(Model model, Authentication auth) {
+    public String listTasks(Model model, Authentication auth, HttpServletRequest request) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getTaskSearchBucket(auth.getName());
-        boolean canAccess = bucket.tryConsume(1);
+        boolean canAccess = rateLimitConfig.canPerformDashboardAction(auth.getName(), request.getRemoteAddr());
 
         List<TaskDto> tasks;
         List<ClientDto> clients;
@@ -76,10 +75,9 @@ public class DashboardController {
 
     @PostMapping("/dashboard")
     @ResponseBody
-    public ResponseEntity<?> addTask(@ModelAttribute TaskDto taskDto, Authentication auth) {
+    public ResponseEntity<?> addTask(@ModelAttribute TaskDto taskDto, Authentication auth, HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getTaskCreationBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        if (!rateLimitConfig.canCreateTask(auth.getName(), request.getRemoteAddr())) {
             throw new RateLimitExceededException("error.rate.limit.task");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();

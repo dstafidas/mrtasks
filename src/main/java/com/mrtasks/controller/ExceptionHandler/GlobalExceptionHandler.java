@@ -1,4 +1,4 @@
-package com.mrtasks.controller;
+package com.mrtasks.controller.ExceptionHandler;
 
 import com.mrtasks.exception.RateLimitExceededException;
 import org.springframework.http.HttpStatus;

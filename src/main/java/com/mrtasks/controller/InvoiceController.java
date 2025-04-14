@@ -6,6 +6,7 @@ import com.mrtasks.model.User;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.InvoiceService;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +27,11 @@ public class InvoiceController {
     @PostMapping("/invoice")
     public ResponseEntity<byte[]> downloadInvoice(
             @RequestParam("taskIds") List<Long> taskIds,
-            Authentication auth) throws Exception {
+            Authentication auth,
+            HttpServletRequest request) throws Exception {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getInvoiceDownloadBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canDownloadInvoice = rateLimitConfig.canDownloadInvoice(auth.getName(), request.getRemoteAddr());
+        if (!canDownloadInvoice) {
             throw new RateLimitExceededException("error.rate.limit.invoice");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();

@@ -12,6 +12,7 @@ import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -42,14 +43,15 @@ public class ClientController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Model model,
-            Authentication auth) {
+            Authentication auth,
+            HttpServletRequest request) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getClientSearchBucket(auth.getName()); // Reusing client search bucket for consistency
+        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr()); // Reusing client search bucket for consistency
         PageDto<ClientDto> clientPageDto = new PageDto<>();
 
-        if (!bucket.tryConsume(1)) {
+        if (!canSearchClients) {
             // Rate limit exceeded, return empty page with error message
             clientPageDto.setContent(new java.util.ArrayList<>());
             clientPageDto.setPageNumber(page);
@@ -83,10 +85,11 @@ public class ClientController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
-            Authentication auth) {
+            Authentication auth,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getClientSearchBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr()); // Reusing client search bucket for consistency
+        if (!canSearchClients) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("error.rate.limit.client.search");
         }
@@ -117,10 +120,11 @@ public class ClientController {
     @ResponseBody
     public ResponseEntity<?> addClient(
             @ModelAttribute ClientDto clientDto,
-            Authentication auth) {
+            Authentication auth,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getClientCreationBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canCreateClient = rateLimitConfig.canCreateClient(auth.getName(), request.getRemoteAddr());
+        if (!canCreateClient) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("error.rate.limit.client");
         }

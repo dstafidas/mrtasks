@@ -7,11 +7,11 @@ import com.mrtasks.model.User;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
 import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,11 +51,10 @@ public class ReportingController {
     @GetMapping("/tasks-per-client")
     public ResponseEntity<Map<String, Object>> getTasksPerClient(
             Authentication auth,
-            @RequestParam(defaultValue = "last-month") String range,
-            Model model) {
+            @RequestParam(defaultValue = "last-month") String range, HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getReportBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        if (!canGenerateReport) {
             throw new RateLimitExceededException("error.rate.limit.report");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -78,10 +77,11 @@ public class ReportingController {
     @GetMapping("/revenue-per-client")
     public ResponseEntity<Map<String, Object>> getRevenuePerClient(
             Authentication auth,
-            @RequestParam(defaultValue = "last-month") String range) {
+            @RequestParam(defaultValue = "last-month") String range,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getReportBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        if (!canGenerateReport) {
             throw new RateLimitExceededException("error.rate.limit.report");
         }
 
@@ -105,10 +105,11 @@ public class ReportingController {
     @GetMapping("/tasks-per-month")
     public ResponseEntity<Map<String, Object>> getTasksPerMonth(
             Authentication auth,
-            @RequestParam(defaultValue = "last-month") String range) {
+            @RequestParam(defaultValue = "last-month") String range,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getReportBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        if (!canGenerateReport) {
             throw new RateLimitExceededException("error.rate.limit.report");
         }
 
@@ -140,10 +141,11 @@ public class ReportingController {
     @GetMapping("/revenue-per-month")
     public ResponseEntity<Map<String, Object>> getRevenuePerMonth(
             Authentication auth,
-            @RequestParam(defaultValue = "last-month") String range) {
+            @RequestParam(defaultValue = "last-month") String range,
+            HttpServletRequest request) {
         // Rate limiting
-        Bucket bucket = rateLimitConfig.getReportBucket(auth.getName());
-        if (!bucket.tryConsume(1)) {
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        if (!canGenerateReport) {
             throw new RateLimitExceededException("error.rate.limit.report");
         }
 
