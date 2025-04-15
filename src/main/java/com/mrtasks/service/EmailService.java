@@ -1,4 +1,3 @@
-// EmailService.java
 package com.mrtasks.service;
 
 import com.mrtasks.utils.UrlUtils;
@@ -10,6 +9,11 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import jakarta.activation.DataSource;
+import jakarta.mail.util.ByteArrayDataSource;
+
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -46,7 +50,6 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(String to, String token, String language) {
-
         language = StringUtils.hasText(language) ? language : "en";
         String baseUrl = UrlUtils.getBaseUrl();
 
@@ -69,6 +72,49 @@ public class EmailService {
             mailSender.send(message);
         } catch (Exception e) {
             throw new RuntimeException("Failed to send password reset email to " + to, e);
+        }
+    }
+
+    public void sendLogEmail(List<String> logs, String date) {
+        try {
+            // Create CSV content
+            StringBuilder csvContent = new StringBuilder();
+            csvContent.append("Timestamp,Username,IPAddress,Action\n");
+            for (String log : logs) {
+                // Parse log: "2025-04-14T12:34:56: User testuser, IP 1.2.3.4 hit dashboard limit"
+                String[] parts = log.split(": User |, IP | hit ");
+                if (parts.length == 4) {
+                    String timestamp = parts[0].trim();
+                    String username = parts[1].trim();
+                    String ipAddress = parts[2].trim();
+                    String action = parts[3].replace(" limit", "").trim();
+                    csvContent.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                            timestamp, username, ipAddress, action));
+                }
+            }
+
+            // Prepare email
+            String subject = "Rate Limit Violations for " + date;
+            String htmlBody = "<h3>" + subject + "</h3>" +
+                    "<p>Attached is the CSV file containing rate limit violations for " + date + ".</p>" +
+                    "<p>Total violations: " + logs.size() + "</p>" +
+                    "<p>Please review the attached file for details.</p>";
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo("support@mrtasks.com");
+            helper.setSubject(subject);
+            helper.setText(htmlBody, true);
+            helper.setFrom("limit-violation@mrtasks.com");
+
+            // Attach CSV
+            DataSource dataSource = new ByteArrayDataSource(csvContent.toString().getBytes(StandardCharsets.UTF_8), "text/csv");
+            helper.addAttachment("rate_limit_violations_" + date + ".csv", dataSource);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            // Log error instead of throwing to avoid scheduler crash
+            System.err.println("Failed to send log email for " + date + ": " + e.getMessage());
         }
     }
 }

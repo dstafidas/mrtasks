@@ -2,7 +2,6 @@ package com.mrtasks.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -19,8 +18,10 @@ public class RateLimitConfig {
     private static final int MAX_LOGS = 1000; // ~300KB max
 
     private Bucket createBucket(long capacity) {
-        Refill refill = Refill.intervally(capacity, Duration.ofHours(1));
-        Bandwidth limit = Bandwidth.classic(capacity, refill);
+        Bandwidth limit = Bandwidth.builder()
+                .capacity(capacity)
+                .refillIntervally(capacity, Duration.ofHours(1))
+                .build();
         return Bucket.builder().addLimit(limit).build();
     }
 
@@ -102,7 +103,7 @@ public class RateLimitConfig {
     }
 
     public boolean canChangeEmail(String username, String ipAddress) {
-        Bucket bucket = getBucket("email-change-" + username, 3); // 3/hour
+        Bucket bucket = getBucket("email-change-" + username, 2); // 2/hour
         boolean allowed = bucket.tryConsume(1);
         if (!allowed) {
             addLimitHitLog(username, ipAddress, "email-change");
