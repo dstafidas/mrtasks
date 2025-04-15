@@ -10,6 +10,8 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -28,7 +30,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .orElseGet(() -> {
                     User newUser = new User();
                     newUser.setUsername(googleId);
-                    newUser.setPassword(""); // No password for OAuth users
+                    newUser.setPassword(UUID.randomUUID().toString()); // random, basically nonsense for OAuth users
                     newUser.setRole("ROLE_USER");
                     newUser.setProvider("google");
                     User savedUser = userRepository.save(newUser);

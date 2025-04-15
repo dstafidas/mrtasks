@@ -10,8 +10,9 @@ import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
 import com.mrtasks.service.EmailService;
-import io.github.bucket4j.Bucket;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -20,10 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -85,28 +85,28 @@ public class ProfileController {
             boolean canChangeEmail = rateLimitConfig.canChangeEmail(user.getUsername(), request.getRemoteAddr());
             if (!canChangeEmail) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                        .body(messageSource.getMessage("error.rate.limit.email.change", null, LocaleContextHolder.getLocale()));
+                        .body(messageSource.getMessage("error.rate.limit.email.change", null, Locale.forLanguageTag(existingProfile.getLanguage())));
             }
         }
 
         // Validate email format
-        if (newEmail != null && !newEmail.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
+        if (StringUtils.hasText(newEmail) && !newEmail.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(messageSource.getMessage("profile.email.invalid", null, LocaleContextHolder.getLocale()));
+                    .body(messageSource.getMessage("profile.email.invalid", null, Locale.forLanguageTag(existingProfile.getLanguage())));
         }
 
         // Validate phone format
         String phone = profileDto.getPhone();
-        if (phone != null && !phone.matches("^\\+?[1-9]\\d{1,14}$")) {
+        if (StringUtils.hasText(phone) && !phone.matches("^\\+?[1-9]\\d{1,14}$")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(messageSource.getMessage("profile.phone.invalid", null, LocaleContextHolder.getLocale()));
+                    .body(messageSource.getMessage("profile.phone.invalid", null, Locale.forLanguageTag(existingProfile.getLanguage())));
         }
 
         // Validate logo URL
         String logoUrl = profileDto.getLogoUrl();
-        if (logoUrl != null && !logoUrl.matches("^(https?:\\/\\/)?([\\w-]+\\.)+[\\w-]+(\\/[\\w-.\\/?%&=]*)?$")) {
+        if (StringUtils.hasText(logoUrl) && !logoUrl.matches("^(https?:\\/\\/)?([\\w-]+\\.)+[\\w-]+(\\/[\\w-.\\/?%&=]*)?$")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(messageSource.getMessage("profile.logoUrl.invalid", null, LocaleContextHolder.getLocale()));
+                    .body(messageSource.getMessage("profile.logoUrl.invalid", null, Locale.forLanguageTag(existingProfile.getLanguage())));
         }
 
         // Update profile
@@ -122,16 +122,43 @@ public class ProfileController {
 
         userProfileRepository.save(existingProfile);
 
+        return ResponseEntity.ok(dtoMapper.toProfileDto(existingProfile));
+    }
+
+    @PostMapping("/language")
+    @ResponseBody
+    public ResponseEntity<?> updateLanguage(
+            @RequestParam("language") String language,
+            Authentication auth,
+            HttpServletResponse response) {
+        // Validate language code
+        if (!language.matches("^[a-z]{2}$")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(messageSource.getMessage("profile.language.invalid", null, LocaleContextHolder.getLocale()));
+        }
+
+        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        UserProfile profile = userProfileRepository.findByUser(user)
+                .orElseGet(() -> {
+                    UserProfile newProfile = new UserProfile();
+                    newProfile.setUser(user);
+                    newProfile.setLanguage("en");
+                    return newProfile;
+                });
+
+        // Update language
+        profile.setLanguage(language);
+        userProfileRepository.save(profile);
+
         // Set language cookie
-        String newLanguage = existingProfile.getLanguage();
-        Cookie languageCookie = new Cookie("userLanguage", newLanguage);
+        Cookie languageCookie = new Cookie("userLanguage", language);
         languageCookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
         languageCookie.setPath("/");
         response.addCookie(languageCookie);
 
         // Set locale
-        LocaleContextHolder.setLocale(Locale.forLanguageTag(newLanguage));
+        LocaleContextHolder.setLocale(Locale.forLanguageTag(language));
 
-        return ResponseEntity.ok(dtoMapper.toProfileDto(existingProfile));
+        return ResponseEntity.ok().build();
     }
 }

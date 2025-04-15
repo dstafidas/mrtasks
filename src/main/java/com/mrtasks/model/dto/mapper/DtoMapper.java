@@ -76,7 +76,6 @@ public class DtoMapper {
         profile.setEmail(dto.getEmail());
         profile.setPhone(dto.getPhone());
         profile.setLanguage(dto.getLanguage() != null ? dto.getLanguage() : "en");
-        profile.setEmailVerified(dto.isEmailVerified());
         profile.setEmailVerificationToken(dto.getEmailVerificationToken());
         return profile;
     }
