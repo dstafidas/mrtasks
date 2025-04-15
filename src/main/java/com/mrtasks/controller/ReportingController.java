@@ -6,7 +6,6 @@ import com.mrtasks.model.Task;
 import com.mrtasks.model.User;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -55,7 +54,7 @@ public class ReportingController {
         // Rate limiting
         boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
         if (!canGenerateReport) {
-            throw new RateLimitExceededException("error.rate.limit.report");
+            throw new RateLimitExceededException("limit.error.rate.report");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
@@ -82,7 +81,7 @@ public class ReportingController {
         // Rate limiting
         boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
         if (!canGenerateReport) {
-            throw new RateLimitExceededException("error.rate.limit.report");
+            throw new RateLimitExceededException("limit.error.rate.report");
         }
 
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -110,7 +109,7 @@ public class ReportingController {
         // Rate limiting
         boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
         if (!canGenerateReport) {
-            throw new RateLimitExceededException("error.rate.limit.report");
+            throw new RateLimitExceededException("limit.error.rate.report");
         }
 
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
@@ -146,7 +145,7 @@ public class ReportingController {
         // Rate limiting
         boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
         if (!canGenerateReport) {
-            throw new RateLimitExceededException("error.rate.limit.report");
+            throw new RateLimitExceededException("limit.error.rate.report");
         }
 
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();

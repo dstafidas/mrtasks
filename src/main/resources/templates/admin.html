@@ -311,7 +311,7 @@
                 error: function(xhr) {
                     let errorMessage = /*[[#{admin.search.error}]]*/ 'Failed to search users.';
                     if (xhr.status === 429) {
-                        errorMessage = /*[[#{error.rate.limit.search}]]*/ 'Rate limit exceeded for search.';
+                        errorMessage = /*[[#{limit.error.rate.search}]]*/ 'Rate limit exceeded for search.';
                     }
                     $('#ajax-error-text').text(errorMessage);
                     $('#ajax-error').show();
@@ -388,7 +388,7 @@
                     error: function(xhr) {
                         let errorMessage = /*[[#{admin.search.error}]]*/ 'Failed to search users.';
                         if (xhr.status === 429) {
-                            errorMessage = /*[[#{error.rate.limit.search}]]*/ 'Rate limit exceeded for search.';
+                            errorMessage = /*[[#{limit.error.rate.search}]]*/ 'Rate limit exceeded for search.';
                         }
                         $('#ajax-error-text').text(errorMessage);
                         $('#ajax-error').show();

@@ -12,7 +12,6 @@ import com.mrtasks.repository.ClientRepository;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.TaskService;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -57,7 +56,7 @@ public class TasksController {
         boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), request.getRemoteAddr());
         if (!canSearchTasks) {
             User user = userRepository.findByUsername(auth.getName()).orElseThrow();
-            model.addAttribute("error", "error.rate.limit.task.search");
+            model.addAttribute("error", "limit.error.rate.task.search");
             model.addAttribute("tasks", List.of());
             model.addAttribute("clients", clientRepository.findByUser(user).stream()
                     .map(dtoMapper::toClientDto)
@@ -118,7 +117,7 @@ public class TasksController {
         // Rate limiting
         boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), request.getRemoteAddr());
         if (!canSearchTasks) {
-            return ResponseEntity.status(429).body("error.rate.limit.task.search");
+            return ResponseEntity.status(429).body("limit.error.rate.task.search");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Pageable pageable = PageRequest.of(page, size);

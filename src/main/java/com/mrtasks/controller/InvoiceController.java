@@ -5,7 +5,6 @@ import com.mrtasks.exception.RateLimitExceededException;
 import com.mrtasks.model.User;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.InvoiceService;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -32,7 +31,7 @@ public class InvoiceController {
         // Rate limiting
         boolean canDownloadInvoice = rateLimitConfig.canDownloadInvoice(auth.getName(), request.getRemoteAddr());
         if (!canDownloadInvoice) {
-            throw new RateLimitExceededException("error.rate.limit.invoice");
+            throw new RateLimitExceededException("limit.error.rate.invoice");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 

@@ -548,7 +548,7 @@
           }).fail(function(xhr) {
               let errorMessage = /*[[#{dashboard.alert.searchFailed}]]*/ 'Failed to search tasks';
               if (xhr.status === 429) {
-                  errorMessage = /*[[#{error.rate.limit.task.search}]]*/ 'Rate limit exceeded. Please try again later.';
+                  errorMessage = /*[[#{limit.error.rate.task.search}]]*/ 'Rate limit exceeded. Please try again later.';
               }
               $('#ajax-error').text(errorMessage).show();
               setTimeout(() => $('#ajax-error').fadeOut(), 5000);

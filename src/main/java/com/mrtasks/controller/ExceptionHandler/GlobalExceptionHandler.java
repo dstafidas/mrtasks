@@ -12,6 +12,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RateLimitExceededException.class)
     public ResponseEntity<String> handleRateLimitExceeded(RateLimitExceededException ex) {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(ex.getMessage()); // Return message key (e.g., "error.rate.limit.task")
+                .body(ex.getMessage()); // Return message key (e.g., "limit.error.rate.task")
     }
 }

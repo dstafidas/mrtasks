@@ -11,7 +11,6 @@ import com.mrtasks.repository.ClientRepository;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
-import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,6 +23,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Controller
@@ -38,6 +38,31 @@ public class ClientController {
     private final UserProfileRepository userProfileRepository;
     private final DtoMapper dtoMapper;
 
+    // Email regex pattern
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9+_.-]+@(.+)$"
+    );
+
+    // Phone regex pattern
+    private static final Pattern PHONE_PATTERN = Pattern.compile(
+            "^(\\+?\\d{1,3}[- ]?)?\\(?\\d{3}\\)?[- ]?\\d{3}[- ]?\\d{4}$"
+    );
+
+    private String validateClientDto(ClientDto clientDto) {
+        if (clientDto.getEmail() != null && !clientDto.getEmail().isEmpty()) {
+            if (!EMAIL_PATTERN.matcher(clientDto.getEmail()).matches()) {
+                return "clients.error.invalid.email";
+            }
+        }
+        if (clientDto.getPhone() != null && !clientDto.getPhone().isEmpty()) {
+            if (!PHONE_PATTERN.matcher(clientDto.getPhone()).matches()) {
+                return "clients.error.invalid.phone";
+            }
+        }
+        return null;
+    }
+
+    // Rest of the methods remain the same, only updating error message references
     @GetMapping
     public String listClients(
             @RequestParam(defaultValue = "0") int page,
@@ -47,8 +72,7 @@ public class ClientController {
             HttpServletRequest request) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
-        // Rate limiting
-        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr()); // Reusing client search bucket for consistency
+        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr());
         PageDto<ClientDto> clientPageDto = new PageDto<>();
 
         if (!canSearchClients) {
@@ -87,8 +111,7 @@ public class ClientController {
             @RequestParam(required = false) String search,
             Authentication auth,
             HttpServletRequest request) {
-        // Rate limiting
-        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr()); // Reusing client search bucket for consistency
+        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr());
         if (!canSearchClients) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("error.rate.limit.client.search");
@@ -128,6 +151,13 @@ public class ClientController {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("error.rate.limit.client");
         }
+
+        String validationError = validateClientDto(clientDto);
+        if (validationError != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(validationError);
+        }
+
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         boolean isEmailVerified = userProfileRepository.findByUser(user)
                 .map(UserProfile::isEmailVerified)
@@ -169,10 +199,16 @@ public class ClientController {
 
     @PutMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<ClientDto> updateClient(
+    public ResponseEntity<?> updateClient(
             @PathVariable Long id,
             @ModelAttribute ClientDto clientDto,
             Authentication auth) {
+        String validationError = validateClientDto(clientDto);
+        if (validationError != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(validationError);
+        }
+
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         Client existingClient = clientRepository.findByIdAndUser(id, user);
         if (existingClient == null) {

@@ -85,7 +85,7 @@ public class ProfileController {
             boolean canChangeEmail = rateLimitConfig.canChangeEmail(user.getUsername(), request.getRemoteAddr());
             if (!canChangeEmail) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                        .body(messageSource.getMessage("error.rate.limit.email.change", null, Locale.forLanguageTag(existingProfile.getLanguage())));
+                        .body(messageSource.getMessage("limit.error.rate.email.change", null, Locale.forLanguageTag(existingProfile.getLanguage())));
             }
         }
 

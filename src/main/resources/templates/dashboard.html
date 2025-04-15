@@ -729,10 +729,10 @@
                 attachTaskListeners($newCard);
             }, 'json').fail(function(xhr) {
                 let errorMessage = 'An error occurred while adding the task.';
-                if (xhr.status === 403 && xhr.responseText === 'error.task.limit.unverified') {
-                    errorMessage = /*[[#{error.task.limit.unverified}]]*/ 'Unverified users are limited to 10 tasks. Please verify your email to add more tasks.';
-                } else if (xhr.status === 429 && xhr.responseText === 'error.rate.limit.task') {
-                    errorMessage = /*[[#{error.rate.limit.task}]]*/ 'You have reached the task creation limit. Please try again later.';
+                if (xhr.status === 403 && xhr.responseText === 'limit.error.task.unverified') {
+                    errorMessage = /*[[#{limit.error.task.unverified}]]*/ 'Unverified users are limited to 10 tasks. Please verify your email to add more tasks.';
+                } else if (xhr.status === 429 && xhr.responseText === 'limit.error.rate.task') {
+                    errorMessage = /*[[#{limit.error.rate.task}]]*/ 'You have reached the task creation limit. Please try again later.';
                 }
                 $('#ajax-error').text(errorMessage).show();
                 setTimeout(() => $('#ajax-error').fadeOut(), 5000);
@@ -814,7 +814,7 @@
                 error: function(xhr) {
                     let errorMessage = 'An error occurred while generating the invoice.';
                     if (xhr.status === 429) {
-                        errorMessage = /*[[#{error.rate.limit.invoice}]]*/ 'Report generation limit exceeded. Please try again later.';
+                        errorMessage = /*[[#{limit.error.rate.invoice}]]*/ 'Report generation limit exceeded. Please try again later.';
                     }
                     $('#ajax-error').text(errorMessage).show();
                     setTimeout(() => {

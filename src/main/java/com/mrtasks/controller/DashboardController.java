@@ -61,7 +61,7 @@ public class DashboardController {
         } else {
             tasks = List.of();
             clients = List.of();
-            rateLimitMessage = "error.rate.limit.list";
+            rateLimitMessage = "limit.error.rate.list";
         }
 
         model.addAttribute("tasks", tasks);
@@ -78,7 +78,7 @@ public class DashboardController {
     public ResponseEntity<?> addTask(@ModelAttribute TaskDto taskDto, Authentication auth, HttpServletRequest request) {
         // Rate limiting
         if (!rateLimitConfig.canCreateTask(auth.getName(), request.getRemoteAddr())) {
-            throw new RateLimitExceededException("error.rate.limit.task");
+            throw new RateLimitExceededException("limit.error.rate.task");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         boolean isEmailVerified = userProfileRepository.findByUser(user)
@@ -89,7 +89,7 @@ public class DashboardController {
         if (!isEmailVerified) {
             long taskCount = taskRepository.countByUser(user);
             if (taskCount >= 10) {
-                return ResponseEntity.status(403).body("error.task.limit.unverified");
+                return ResponseEntity.status(403).body("limit.error.task.unverified");
             }
         }
 

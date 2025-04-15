@@ -343,7 +343,7 @@
             }).catch(err => {
                 console.error('Error fetching combined tasks and revenue per month:', err);
                 if (err.status === 429) {
-                    showErrorMessage('[[#{error.rate.limit.report}]]');
+                    showErrorMessage('[[#{limit.error.rate.report}]]');
                 } else {
                     showErrorMessage('An error occurred while fetching data.');
                 }
@@ -385,7 +385,7 @@
             }).catch(err => {
                 console.error('Error fetching combined tasks and revenue per client:', err);
                 if (err.status === 429) {
-                    showErrorMessage('[[#{error.rate.limit.report}]]');
+                    showErrorMessage('[[#{limit.error.rate.report}]]');
                 } else {
                     showErrorMessage('An error occurred while fetching data.');
                 }
