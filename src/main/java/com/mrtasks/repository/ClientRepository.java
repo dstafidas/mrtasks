@@ -14,4 +14,5 @@ public interface ClientRepository extends JpaRepository<Client, Long> {
     Client findByIdAndUser(Long id, User user);
     List<Client> findByUser(User user);
     long countByUser(User user);
+
 }

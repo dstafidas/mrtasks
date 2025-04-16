@@ -117,4 +117,36 @@ public class EmailService {
             System.err.println("Failed to send log email for " + date + ": " + e.getMessage());
         }
     }
+
+    public void sendInvoiceEmail(String recipientEmail, byte[] invoicePdf, String name, String language, String userEmail) {
+        MimeMessage message = mailSender.createMimeMessage();
+
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setTo(recipientEmail);
+
+            String subject = messageSource.getMessage(
+                    "email.invoice.subject",
+                    new Object[]{name},
+                    Locale.forLanguageTag(language));
+
+            String text = messageSource.getMessage(
+                    "email.invoice.text",
+                    null,
+                    Locale.forLanguageTag(language));
+
+            helper.setSubject(subject);
+            helper.setText(text, false);
+            helper.setFrom("invoices@mrtasks.com");
+            helper.setReplyTo(userEmail);
+
+            // Add the PDF attachment
+            ByteArrayDataSource dataSource = new ByteArrayDataSource(invoicePdf, "application/pdf");
+            helper.addAttachment("invoice.pdf", dataSource);
+
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send invoice email", e);
+        }
+    }
 }

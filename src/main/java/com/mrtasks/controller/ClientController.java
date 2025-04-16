@@ -243,4 +243,16 @@ public class ClientController {
         clientRepository.delete(client);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/clients/{id}")
+    public ResponseEntity<Client> getClientById(@PathVariable Long id, Authentication auth) {
+        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        Client client = clientRepository.findByIdAndUser(id, user);
+
+        if (client == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(client);
+    }
 }

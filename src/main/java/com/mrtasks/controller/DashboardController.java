@@ -64,11 +64,13 @@ public class DashboardController {
             rateLimitMessage = "limit.error.rate.list";
         }
 
+        UserProfile userProfile = userProfileRepository.findByUser(user).orElseThrow();
         model.addAttribute("tasks", tasks);
         model.addAttribute("clients", clients);
         model.addAttribute("newTask", new TaskDto());
         model.addAttribute("totalTaskCount", taskService.getTasksForUser(user).size());
         model.addAttribute("rateLimitMessage", rateLimitMessage);
+        model.addAttribute("userProfile", userProfile);
 
         return "dashboard";
     }

@@ -75,6 +75,15 @@ public class RateLimitConfig {
         return allowed;
     }
 
+    public boolean canSendInvoice(String username, String ipAddress) {
+        Bucket bucket = getBucket("invoice-send-" + username, 5); // 5/hour
+        boolean allowed = bucket.tryConsume(1);
+        if (!allowed) {
+            addLimitHitLog(username, ipAddress, "invoice-send");
+        }
+        return allowed;
+    }
+
     public boolean canSearchTasks(String username, String ipAddress) {
         Bucket bucket = getBucket("task-search-" + username, 50); // 50/hour
         boolean allowed = bucket.tryConsume(1);

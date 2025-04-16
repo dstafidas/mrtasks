@@ -5,6 +5,7 @@ import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.BaseFont;
+import com.mrtasks.model.Client;
 import com.mrtasks.model.Task;
 import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
@@ -20,10 +21,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.ResourceBundle;
 
 @Service
 @RequiredArgsConstructor
@@ -43,10 +42,11 @@ public class InvoiceService {
         }
 
         String invoiceTo = selectedTasks.stream()
-                .map(Task::getClientName)
-                .filter(name -> name != null && !name.isEmpty())
-                .findFirst()
-                .orElse("Client");
+                        .map(Task::getClient)
+                        .filter(Objects::nonNull)
+                        .map(Client::getName)
+                        .findFirst()
+                        .orElse("");
 
         Optional<UserProfile> profileOpt = userProfileRepository.findByUser(user);
         UserProfile profile = profileOpt.orElse(new UserProfile());

@@ -34,16 +34,18 @@
             justify-content: flex-start;
             align-items: center;
         }
-        .btn-primary {
-            background-color: #3498db;
-            border: none;
+        .btn-outline-primary {
+            background-color: #ffffff;
+            border: 1px solid #3498db;
+            color: #3498db;
             border-radius: 8px;
             padding: 0.6rem 1.2rem;
             transition: all 0.3s ease;
         }
-        .btn-primary:hover {
-            background-color: #2980b9;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .btn-outline-primary:hover {
+            background-color: #3498db;
+            color: #ffffff;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
         }
         .btn-secondary {
             background-color: #6c757d;
@@ -78,6 +80,12 @@
             background-color: #218838;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+        .send-invoice-btn:disabled {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
         .btn-success:disabled {
             background-color: #6c757d;
             cursor: not-allowed;
@@ -89,6 +97,15 @@
             border-radius: 8px;
             padding: 0.6rem 1.2rem;
             transition: all 0.3s ease;
+        }
+        .btn-outline-success:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+            pointer-events: auto !important;  /* Allow tooltip interactions */
+        }
+        .btn-outline-success:disabled:hover {
+            background-color: transparent;
+            color: #28a745;
         }
         .btn-warning:hover {
             background-color: #e0a800;
@@ -265,12 +282,30 @@
     <div th:if="${rateLimitMessage != null}" class="alert alert-danger" th:text="#{${rateLimitMessage}}">Rate limit exceeded</div>
 
     <div class="button-group">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
             <span>+</span> <span th:text="#{dashboard.add}">Add New Task</span>
         </button>
-        <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
-            <button type="submit" class="btn btn-success" th:text="#{dashboard.invoice.download}">Download Invoice</button>
-        </form>
+       <!-- Download Invoice Button -->
+       <form id="invoiceForm" th:action="@{/invoice}" method="post" style="display:inline;">
+           <button type="submit" class="btn btn-outline-success"
+                   th:disabled="${!userProfile.emailVerified}"
+                   data-bs-toggle="tooltip"
+                   th:data-bs-title="${!userProfile.emailVerified ? #messages.msg('error.email.not.verified') : ''}"
+                   th:data-bs-placement="top">
+               <i class="bi bi-download"></i>
+               <span th:text="#{dashboard.invoice.download}">Download Invoice</span>
+           </button>
+       </form>
+
+       <!-- Send Invoice Button -->
+       <button type="button" id="sendInvoiceBtn" class="btn btn-outline-success"
+               th:disabled="${!userProfile.emailVerified}"
+               data-bs-toggle="tooltip"
+               th:data-bs-title="${!userProfile.emailVerified ? #messages.msg('error.email.not.verified') : ''}"
+               th:data-bs-placement="top">
+           <i class="bi bi-envelope"></i>
+           <span th:text="#{dashboard.invoice.send}">Send Invoice</span>
+       </button>
     </div>
 
     <div class="task-columns">
@@ -282,7 +317,7 @@
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
                     <div class="task-details">
-                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                         <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
                         <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
@@ -316,7 +351,7 @@
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
                     <div class="task-details">
-                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                         <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
                         <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
@@ -350,7 +385,7 @@
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
                     <div class="task-details">
-                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
+                        <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
                         <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
                         <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
@@ -372,6 +407,64 @@
                             <i class="bi bi-trash text-danger delete-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.delete}"></i>
                             <i class="bi bi-eye-slash text-warning hide-task-btn" th:data-id="${task.id}" data-bs-toggle="tooltip" th:data-bs-title="#{dashboard.tooltip.hide}"></i>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Invoice Modal -->
+    <div class="modal fade" id="sendInvoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{dashboard.invoice.send.title}">Send Invoice to Clients</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" th:text="#{dashboard.invoice.send.info}">
+                        Selected tasks will be grouped by client and sent as separate invoices.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th th:text="#{clients.table.name}">Name</th>
+                                    <th th:text="#{clients.table.email}">Email</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientInvoiceList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Invoice Modal -->
+    <div class="modal fade" id="downloadInvoiceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" th:text="#{dashboard.invoice.download.title}">Download Invoices</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" th:text="#{dashboard.invoice.download.info}">
+                        Selected tasks will be grouped by client and downloaded as separate invoices.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th th:text="#{dashboard.form.client.label}">Client</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="clientInvoiceListDownload">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -780,16 +873,85 @@
             });
         });
 
-        // Invoice Form Submission
+        // Invoice Form Submission for Download
         $('#invoiceForm').submit(function(e) {
             e.preventDefault();
-            const selectedTaskIds = $('.task-select:checked').map(function() { return $(this).data('id'); }).get();
-            if (selectedTaskIds.length === 0) {
+            const selectedTasks = $('.task-select:checked');
+
+            if (selectedTasks.length === 0) {
                 alert(/*[[#{dashboard.alert.selectBillableTask}]]*/ 'Please select at least one billable task to generate an invoice.');
                 return;
             }
+
+            // Group tasks by client
+            const clientTasks = new Map();
+            selectedTasks.each(function() {
+                const taskId = $(this).data('id');
+                const $taskCard = $(this).closest('.task-card');
+                const clientName = $taskCard.find('.client-name').text();
+                const clientId = $taskCard.find('[data-client-id]').data('clientId');
+
+                if (clientName !== 'N/A') {
+                    if (!clientTasks.has(clientId)) {
+                        clientTasks.set(clientId, { taskIds: [], name: clientName });
+                    }
+                    clientTasks.get(clientId).taskIds.push(taskId);
+                }
+            });
+
+            // Check if more than one client is selected
+            if (clientTasks.size <= 1) {
+                // If only one client, directly download the invoice
+                const clientData = Array.from(clientTasks.values())[0];
+                if (clientData) {
+                    const formData = new FormData();
+                    clientData.taskIds.forEach(id => formData.append('taskIds', id));
+                    downloadInvoice(formData, clientData.name);
+                }
+                return;
+            }
+
+            // Get translated download text
+            const downloadText = /*[[#{dashboard.invoice.download}]]*/ 'Download';
+
+            // Clear and populate modal for multiple clients
+            $('#clientInvoiceListDownload').empty();
+            clientTasks.forEach((value, clientId) => {
+                $('#clientInvoiceListDownload').append(`
+                    <tr>
+                        <td>${value.name}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary text-white download-invoice-btn"
+                                    data-client-id="${clientId}"
+                                    data-task-ids="${value.taskIds}">
+                                <i class="bi bi-download"></i>
+                                ${downloadText}
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Show the download modal instead of send modal
+            $('#downloadInvoiceModal').modal('show');
+        });
+
+        // Handle download invoice button click in modal
+        $(document).on('click', '.download-invoice-btn', function() {
+            const $button = $(this);
+            const clientName = $button.closest('tr').find('td:first').text();
+            const taskIds = $button.data('taskIds').toString().split(',');
+
+            // Create FormData
             const formData = new FormData();
-            selectedTaskIds.forEach(id => formData.append('taskIds', id));
+            taskIds.forEach(id => formData.append('taskIds', id));
+
+            // Download invoice
+            downloadInvoice(formData, clientName);
+        });
+
+        // Utility function for downloading invoice
+        function downloadInvoice(formData, clientName) {
             $.ajax({
                 url: '/invoice',
                 type: 'POST',
@@ -805,26 +967,183 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = 'invoice.pdf';
+                    a.download = `invoice_${clientName}.pdf`;
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
                     window.URL.revokeObjectURL(url);
                 },
                 error: function(xhr) {
-                    let errorMessage = 'An error occurred while generating the invoice.';
+                    let errorMessage = /*[[#{error.invoice.failed}]]*/ 'An error occurred while generating the invoice.';
                     if (xhr.status === 429) {
                         errorMessage = /*[[#{limit.error.rate.invoice}]]*/ 'Report generation limit exceeded. Please try again later.';
                     }
-                    $('#ajax-error').text(errorMessage).show();
-                    setTimeout(() => {
-                        if ($('#ajax-error').is(':visible')) {
-                            $('#ajax-error').fadeOut();
-                        }
-                    }, 10000);
+                    $('#ajax-error').text(errorMessage)
+                                   .show()
+                                   .delay(5000)
+                                   .fadeOut();
+                }
+            });
+        }
+
+        // Send invoice button click handler
+        $('#sendInvoiceBtn').click(function() {
+            const selectedTasks = $('.task-select:checked');
+            if (selectedTasks.length === 0) {
+                alert(/*[[#{dashboard.alert.selectBillableTask}]]*/ 'Please select at least one billable task to send invoice.');
+                return;
+            }
+
+            // Group tasks by client
+            const clientTasks = new Map();
+            selectedTasks.each(function() {
+                const taskId = $(this).data('id');
+                const $taskCard = $(this).closest('.task-card');
+                const clientName = $taskCard.find('.client-name').text();
+                const clientId = $taskCard.find('[data-client-id]').data('clientId');
+
+                if (clientName !== 'N/A') {
+                    if (!clientTasks.has(clientId)) {
+                        clientTasks.set(clientId, { taskIds: [], name: clientName });
+                    }
+                    clientTasks.get(clientId).taskIds.push(taskId);
+                }
+            });
+
+            // Check if more than one client is selected
+            if (clientTasks.size <= 1) {
+                // If only one client, directly send the invoice
+                const clientData = Array.from(clientTasks.entries())[0];
+                if (clientData) {
+                    const [clientId, value] = clientData;
+                    sendInvoice(clientId, value.taskIds);
+                }
+                return;
+            }
+
+            // Get translated text outside template literal
+            const sendText = /*[[#{dashboard.invoice.send}]]*/ 'Send';
+            const invalidClientText = /*[[#{error.client.invalid}]]*/ 'Invalid client or missing email address.';
+
+            // Clear and populate modal for multiple clients
+            $('#clientInvoiceList').empty();
+            clientTasks.forEach((value, clientId) => {
+                $.get(`/clients/${clientId}`, function(client) {
+                    const hasEmail = client.email && client.email.trim().length > 0;
+                    $('#clientInvoiceList').append(`
+                <tr>
+                    <td>${client.name}</td>
+                    <td>${client.email || 'N/A'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary text-white send-invoice-btn"
+                                data-client-id="${client.id}"
+                                data-task-ids="${value.taskIds}"
+                                ${!hasEmail ? 'disabled' : ''}
+                                ${!hasEmail ? 'data-bs-toggle="tooltip" data-bs-title="' + invalidClientText + '"' : ''}>
+                            <i class="bi bi-envelope"></i>
+                            ${sendText}
+                        </button>
+                    </td>
+                </tr>
+            `);
+                    // Reinitialize tooltips
+                    $('[data-bs-toggle="tooltip"]').tooltip();
+                });
+            });
+
+            $('#sendInvoiceModal').modal('show');
+        });
+
+        // Handle send invoice button click
+        $(document).on('click', '.send-invoice-btn', function() {
+            const $button = $(this);
+            const clientId = $button.data('clientId');
+            const taskIds = $button.data('taskIds').toString().split(',');
+
+            // Get translated messages outside template literals
+            const sendingText = /*[[#{dashboard.invoice.sending}]]*/ 'Sending...';
+            const sentText = /*[[#{dashboard.invoice.sent}]]*/ 'Sent';
+            const sendText = /*[[#{dashboard.invoice.send}]]*/ 'Send';
+            const rateLimitError = /*[[#{limit.error.rate.invoice.send}]]*/ 'Email sending limit exceeded. Please try again later.';
+            const invalidError = /*[[#{error.client.invalid}]]*/ 'Invalid client or missing email address.';
+            const failedError = /*[[#{error.invoice.failed}]]*/ 'Failed to send invoice. Please try again.';
+
+            // Disable button and show loading spinner
+            $button.prop('disabled', true)
+                   .html(`<span class="spinner-border spinner-border-sm"></span> <span th:text="#{dashboard.invoice.sending}">${sendingText}</span>`);
+
+            // Create FormData to properly send array parameters
+            const formData = new FormData();
+            formData.append('clientId', clientId);
+            taskIds.forEach(id => formData.append('taskIds', id));
+
+            // Send AJAX request
+            $.ajax({
+                url: '/invoice/send',
+                type: 'POST',
+                data: new URLSearchParams(formData).toString(),
+                contentType: 'application/x-www-form-urlencoded',
+                success: function() {
+                    $button.removeClass('btn-primary')
+                           .addClass('btn-success')
+                           .html(`<i class="bi bi-check"></i> <span th:text="#{dashboard.invoice.sent}">${sentText}</span>`);
+                },
+                error: function(xhr) {
+                    $button.prop('disabled', true)
+                           .html(`<i class="bi bi-envelope"></i> <span th:text="#{dashboard.invoice.send}">${sendText}</span>`);
+
+                    let errorMessage;
+                    if (xhr.status === 429) {
+                        errorMessage = rateLimitError;
+                    } else if (xhr.status === 400) {
+                        errorMessage = invalidError;
+                    } else {
+                        errorMessage = failedError;
+                    }
+
+                    $('#ajax-error').text(errorMessage)
+                                   .show()
+                                   .delay(5000)
+                                   .fadeOut();
                 }
             });
         });
+
+        // Utility function for sending invoice
+        function sendInvoice(clientId, taskIds) {
+            const formData = new FormData();
+            formData.append('clientId', clientId);
+            taskIds.forEach(id => formData.append('taskIds', id));
+
+            $.ajax({
+                url: '/invoice/send',
+                type: 'POST',
+                data: new URLSearchParams(formData).toString(),
+                contentType: 'application/x-www-form-urlencoded',
+                success: function() {
+                    $('#ajax-error').removeClass('alert-danger')
+                        .addClass('alert-success')
+                        .text(/*[[#{dashboard.invoice.sent}]]*/ 'Invoice sent successfully')
+                        .show()
+                        .delay(5000)
+                        .fadeOut();
+                },
+                error: function(xhr) {
+                    let errorMessage;
+                    if (xhr.status === 429) {
+                        errorMessage = /*[[#{limit.error.rate.invoice.send}]]*/ 'Email sending limit exceeded. Please try again later.';
+                    } else if (xhr.status === 400) {
+                        errorMessage = /*[[#{error.client.invalid}]]*/ 'Invalid client or missing email address.';
+                    } else {
+                        errorMessage = /*[[#{error.invoice.failed}]]*/ 'Failed to send invoice. Please try again.';
+                    }
+                    $('#ajax-error').text(errorMessage)
+                        .show()
+                        .delay(5000)
+                        .fadeOut();
+                }
+            });
+        }
     });
 
     // Change color function
