@@ -122,7 +122,7 @@
             padding: 15px;
             border-radius: 10px;
             min-width: 0;
-            min-height: 400px;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
@@ -260,14 +260,19 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         @media (max-width: 912px) {
+            body {
+                padding: 0rem
+            }
             .tasks-container {
                 padding: 0 1.5rem 1.5rem;
             }
             .task-columns {
                 flex-direction: column;
+                gap: 0px
             }
             .column {
                 margin-bottom: 20px;
+                min-height: 100px;
             }
         }
     </style>
