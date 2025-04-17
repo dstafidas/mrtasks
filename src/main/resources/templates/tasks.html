@@ -328,7 +328,7 @@
           <span th:unless="${task.description != null and task.description.length() > 0}"
                 th:utext="#{dashboard.table.noDescription}">No description</span>
         </td>
-        <td class="details" th:attr="data-label=#{dashboard.table.deadline}" th:text="${task.deadline}">Deadline</td>
+        <td class="details" th:attr="data-label=#{dashboard.table.deadline}" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}">Deadline</td>
         <td class="details" th:attr="data-label=#{dashboard.form.status}">
           <span class="status-badge" th:classappend="${task.status == 'TODO' ? 'status-todo' : task.status == 'IN_PROGRESS' ? 'status-in-progress' : 'status-completed'}" th:text="#{dashboard.status.__${task.status.toLowerCase()}__}">Status</span>
         </td>
@@ -395,7 +395,7 @@
             </div>
             <div class="mb-3">
               <label for="editDeadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
-              <input type="datetime-local" id="editDeadline" name="deadline" class="form-control">
+                <input type="date" id="editDeadline" name="deadline" class="form-control">
             </div>
             <div class="mb-3">
               <label for="editBillable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
@@ -509,6 +509,13 @@
           event.preventDefault();
           const $form = $(this);
           const formData = new FormData(this);
+
+          // Get the date value and append time (12:00)
+          const dateOnly = formData.get('deadline');
+          if (dateOnly) {
+            formData.set('deadline', `${dateOnly}T12:00`);
+          }
+
           if (!formData.get('hoursWorked')) formData.set('hoursWorked', '0.0');
           if (!formData.get('hourlyRate')) formData.set('hourlyRate', '0.0');
           if (!formData.get('advancePayment')) formData.set('advancePayment', '0.0');
@@ -671,14 +678,30 @@
 
       // Attach listeners to rows
       function attachListeners($row) {
+          // For edit task modal
+          $('#editBillable').on('change', function() {
+              const isChecked = $(this).prop('checked');
+              $('#editHourlyRate, #editAdvancePayment').prop('disabled', !isChecked);
+              if (!isChecked) {
+                  $('#editHourlyRate').val('0.0');
+                  $('#editAdvancePayment').val('0.0');
+              }
+          });
+
+          // Set initial state when opening edit modal
           $row.find('.edit-task-btn').click(function() {
               const taskId = $(this).data('id');
               $.getJSON(`/dashboard/task/${taskId}`, function(task) {
                   $('#editTaskId').val(task.id);
                   $('#editTitle').val(task.title);
                   $('#editDescription').val(task.description || '');
-                  $('#editDeadline').val(task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '');
+                  $('#editDeadline').val(task.deadline ? task.deadline.replace(' ', 'T').slice(0, 10) : '');
                   $('#editBillable').prop('checked', task.billable);
+
+                  // Set disabled state based on billable
+                  const isDisabled = !task.billable;
+                  $('#editHourlyRate, #editAdvancePayment').prop('disabled', isDisabled);
+
                   $('#editHoursWorked').val(task.hoursWorked || 0.0);
                   $('#editHourlyRate').val(task.hourlyRate || 0.0);
                   $('#editAdvancePayment').val(task.advancePayment || 0.0);
@@ -686,10 +709,6 @@
                   $('#editColor').val(task.color);
                   $('#editStatus').val(task.status);
                   $('#editTaskModal').modal('show');
-              }).fail(function(xhr) {
-                  console.error('Error fetching task:', xhr);
-                  $('#ajax-error').text(/*[[#{dashboard.alert.fetchTaskFailed}]]*/ 'Failed to fetch task').show();
-                  setTimeout(() => $('#ajax-error').fadeOut(), 5000);
               });
           });
 

@@ -503,7 +503,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="deadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
-                            <input type="datetime-local" id="deadline" th:field="*{deadline}" class="form-control">
+                            <input type="date" id="deadline" th:field="*{deadline}" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="billable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
@@ -539,7 +539,7 @@
                                 <option value="COMPLETED" th:text="#{dashboard.status.completed}">Completed</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary" th:text="#{dashboard.form.submit}">Add Task</button>
+                        <button type="submit" class="btn btn-outline-primary" th:text="#{dashboard.form.submit}">Add Task</button>
                     </form>
                 </div>
             </div>
@@ -574,7 +574,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="editDeadline" class="form-label" th:text="#{dashboard.form.deadline}">Deadline</label>
-                            <input type="datetime-local" id="editDeadline" name="deadline" class="form-control">
+                            <input type="date" id="editDeadline" name="deadline" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label for="editBillable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
@@ -610,7 +610,7 @@
                                 <option value="COMPLETED" th:text="#{dashboard.status.completed}">Completed</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary" th:text="#{dashboard.edit.submit}">Update Task</button>
+                        <button type="submit" class="btn btn-outline-primary" th:text="#{dashboard.edit.submit}">Update Task</button>
                     </form>
                 </div>
             </div>
@@ -622,7 +622,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dragula/3.7.3/dragula.min.js"></script>
 <script th:inline="javascript">
     // Utility functions
-    function formatDate(dateStr) {
+    function
+    formatDate(dateStr) {
         if (!dateStr) return '';
         const date = new Date(dateStr);
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -742,8 +743,13 @@
                     $('#editTaskId').val(task.id);
                     $('#editTitle').val(task.title);
                     $('#editDescription').val(task.description || '');
-                    $('#editDeadline').val(task.deadline ? task.deadline.replace(' ', 'T').slice(0, 16) : '');
+                    $('#editDeadline').val(task.deadline ? task.deadline.split('T')[0] : '');
                     $('#editBillable').prop('checked', task.billable);
+
+                    // Set disabled state based on billable
+                    const isDisabled = !task.billable;
+                    $('#editHourlyRate, #editAdvancePayment').prop('disabled', isDisabled);
+
                     $('#editHoursWorked').val(task.hoursWorked || 0.0);
                     $('#editHourlyRate').val(task.hourlyRate || 0.0);
                     $('#editAdvancePayment').val(task.advancePayment || 0.0);
@@ -779,10 +785,44 @@
             });
         }
 
+        // For new task modal
+        $('#billable').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('#hourlyRate, #advancePayment').prop('disabled', !isChecked);
+            if (!isChecked) {
+                $('#hourlyRate').val('0.0');
+                $('#advancePayment').val('0.0');
+            }
+        });
+
+        // For edit task modal
+        $('#editBillable').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('#editHourlyRate, #editAdvancePayment').prop('disabled', !isChecked);
+            if (!isChecked) {
+                $('#editHourlyRate').val('0.0');
+                $('#editAdvancePayment').val('0.0');
+            }
+        });
+
+        $('#addTaskModal').on('show.bs.modal', function() {
+            const isChecked = $('#billable').prop('checked');
+            $('#hourlyRate, #advancePayment').prop('disabled', !isChecked);
+        });
+
         // Add Task Form Submission
         $('#addTaskForm').submit(function(e) {
             e.preventDefault();
-            $.post('/dashboard', $(this).serialize(), function(task) {
+            const dateOnly = $('#deadline').val();
+
+            // Create form data
+            const formData = new FormData(this);
+
+            // Add time component to deadline
+            if (dateOnly) {
+                formData.set('deadline', dateOnly + 'T12:00');
+            }
+            $.post('/dashboard', new URLSearchParams(formData).toString(), function(task) {
                 const $targetColumn = $(`#${task.status.toLowerCase().replace('_', '-')}-column .task-list`);
                 const translatedStatus = {
                     'TODO': /*[[#{dashboard.status.todo}]]*/ 'To Do',
@@ -841,10 +881,20 @@
         $('#editTaskForm').submit(function(e) {
             e.preventDefault();
             const taskId = $('#editTaskId').val();
+            const dateOnly = $('#editDeadline').val();
+
+            // Create form data
+            const formData = new FormData(this);
+
+            // Add time component to deadline
+            if (dateOnly) {
+                formData.set('deadline', dateOnly + 'T12:00');
+            }
+
             $.ajax({
                 url: `/dashboard/task/${taskId}`,
                 type: 'PUT',
-                data: $(this).serialize(),
+                data: new URLSearchParams(formData).toString(),
                 success: function(task) {
                     const $taskCard = $(`.task-card[data-id="${task.id}"]`);
                     if ($taskCard.length) {
