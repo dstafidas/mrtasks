@@ -320,7 +320,7 @@
                 <div class="task-card" th:each="task : ${tasks}" th:if="${task.status == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
-                    <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
+                    <p class="task-description" th:with="noDesc=#{dashboard.table.noDescription}" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : noDesc}">Description</p>
                     <div class="task-details">
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
@@ -354,7 +354,7 @@
                 <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'IN_PROGRESS'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
-                    <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
+                    <p class="task-description" th:with="noDesc=#{dashboard.table.noDescription}" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : noDesc}">Description</p>
                     <div class="task-details">
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
@@ -388,7 +388,7 @@
                 <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'COMPLETED'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
-                    <p class="task-description" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : 'No description'}">Description</p>
+                    <p class="task-description" th:with="noDesc=#{dashboard.table.noDescription}" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : noDesc}">Description</p>
                     <div class="task-details">
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
@@ -829,20 +829,36 @@
                     'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
                     'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
                 }[task.status];
+
+                const translations = {
+                    clientLabel: /*[[#{dashboard.form.client.label}]]*/ 'Client',
+                    deadlineLabel: /*[[#{dashboard.table.deadline}]]*/ 'Deadline',
+                    hoursLabel: /*[[#{dashboard.table.hours}]]*/ 'Hours',
+                    rateLabel: /*[[#{dashboard.table.rate}]]*/ 'Rate',
+                    totalLabel: /*[[#{dashboard.table.total}]]*/ 'Total',
+                    advanceLabel: /*[[#{dashboard.table.advance}]]*/ 'Advance',
+                    remainingLabel: /*[[#{dashboard.table.remaining}]]*/ 'Remaining',
+                    statusLabel: /*[[#{dashboard.form.status}]]*/ 'Status',
+                    editTooltip: /*[[#{dashboard.tooltip.edit}]]*/ 'Edit',
+                    deleteTooltip: /*[[#{dashboard.tooltip.delete}]]*/ 'Delete',
+                    hideTooltip: /*[[#{dashboard.tooltip.hide}]]*/ 'Hide',
+                    noDescription: /*[[#{dashboard.table.noDescription}]]*/ 'No description'
+                };
+
                 const $newCard = $(`
                     <div class="task-card" data-id="${task.id}" data-order="${task.orderIndex}" style="background-color: ${task.color}">
                         <input type="checkbox" class="task-select" data-id="${task.id}" ${task.billable ? '' : 'disabled'}>
                         <h6>${task.title}</h6>
-                        <p class="task-description">${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : 'No description'}</p>
+                        <p class="task-description">${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : translations.noDescription}</p>
                         <div class="task-details">
-                            <p><strong>Client:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
-                            <p><strong>Deadline:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
-                            <p><strong>Hours:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
-                            <p><strong>Rate:</strong> <span class="hourly-rate">${formatCurrency(task.hourlyRate)}</span></p>
-                            <p><strong>Total:</strong> <span class="total">${formatCurrency(task.total)}</span></p>
-                            <p><strong>Advance:</strong> <span class="advance-payment">${formatCurrency(task.advancePayment)}</span></p>
-                            <p><strong>Remaining:</strong> <span class="remaining-due">${formatCurrency(task.remainingDue)}</span></p>
-                            <p><strong>Status:</strong> <span class="status">${translatedStatus}</span></p>
+                            <p><strong>${translations.clientLabel}:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
+                            <p><strong>${translations.deadlineLabel}:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
+                            <p><strong>${translations.hoursLabel}:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
+                            <p><strong>${translations.rateLabel}:</strong> <span class="hourly-rate">${formatCurrency(task.hourlyRate)}</span></p>
+                            <p><strong>${translations.totalLabel}:</strong> <span class="total">${formatCurrency(task.total)}</span></p>
+                            <p><strong>${translations.advanceLabel}:</strong> <span class="advance-payment">${formatCurrency(task.advancePayment)}</span></p>
+                            <p><strong>${translations.remainingLabel}:</strong> <span class="remaining-due">${formatCurrency(task.remainingDue)}</span></p>
+                            <p><strong>${translations.statusLabel}:</strong> <span class="status">${translatedStatus}</span></p>
                         </div>
                         <div class="task-footer">
                             <div class="color-swatch-container">
@@ -853,9 +869,9 @@
                                 <span class="color-swatch" style="background-color: #FFFFCC;" data-color="#FFFFCC" data-id="${task.id}" onclick="changeColor(this)"></span>
                             </div>
                             <div class="actions">
-                                <i class="bi bi-pencil-square text-primary edit-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Edit"></i>
-                                <i class="bi bi-trash text-danger delete-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Delete"></i>
-                                <i class="bi bi-eye-slash text-warning hide-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="Hide"></i>
+                                <i class="bi bi-pencil-square text-primary edit-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="${translations.editTooltip}"></i>
+                                <i class="bi bi-trash text-danger delete-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="${translations.deleteTooltip}"></i>
+                                <i class="bi bi-eye-slash text-warning hide-task-btn" data-id="${task.id}" data-bs-toggle="tooltip" data-bs-title="${translations.hideTooltip}"></i>
                             </div>
                         </div>
                     </div>
@@ -912,7 +928,7 @@
                         $taskCard.find('h6').text(task.title);
                         $taskCard.find('.task-description').html(task.description && task.description.length > 0 ?
                             (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
-                            'No description');
+                                /*[[#{dashboard.table.noDescription}]]*/ 'No description');
                         $taskCard.find('.client-name').text(task.client ? task.client.name : 'N/A');
                         $taskCard.find('.deadline').text(formatDate(task.deadline));
                         $taskCard.find('.hours-worked').text(task.hoursWorked || '0.0');

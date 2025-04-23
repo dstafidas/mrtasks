@@ -444,6 +444,9 @@
       true: /*[[#{dashboard.table.yes}]]*/ 'Yes',
       false: /*[[#{dashboard.table.no}]]*/ 'No'
   };
+  const translations = {
+    noDescription: /*[[#{dashboard.table.noDescription}]]*/ 'No description'
+  };
 
   $(document).ready(function() {
       const csrfToken = $('meta[name="_csrf"]').attr('content');
@@ -590,7 +593,7 @@
                       <td class="details" data-label="${/*[[#{dashboard.table.description}]]*/ 'Description'}">
                           ${task.description && task.description.length > 0 ?
                               (task.description.length > 50 ? task.description.substring(0, 50) + '...' : task.description.replace(/\n/g, '<br>')) :
-                              /*[[#{dashboard.table.noDescription}]]*/ 'No description'}
+                              translations.noDescription}
                       </td>
                       <td class="details" data-label="${/*[[#{dashboard.table.deadline}]]*/ 'Deadline'}">
                           ${formatDate(task.deadline)}
