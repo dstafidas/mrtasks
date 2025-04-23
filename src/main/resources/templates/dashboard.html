@@ -842,7 +842,7 @@
                         <h6>${task.title}</h6>
                         <p class="task-description">${task.description && task.description.length > 0 ? (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) : translations.noDescription}</p>
                         <div class="task-details">
-                            <p><strong>${translations.clientLabel}:</strong> <span class="client-name">${task.client ? task.client.name : 'N/A'}</span></p>
+                            <p><strong>${translations.clientLabel}:</strong> <span class="client-name" data-client-id="${task.client ? task.client.id : ''}">${task.client ? task.client.name : 'N/A'}</span></p>
                             <p><strong>${translations.deadlineLabel}:</strong> <span class="deadline">${formatDate(task.deadline)}</span></p>
                             <p><strong>${translations.hoursLabel}:</strong> <span class="hours-worked">${task.hoursWorked || '0.0'}</span></p>
                             <p><strong>${translations.rateLabel}:</strong> <span class="hourly-rate">${formatCurrency(task.hourlyRate)}</span></p>
@@ -902,6 +902,7 @@
                 url: `/dashboard/task/${taskId}`,
                 type: 'PUT',
                 data: new URLSearchParams(formData).toString(),
+                // In the editTaskForm submit handler, update this part:
                 success: function(task) {
                     const $taskCard = $(`.task-card[data-id="${task.id}"]`);
                     if ($taskCard.length) {
@@ -915,12 +916,25 @@
                             'IN_PROGRESS': /*[[#{dashboard.status.in_progress}]]*/ 'In Progress',
                             'COMPLETED': /*[[#{dashboard.status.completed}]]*/ 'Completed'
                         }[task.status];
+
+                        // Update client information
+                        const $clientNameSpan = $taskCard.find('.client-name');
+                        $clientNameSpan
+                            .attr('data-client-id', task.client ? task.client.id : '')
+                            .text(task.client ? task.client.name : 'N/A');
+
+                        // Update task select checkbox data attribute
+                        $taskCard.find('.task-select')
+                            .prop('disabled', !task.billable)
+                            .attr('data-client-id', task.client ? task.client.id : '');
+
+                        // Rest of the updates...
                         $taskCard.find('.task-select').prop('disabled', !task.billable);
                         $taskCard.find('h6').text(task.title);
                         $taskCard.find('.task-description').html(task.description && task.description.length > 0 ?
                             (task.description.length > 30 ? task.description.substring(0, 30) + '...' : task.description.replace(/\n/g, '<br>')) :
                                 /*[[#{dashboard.table.noDescription}]]*/ 'No description');
-                        $taskCard.find('.client-name').text(task.client ? task.client.name : 'N/A');
+                        $taskCard.find('.client-name').attr('data-client-id', task.client ? task.client.id : '').text(task.client ? task.client.name : 'N/A');
                         $taskCard.find('.deadline').text(formatDate(task.deadline));
                         $taskCard.find('.hours-worked').text(task.hoursWorked || '0.0');
                         $taskCard.find('.hourly-rate').text(formatCurrency(task.hourlyRate));
@@ -935,7 +949,34 @@
             });
         });
 
+        // Update the client grouping logic for both download and send invoice
+        function getGroupedClientTasks() {
+            const selectedTasks = $('.task-select:checked');
+            const clientTasks = new Map();
+
+            selectedTasks.each(function() {
+                const taskId = $(this).data('id');
+                const $taskCard = $(this).closest('.task-card');
+                const $clientSpan = $taskCard.find('.client-name');
+                const clientId = $clientSpan.attr('data-client-id');
+                const clientName = $clientSpan.text();
+
+                if (clientName !== 'N/A' && clientId) {
+                    if (!clientTasks.has(clientId)) {
+                        clientTasks.set(clientId, {
+                            name: clientName,
+                            taskIds: []
+                        });
+                    }
+                    clientTasks.get(clientId).taskIds.push(taskId);
+                }
+            });
+
+            return clientTasks;
+        }
+
         // Invoice Form Submission for Download
+        // Update invoice form submission handler
         $('#invoiceForm').submit(function(e) {
             e.preventDefault();
             const selectedTasks = $('.task-select:checked');
@@ -945,25 +986,10 @@
                 return;
             }
 
-            // Group tasks by client
-            const clientTasks = new Map();
-            selectedTasks.each(function() {
-                const taskId = $(this).data('id');
-                const $taskCard = $(this).closest('.task-card');
-                const clientName = $taskCard.find('.client-name').text();
-                const clientId = $taskCard.find('[data-client-id]').data('clientId');
-
-                if (clientName !== 'N/A') {
-                    if (!clientTasks.has(clientId)) {
-                        clientTasks.set(clientId, { taskIds: [], name: clientName });
-                    }
-                    clientTasks.get(clientId).taskIds.push(taskId);
-                }
-            });
+            const clientTasks = getGroupedClientTasks();
 
             // Check if more than one client is selected
             if (clientTasks.size <= 1) {
-                // If only one client, directly download the invoice
                 const clientData = Array.from(clientTasks.values())[0];
                 if (clientData) {
                     const formData = new FormData();
@@ -973,25 +999,20 @@
                 return;
             }
 
-            // Get translated download text
-            const downloadText = /*[[#{dashboard.invoice.download}]]*/ 'Download';
-
-            // Clear and populate modal for multiple clients
+            // Populate download modal
             $('#clientInvoiceListDownload').empty();
             clientTasks.forEach((value, clientId) => {
                 $('#clientInvoiceListDownload').append(`
-                    <tr>
-                        <td>${value.name}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary text-white download-invoice-btn"
-                                    data-client-id="${clientId}"
-                                    data-task-ids="${value.taskIds}">
-                                <i class="bi bi-download"></i>
-                                ${downloadText}
-                            </button>
-                        </td>
-                    </tr>
-                `);
+            <tr>
+                <td>${value.name}</td>
+                <td>
+                    <button type="button" class="btn btn-primary download-invoice-btn"
+                            data-task-ids="${value.taskIds.join(',')}">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </td>
+            </tr>
+        `);
             });
 
             // Show the download modal instead of send modal
@@ -1049,6 +1070,7 @@
         }
 
         // Send invoice button click handler
+        // Update send invoice button handler
         $('#sendInvoiceBtn').click(function() {
             const selectedTasks = $('.task-select:checked');
             if (selectedTasks.length === 0) {
@@ -1056,25 +1078,10 @@
                 return;
             }
 
-            // Group tasks by client
-            const clientTasks = new Map();
-            selectedTasks.each(function() {
-                const taskId = $(this).data('id');
-                const $taskCard = $(this).closest('.task-card');
-                const clientName = $taskCard.find('.client-name').text();
-                const clientId = $taskCard.find('[data-client-id]').data('clientId');
-
-                if (clientName !== 'N/A') {
-                    if (!clientTasks.has(clientId)) {
-                        clientTasks.set(clientId, { taskIds: [], name: clientName });
-                    }
-                    clientTasks.get(clientId).taskIds.push(taskId);
-                }
-            });
+            const clientTasks = getGroupedClientTasks();
 
             // Check if more than one client is selected
             if (clientTasks.size <= 1) {
-                // If only one client, directly send the invoice
                 const clientData = Array.from(clientTasks.entries())[0];
                 if (clientData) {
                     const [clientId, value] = clientData;
@@ -1083,12 +1090,9 @@
                 return;
             }
 
-            // Get translated text outside template literal
-            const sendText = /*[[#{dashboard.invoice.send}]]*/ 'Send';
-            const invalidClientText = /*[[#{error.client.invalid}]]*/ 'Invalid client or missing email address.';
-
-            // Clear and populate modal for multiple clients
+            // Populate send modal
             $('#clientInvoiceList').empty();
+            let processedClients = 0;
             clientTasks.forEach((value, clientId) => {
                 $.get(`/clients/${clientId}`, function(client) {
                     const hasEmail = client.email && client.email.trim().length > 0;
@@ -1097,19 +1101,20 @@
                     <td>${client.name}</td>
                     <td>${client.email || 'N/A'}</td>
                     <td>
-                        <button class="btn btn-sm btn-primary text-white send-invoice-btn"
-                                data-client-id="${client.id}"
-                                data-task-ids="${value.taskIds}"
+                        <button type="button"
+                                class="btn btn-primary send-invoice-btn"
+                                data-client-id="${clientId}"
+                                data-task-ids="${value.taskIds.join(',')}"
                                 ${!hasEmail ? 'disabled' : ''}
-                                ${!hasEmail ? 'data-bs-toggle="tooltip" data-bs-title="' + invalidClientText + '"' : ''}>
+                                data-bs-title="${!hasEmail ? 'N/A' : ''}">
                             <i class="bi bi-envelope"></i>
-                            ${sendText}
                         </button>
                     </td>
                 </tr>
             `);
-                    // Reinitialize tooltips
-                    $('[data-bs-toggle="tooltip"]').tooltip();
+                    if (++processedClients === clientTasks.size) {
+                        $('[data-bs-toggle="tooltip"]').tooltip();
+                    }
                 });
             });
 
