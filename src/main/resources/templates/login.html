@@ -128,7 +128,9 @@
 <body>
 <div class="login-container">
     <div class="text-center mb-3">
-        <img th:src="@{/images/logo2.png}" alt="MrTasks Logo" class="login-logo">
+        <a class="navbar-brand" href="/">
+            <img th:src="@{/images/logo2.png}" alt="MrTasks Logo" class="login-logo">
+        </a>
     </div>
     <div th:if="${param.registered}" class="alert alert-success">
         <p th:text="#{login.registered}">Registration successful! Please log in.</p>

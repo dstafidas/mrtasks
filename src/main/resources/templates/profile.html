@@ -194,17 +194,6 @@
             }
         });
 
-        // Profile dropdown toggle
-        $('#profile-toggle').click(function() {
-            $('#profile-dropdown').toggleClass('active');
-        });
-
-        $(document).click(function(event) {
-            if (!$(event.target).closest('#profile-toggle, #profile-dropdown').length) {
-                $('#profile-dropdown').removeClass('active');
-            }
-        });
-
         // Form validation function
         function validateField($input) {
             const id = $input.attr('id');

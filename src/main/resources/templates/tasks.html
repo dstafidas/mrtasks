@@ -494,16 +494,6 @@
           attachListeners($(this));
       });
 
-      // Profile dropdown
-      $('#profile-toggle').click(function() {
-          $('#profile-dropdown').toggleClass('active');
-      });
-      $(document).click(function(event) {
-          if (!$(event.target).closest('#profile-toggle, #profile-dropdown').length) {
-              $('#profile-dropdown').removeClass('active');
-          }
-      });
-
       // Tooltips
       $('[data-bs-toggle="tooltip"]').tooltip();
 

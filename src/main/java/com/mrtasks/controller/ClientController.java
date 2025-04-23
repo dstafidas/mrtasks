@@ -118,6 +118,11 @@ public class ClientController {
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
+        // Validate page and size
+        if (page < 0) {
+            page = 0;
+        }
+
         Pageable pageable = PageRequest.of(page, size);
         Page<Client> clientPage;
 

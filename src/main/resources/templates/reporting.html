@@ -149,16 +149,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     $(document).ready(function() {
-        // Profile dropdown toggle
-        $('#profile-toggle').click(function() {
-            $('#profile-dropdown').toggleClass('active');
-        });
-
-        $(document).click(function(e) {
-            if (!$('#profile-toggle').is(e.target) && !$('#profile-dropdown').has(e.target).length) {
-                $('#profile-dropdown').removeClass('active');
-            }
-        });
 
         const combinedBarOptions = {
             responsive: true,

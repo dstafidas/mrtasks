@@ -1,7 +1,9 @@
 <th:block th:fragment="navbar" xmlns:th="http://www.w3.org/1999/xhtml">
 <nav class="navbar navbar-expand-lg">
-    <div class="navbar-brand">
-            <img th:src="@{/images/logo2.png}" alt="MrTasks Logo" class="login-logo">
+        <div class="navbar-brand">
+            <a class="navbar-brand" href="/">
+                <img src="/images/logo2.png" alt="MrTasks Logo" style="max-width: 80px; height: auto;">
+            </a>
         </div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -33,10 +35,6 @@
             border-top-left-radius: 15px;
             border-top-right-radius: 15px;
             margin-bottom: 10px;
-        }
-        .navbar-brand .login-logo {
-            max-height: 80px;
-            width: auto;
         }
         .navbar-toggler {
             border: none;
@@ -137,6 +135,16 @@
                     link.classList.add('active');
                 }
             });
+        });
+
+        $('#profile-toggle').click(function() {
+            $('#profile-dropdown').toggleClass('active');
+        });
+
+        $(document).click(function(event) {
+            if (!$(event.target).closest('#profile-toggle, #profile-dropdown').length) {
+                $('#profile-dropdown').removeClass('active');
+            }
         });
     </script>
 </th:block>

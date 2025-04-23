@@ -24,15 +24,16 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomUserDetailsService customUserDetailsService;
-    private final UserRepository userRepository; // Add this for lastLogin updates
+    private final UserRepository userRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/", "/about", "/contact", "/privacy", "/faq").permitAll() // Public pages
+                        .requestMatchers("/register", "/login", "/images/**", "/email-verify", "/forgot-password", "/reset-password").permitAll() // Existing public routes
                         .requestMatchers("/dashboard", "/invoice", "/invoice/email", "/profile", "/tasks", "/clients", "/reporting").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/register", "/login", "/images/**", "/email-verify", "/forgot-password", "/reset-password").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

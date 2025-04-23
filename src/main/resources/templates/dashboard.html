@@ -646,16 +646,6 @@
         // Initialize Bootstrap tooltips
         $('[data-bs-toggle="tooltip"]').tooltip();
 
-        // Profile dropdown toggle
-        $('#profile-toggle').click(function() {
-            $('#profile-dropdown').toggleClass('active');
-        });
-        $(document).click(function(e) {
-            if (!$('#profile-toggle').is(e.target) && !$('#profile-dropdown').has(e.target).length) {
-                $('#profile-dropdown').removeClass('active');
-            }
-        });
-
         // Dragula setup
         const containers = [
             $('#todo-column .task-list')[0],

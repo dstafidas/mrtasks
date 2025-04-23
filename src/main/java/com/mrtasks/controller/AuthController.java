@@ -28,14 +28,6 @@ public class AuthController {
     private String RECAPTCHA_SECRET_KEY;
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
-    @GetMapping("/")
-    public String home(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            return "redirect:/dashboard";
-        }
-        return "redirect:/login";
-    }
-
     @GetMapping("/login")
     public String showLoginPage(Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr Tasks - Task Management App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .hero-section {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #2c3e50;
+        }
+        .hero-section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .hero-section p {
+            font-size: 1.2rem;
+            color: #34495e;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+        .feature-section {
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+        .feature-section h2 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .feature-card {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .feature-card i {
+            font-size: 3rem;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+        .feature-card h3 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .feature-card p {
+            color: #34495e;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border: none;
+            border-radius: 8px;
+            padding: 0.6rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .ad-placeholder {
+            background: #e9ecef;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 2rem auto;
+            max-width: 728px;
+        }
+        footer {
+            background: #2c3e50;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 912px) {
+            .hero-section h1 {
+                font-size: 2rem;
+            }
+            .hero-section p {
+                font-size: 1rem;
+            }
+            .feature-section {
+                padding: 2rem 1rem;
+            }
+            .feature-card {
+                padding: 1rem;
+            }
+            .feature-card i {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/">
+            <img src="/images/logo2.png" alt="MrTasks Logo" style="max-width: 80px; height: auto;">
+        </a>
+        <div class="ms-auto">
+            <a href="/login" class="btn btn-primary me-2">Login</a>
+            <a href="/register" class="btn btn-primary">Register</a>
+        </div>
+    </div>
+</nav>
+
+<div class="hero-section">
+    <h1>Manage Your Tasks with Ease</h1>
+    <p>Mr Tasks helps you organize tasks, manage clients, generate invoices, and track performance with a simple, intuitive interface.</p>
+    <a href="/register" class="btn btn-primary btn-lg">Get Started</a>
+</div>
+
+<!-- AdSense Placeholder -->
+<div class="ad-placeholder">
+    <!-- Insert AdSense code here (e.g., 728x90 banner) -->
+    <p>Ad Placeholder</p>
+</div>
+
+<div class="feature-section">
+    <h2>Why Choose Mr Tasks?</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <i class="bi bi-check2-square"></i>
+                <h3>Task Management</h3>
+                <p>Organize tasks with a Kanban board, drag-and-drop functionality, and customizable statuses.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <i class="bi bi-people"></i>
+                <h3>Client Management</h3>
+                <p>Easily add, edit, and track clients.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <i class="bi bi-receipt"></i>
+                <h3>Invoicing</h3>
+                <p>Generate and send invoices for billable tasks with ease.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <i class="bi bi-bar-chart"></i>
+                <h3>Reporting</h3>
+                <p>Track tasks and revenue with detailed charts by month or client.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <i class="bi bi-phone"></i>
+                <h3>Responsive Design</h3>
+                <p>Access your tasks and clients on any device with a mobile-friendly interface.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card">
+                <i class="bi bi-globe"></i>
+                <h3>Multilingual Support</h3>
+                <p>Mr Tasks is available in English, German, French, Greek, and Italian, making it accessible to users worldwide.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AdSense Placeholder -->
+<div class="ad-placeholder">
+    <!-- Insert AdSense code here (e.g., 300x250 rectangle) -->
+    <p>Ad Placeholder</p>
+</div>
+
+<footer>
+    <p>© 2025 Mr Tasks. All rights reserved.</p>
+    <p>
+        <a href="/">Home</a> |
+        <a href="/about">About</a> |
+        <a href="/contact">Contact</a> |
+        <a href="/privacy">Privacy Policy</a> |
+        <a href="/faq">FAQ</a>
+    </p>
+</footer>
+</body>
+</html>

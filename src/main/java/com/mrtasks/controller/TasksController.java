@@ -120,6 +120,11 @@ public class TasksController {
             return ResponseEntity.status(429).body("limit.error.rate.task.search");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        // Validate page and size
+        if (page < 0) {
+            page = 0;
+        }
+
         Pageable pageable = PageRequest.of(page, size);
 
 
