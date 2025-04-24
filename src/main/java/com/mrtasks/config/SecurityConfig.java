@@ -31,7 +31,7 @@ public class SecurityConfig {
         http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/", "/about", "/contact", "/privacy", "/faq").permitAll() // Public pages
-                        .requestMatchers("/register", "/login", "/images/**", "/seo/**", "/email-verify", "/forgot-password", "/reset-password").permitAll() // Existing public routes
+                        .requestMatchers("/register", "/login", "/images/**", "/robots.txt", "/sitemap.xml", "/email-verify", "/forgot-password", "/reset-password").permitAll() // Existing public routes
                         .requestMatchers("/dashboard", "/invoice", "/invoice/email", "/profile", "/tasks", "/clients", "/reporting").authenticated()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
