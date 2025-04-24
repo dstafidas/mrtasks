@@ -12,4 +12,5 @@ public class ProfileDto {
     private String language;
     private boolean emailVerified;
     private String emailVerificationToken;
+    private String currency;
 }

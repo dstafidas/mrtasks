@@ -33,4 +33,7 @@ public class UserProfile {
 
     @Column(columnDefinition = "TEXT")
     private String updateHistory = "";
+
+    @Column(name = "currency", nullable = false, columnDefinition = "varchar(3) default 'USD'")
+    private String currency = "USD";
 }

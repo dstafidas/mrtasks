@@ -162,4 +162,30 @@ public class ProfileController {
 
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/currency")
+    @ResponseBody
+    public ResponseEntity<?> updateCurrency(
+            @RequestParam("currency") String currency,
+            Authentication auth) {
+        // Validate currency code
+        if (!currency.matches("^[A-Z]{3}$")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(messageSource.getMessage("profile.currency.invalid", null, LocaleContextHolder.getLocale()));
+        }
+
+        User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        UserProfile profile = userProfileRepository.findByUser(user)
+                .orElseGet(() -> {
+                    UserProfile newProfile = new UserProfile();
+                    newProfile.setUser(user);
+                    return newProfile;
+                });
+
+        // Update currency
+        profile.setCurrency(currency);
+        userProfileRepository.save(profile);
+
+        return ResponseEntity.ok().build();
+    }
 }

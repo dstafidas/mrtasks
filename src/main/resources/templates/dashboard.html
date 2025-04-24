@@ -4,6 +4,7 @@
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="user-currency" th:content="${userProfile.currency}">
     <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
     <title th:text="#{dashboard.title}">Dashboard - Mr Tasks</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -325,11 +326,10 @@
                     <div class="task-details">
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${#numbers.formatDecimal(task.hoursWorked != null ? (task.hoursWorked % 1 == 0 ? task.hoursWorked.intValue() : task.hoursWorked) : 0, 1, task.hoursWorked % 1 == 0 ? 0 : 1)}"></span></p>                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.hourlyRate != null ? task.hourlyRate : 0.00, 1, 2, 'POINT')}">Rate</span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}">Total</span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}">Advance</span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}">Remaining</span></p>
                         <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
@@ -359,11 +359,10 @@
                     <div class="task-details">
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${#numbers.formatDecimal(task.hoursWorked != null ? (task.hoursWorked % 1 == 0 ? task.hoursWorked.intValue() : task.hoursWorked) : 0, 1, task.hoursWorked % 1 == 0 ? 0 : 1)}"></span></p>                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.hourlyRate != null ? task.hourlyRate : 0.00, 1, 2, 'POINT')}">Rate</span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}">Total</span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}">Advance</span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}">Remaining</span></p>
                         <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
@@ -393,11 +392,10 @@
                     <div class="task-details">
                         <p><strong th:text="#{dashboard.form.client.label}">Client:</strong> <span class="client-name" th:data-client-id="${task.client != null ? task.client.id : ''}" th:text="${task.client != null ? task.client.name : 'N/A'}"></span></p>
                         <p><strong th:text="#{dashboard.table.deadline}">Deadline:</strong> <span class="deadline" th:text="${#temporals.format(task.deadline, 'dd/MM/yyyy')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${task.hoursWorked}"></span></p>
-                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="'$' + ${#numbers.formatDecimal(task.hourlyRate, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="'$' + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="'$' + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}"></span></p>
-                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="'$' + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}"></span></p>
+                        <p><strong th:text="#{dashboard.table.hours}">Hours:</strong> <span class="hours-worked" th:text="${#numbers.formatDecimal(task.hoursWorked != null ? (task.hoursWorked % 1 == 0 ? task.hoursWorked.intValue() : task.hoursWorked) : 0, 1, task.hoursWorked % 1 == 0 ? 0 : 1)}"></span></p>                        <p><strong th:text="#{dashboard.table.rate}">Rate:</strong> <span class="hourly-rate" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.hourlyRate != null ? task.hourlyRate : 0.00, 1, 2, 'POINT')}">Rate</span></p>
+                        <p><strong th:text="#{dashboard.table.total}">Total:</strong> <span class="total" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.total != null ? task.total : 0.00, 1, 2, 'POINT')}">Total</span></p>
+                        <p><strong th:text="#{dashboard.table.advance}">Advance:</strong> <span class="advance-payment" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.advancePayment != null ? task.advancePayment : 0.00, 1, 2, 'POINT')}">Advance</span></p>
+                        <p><strong th:text="#{dashboard.table.remaining}">Remaining:</strong> <span class="remaining-due" th:text="${userProfile.currency} + ${#numbers.formatDecimal(task.remainingDue != null ? task.remainingDue : 0.00, 1, 2, 'POINT')}">Remaining</span></p>
                         <p><strong th:text="#{dashboard.form.status}">Status:</strong> <span class="status" th:text="#{dashboard.status.__${task.status.toString().toLowerCase()}__}"></span></p>
                     </div>
                     <div class="task-footer">
@@ -630,8 +628,15 @@
         return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
+    function formatHours(num) {
+        if (num === null || num === undefined) return '0';
+        return Number.isInteger(Number(num)) ? parseInt(num) : Number(num).toFixed(1);
+    }
+
     function formatCurrency(num) {
-        return '$' + (num !== null && num !== undefined ? Number(num).toFixed(2) : '0.00');
+        // Get currency symbol from the backend profile
+        const currencySymbol = /*[[${userProfile.currency}]]*/ '$';
+        return currencySymbol + (num !== null && num !== undefined ? Number(num).toFixed(2) : '0.00');
     }
 
     // jQuery setup for CSRF token

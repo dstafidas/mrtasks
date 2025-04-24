@@ -5,6 +5,7 @@ import com.mrtasks.model.dto.ClientDto;
 import com.mrtasks.model.dto.ProfileDto;
 import com.mrtasks.model.dto.TaskDto;
 import com.mrtasks.model.dto.UserDto;
+import com.mrtasks.utils.CurrencySymbolUtil;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -67,6 +68,7 @@ public class DtoMapper {
         dto.setLanguage(profile.getLanguage());
         dto.setEmailVerified(profile.isEmailVerified());
         dto.setEmailVerificationToken(profile.getEmailVerificationToken());
+        dto.setCurrency(CurrencySymbolUtil.getSymbol(profile.getCurrency()));
         return dto;
     }
 

@@ -11,6 +11,7 @@ import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
+import com.mrtasks.utils.CurrencySymbolUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -152,14 +153,15 @@ public class InvoiceService {
         double grandTotal = 0;
         double grandAdvance = 0;
         double grandRemainingDue = 0;
+        String currencySymbol = CurrencySymbolUtil.getSymbol(profile.getCurrency());
         for (Task task : selectedTasks) {
             table.addCell(new PdfPCell(new Phrase(task.getTitle(), normalFont)));
             table.addCell(new PdfPCell(new Phrase(task.getDescription() != null ? task.getDescription() : "N/A", normalFont)));
             table.addCell(new PdfPCell(new Phrase(String.valueOf(task.getHoursWorked()), normalFont)));
-            table.addCell(new PdfPCell(new Phrase(String.format("$%.2f", task.getHourlyRate()), normalFont)));
-            table.addCell(new PdfPCell(new Phrase(String.format("$%.2f", task.getTotal()), normalFont)));
-            table.addCell(new PdfPCell(new Phrase(String.format("$%.2f", task.getAdvancePayment()), normalFont)));
-            table.addCell(new PdfPCell(new Phrase(String.format("$%.2f", task.getRemainingDue()), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getHourlyRate()), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getTotal()), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getAdvancePayment()), normalFont)));
+            table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getRemainingDue()), normalFont)));
             grandTotal += task.getTotal();
             grandAdvance += task.getAdvancePayment();
             grandRemainingDue += task.getRemainingDue();
@@ -172,11 +174,11 @@ public class InvoiceService {
         totalsTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
         totalsTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
         totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.grand.total"), boldFont)));
-        totalsTable.addCell(new PdfPCell(new Phrase(String.format("$%.2f", grandTotal), normalFont)));
+        totalsTable.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", grandTotal), normalFont)));
         totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.advance.paid"), boldFont)));
-        totalsTable.addCell(new PdfPCell(new Phrase(String.format("$%.2f", grandAdvance), normalFont)));
+        totalsTable.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", grandAdvance), normalFont)));
         totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.amount.due"), boldFont)));
-        totalsTable.addCell(new PdfPCell(new Phrase(String.format("$%.2f", grandRemainingDue), boldFont)));
+        totalsTable.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", grandRemainingDue), boldFont)));
         document.add(Chunk.NEWLINE);
         document.add(totalsTable);
 

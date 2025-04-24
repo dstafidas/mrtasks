@@ -121,6 +121,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
 
+        <div id="success-message-currency" style="display: none;" th:text="#{profile.currency.updated}"></div>
+        <div id="error-message-currency" style="display: none;" th:text="#{profile.update.error}"></div>
         <div id="success-message" style="display: none;" th:text="#{profile.updated.success}"></div>
         <div id="rate-limit-message" style="display: none;" th:text="#{limit.error.rate.email.change}"></div>
 
@@ -132,18 +134,33 @@
             </div>
 
             <!-- User Preferences Section -->
+            <!-- User Preferences Section -->
             <div class="section-box">
                 <h2 th:text="#{profile.preferences}">User Preferences</h2>
-                <div class="mb-3">
-                    <label for="language" class="form-label" th:text="#{profile.language.label}">Language</label>
-                    <select id="language" name="language" class="form-select">
-                        <option value="en" th:selected="${profile.language == 'en'}" th:text="'English'">English</option>
-                        <option value="el" th:selected="${profile.language == 'el'}" th:text="'Ελληνικά'">Greek</option>
-                        <option value="es" th:selected="${profile.language == 'es'}" th:text="'Español'">Spanish</option>
-                        <option value="fr" th:selected="${profile.language == 'fr'}" th:text="'Français'">French</option>
-                        <option value="de" th:selected="${profile.language == 'de'}" th:text="'Deutsch'">German</option>
-                        <option value="it" th:selected="${profile.language == 'it'}" th:text="'Italiano'">Italian</option>
-                    </select>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="language" class="form-label" th:text="#{profile.language.label}">Language</label>
+                        <select id="language" name="language" class="form-select">
+                            <option value="en" th:selected="${profile.language == 'en'}" th:text="'English'">English</option>
+                            <option value="el" th:selected="${profile.language == 'el'}" th:text="'Ελληνικά'">Greek</option>
+                            <option value="es" th:selected="${profile.language == 'es'}" th:text="'Español'">Spanish</option>
+                            <option value="fr" th:selected="${profile.language == 'fr'}" th:text="'Français'">French</option>
+                            <option value="de" th:selected="${profile.language == 'de'}" th:text="'Deutsch'">German</option>
+                            <option value="it" th:selected="${profile.language == 'it'}" th:text="'Italiano'">Italian</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="currency" class="form-label" th:text="#{profile.currency.label}">Currency</label>
+                        <select id="currency" name="currency" class="form-select">
+                            <option value="USD" th:selected="${profile.currency == '$'}" th:text="'US Dollar ($)'">US Dollar ($)</option>
+                            <option value="EUR" th:selected="${profile.currency == '€'}" th:text="'Euro (€)'">Euro (€)</option>
+                            <option value="GBP" th:selected="${profile.currency == '£'}" th:text="'British Pound (£)'">British Pound (£)</option>
+                            <option value="JPY" th:selected="${profile.currency == '¥'}" th:text="'Japanese Yen (¥)'">Japanese Yen (¥)</option>
+                            <option value="AUD" th:selected="${profile.currency == 'A$'}" th:text="'Australian Dollar (A$)'">Australian Dollar (A$)</option>
+                            <option value="CAD" th:selected="${profile.currency == 'C$'}" th:text="'Canadian Dollar (C$)'">Canadian Dollar (C$)</option>
+                            <option value="CHF" th:selected="${profile.currency == 'CHF'}" th:text="'Swiss Franc (CHF)'">Swiss Franc (CHF)</option>
+                        </select>
+                    </div>
                 </div>
             </div>
             <!-- Invoice Optional Fields Section -->
@@ -193,6 +210,35 @@
             beforeSend: function(xhr) {
                 xhr.setRequestHeader(csrfHeader, csrfToken);
             }
+        });
+
+        // Currency change handler (add this inside the $(document).ready function)
+        $('#currency').change(function() {
+            const newCurrency = $(this).val();
+            $.ajax({
+                url: '/profile/currency',
+                type: 'POST',
+                data: { currency: newCurrency },
+                success: function() {
+                    // Show success message
+                    $('#ajax-message-text').text($('#success-message-currency').text());
+                    $('#ajax-message').show();
+                    setTimeout(() => {
+                        $('#ajax-message').fadeOut();
+                    }, 5000);
+                },
+                error: function(xhr) {
+                    let errorMessage = $('#error-message-currency').text();
+                    if (xhr.status === 400) {
+                        errorMessage = xhr.responseText;
+                    }
+                    $('#ajax-error-text').text(errorMessage);
+                    $('#ajax-error').show();
+                    setTimeout(() => {
+                        $('#ajax-error').fadeOut();
+                    }, 5000);
+                }
+            });
         });
 
         // Form validation function

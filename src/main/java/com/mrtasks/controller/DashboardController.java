@@ -71,7 +71,7 @@ public class DashboardController {
         model.addAttribute("newTask", new TaskDto());
         model.addAttribute("totalTaskCount", taskService.getTasksForUser(user).size());
         model.addAttribute("rateLimitMessage", rateLimitMessage);
-        model.addAttribute("userProfile", userProfile);
+        model.addAttribute("userProfile", dtoMapper.toProfileDto(userProfile));
 
         return "dashboard";
     }
