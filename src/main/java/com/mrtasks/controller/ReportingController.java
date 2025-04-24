@@ -6,6 +6,7 @@ import com.mrtasks.model.Task;
 import com.mrtasks.model.User;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
+import com.mrtasks.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,7 @@ public class ReportingController {
             Authentication auth,
             @RequestParam(defaultValue = "last-month") String range, HttpServletRequest request) {
         // Rate limiting
-        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), RequestUtils.getClientIp(request));
         if (!canGenerateReport) {
             throw new RateLimitExceededException("limit.error.rate.report");
         }
@@ -79,7 +80,7 @@ public class ReportingController {
             @RequestParam(defaultValue = "last-month") String range,
             HttpServletRequest request) {
         // Rate limiting
-        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), RequestUtils.getClientIp(request));
         if (!canGenerateReport) {
             throw new RateLimitExceededException("limit.error.rate.report");
         }
@@ -107,7 +108,7 @@ public class ReportingController {
             @RequestParam(defaultValue = "last-month") String range,
             HttpServletRequest request) {
         // Rate limiting
-        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), RequestUtils.getClientIp(request));
         if (!canGenerateReport) {
             throw new RateLimitExceededException("limit.error.rate.report");
         }
@@ -143,7 +144,7 @@ public class ReportingController {
             @RequestParam(defaultValue = "last-month") String range,
             HttpServletRequest request) {
         // Rate limiting
-        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), request.getRemoteAddr());
+        boolean canGenerateReport = rateLimitConfig.canGenerateReport(auth.getName(), RequestUtils.getClientIp(request));
         if (!canGenerateReport) {
             throw new RateLimitExceededException("limit.error.rate.report");
         }

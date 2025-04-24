@@ -11,6 +11,7 @@ import com.mrtasks.repository.ClientRepository;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
+import com.mrtasks.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -72,7 +73,7 @@ public class ClientController {
             HttpServletRequest request) {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
-        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr());
+        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), RequestUtils.getClientIp(request));
         PageDto<ClientDto> clientPageDto = new PageDto<>();
 
         if (!canSearchClients) {
@@ -111,7 +112,7 @@ public class ClientController {
             @RequestParam(required = false) String search,
             Authentication auth,
             HttpServletRequest request) {
-        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), request.getRemoteAddr());
+        boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), RequestUtils.getClientIp(request));
         if (!canSearchClients) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("error.rate.limit.client.search");
@@ -151,7 +152,7 @@ public class ClientController {
             Authentication auth,
             HttpServletRequest request) {
         // Rate limiting
-        boolean canCreateClient = rateLimitConfig.canCreateClient(auth.getName(), request.getRemoteAddr());
+        boolean canCreateClient = rateLimitConfig.canCreateClient(auth.getName(), RequestUtils.getClientIp(request));
         if (!canCreateClient) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body("error.rate.limit.client");

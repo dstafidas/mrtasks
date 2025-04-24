@@ -10,6 +10,7 @@ import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.EmailService;
 import com.mrtasks.service.InvoiceService;
+import com.mrtasks.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -38,7 +39,7 @@ public class InvoiceController {
             Authentication auth,
             HttpServletRequest request) throws Exception {
         // Rate limiting
-        boolean canDownloadInvoice = rateLimitConfig.canDownloadInvoice(auth.getName(), request.getRemoteAddr());
+        boolean canDownloadInvoice = rateLimitConfig.canDownloadInvoice(auth.getName(), RequestUtils.getClientIp(request));
         if (!canDownloadInvoice) {
             throw new RateLimitExceededException("limit.error.rate.invoice");
         }
@@ -63,7 +64,7 @@ public class InvoiceController {
 
 
         // Rate limiting check
-        if (!rateLimitConfig.canSendInvoice(auth.getName(), request.getRemoteAddr())) {
+        if (!rateLimitConfig.canSendInvoice(auth.getName(), RequestUtils.getClientIp(request))) {
             throw new RateLimitExceededException("limit.error.rate.invoice.send");
         }
 

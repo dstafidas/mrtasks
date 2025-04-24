@@ -10,6 +10,7 @@ import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
 import com.mrtasks.service.EmailService;
+import com.mrtasks.utils.RequestUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -82,7 +83,7 @@ public class ProfileController {
 
         // Rate limiting for email changes
         if (emailChanged) {
-            boolean canChangeEmail = rateLimitConfig.canChangeEmail(user.getUsername(), request.getRemoteAddr());
+            boolean canChangeEmail = rateLimitConfig.canChangeEmail(user.getUsername(), RequestUtils.getClientIp(request));
             if (!canChangeEmail) {
                 return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                         .body(messageSource.getMessage("limit.error.rate.email.change", null, Locale.forLanguageTag(existingProfile.getLanguage())));

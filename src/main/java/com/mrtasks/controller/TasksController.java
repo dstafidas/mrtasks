@@ -12,6 +12,7 @@ import com.mrtasks.repository.ClientRepository;
 import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.TaskService;
+import com.mrtasks.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -53,7 +54,7 @@ public class TasksController {
             Authentication auth,
             HttpServletRequest request) {
         // Rate limiting
-        boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), request.getRemoteAddr());
+        boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), RequestUtils.getClientIp(request));
         if (!canSearchTasks) {
             User user = userRepository.findByUsername(auth.getName()).orElseThrow();
             model.addAttribute("error", "limit.error.rate.task.search");
@@ -115,7 +116,7 @@ public class TasksController {
             Authentication auth,
             HttpServletRequest request) {
         // Rate limiting
-        boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), request.getRemoteAddr());
+        boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), RequestUtils.getClientIp(request));
         if (!canSearchTasks) {
             return ResponseEntity.status(429).body("limit.error.rate.task.search");
         }

@@ -14,6 +14,7 @@ import com.mrtasks.repository.TaskRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.service.TaskService;
+import com.mrtasks.utils.RequestUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,7 @@ public class DashboardController {
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
         // Rate limiting
-        boolean canAccess = rateLimitConfig.canPerformDashboardAction(auth.getName(), request.getRemoteAddr());
+        boolean canAccess = rateLimitConfig.canPerformDashboardAction(auth.getName(), RequestUtils.getClientIp(request));
 
         List<TaskDto> tasks;
         List<ClientDto> clients;
@@ -79,7 +80,7 @@ public class DashboardController {
     @ResponseBody
     public ResponseEntity<?> addTask(@ModelAttribute TaskDto taskDto, Authentication auth, HttpServletRequest request) {
         // Rate limiting
-        if (!rateLimitConfig.canCreateTask(auth.getName(), request.getRemoteAddr())) {
+        if (!rateLimitConfig.canCreateTask(auth.getName(), RequestUtils.getClientIp(request))) {
             throw new RateLimitExceededException("limit.error.rate.task");
         }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
