@@ -319,7 +319,7 @@
         <div class="column" id="todo-column" data-status="TODO">
             <h3 th:text="#{dashboard.status.todo}">To Do</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card collapsed" th:each="task : ${tasks}" th:if="${task.status == 'TODO'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:with="noDesc=#{dashboard.table.noDescription}" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : noDesc}">Description</p>
@@ -352,7 +352,7 @@
         <div class="column" id="in-progress-column" data-status="IN_PROGRESS">
             <h3 th:text="#{dashboard.status.in_progress}">In Progress</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'IN_PROGRESS'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card collapsed" th:each="task : ${tasks}" th:if="${task.status.toString() == 'IN_PROGRESS'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:with="noDesc=#{dashboard.table.noDescription}" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : noDesc}">Description</p>
@@ -385,7 +385,7 @@
         <div class="column" id="completed-column" data-status="COMPLETED">
             <h3 th:text="#{dashboard.status.completed}">Completed</h3>
             <div class="task-list">
-                <div class="task-card" th:each="task : ${tasks}" th:if="${task.status.toString() == 'COMPLETED'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
+                <div class="task-card collapsed" th:each="task : ${tasks}" th:if="${task.status.toString() == 'COMPLETED'}" th:style="'background-color: ' + ${task.color}" th:data-id="${task.id}" th:data-order="${task.orderIndex}">
                     <input type="checkbox" class="task-select" th:data-id="${task.id}" th:disabled="${!task.billable}">
                     <h6 th:text="${task.title}">Task Title</h6>
                     <p class="task-description" th:with="noDesc=#{dashboard.table.noDescription}" th:utext="${task.description != null and task.description.length() > 0 ? (task.description.length() > 30 ? task.description.substring(0, 30) + '...' : task.description.replaceAll('\n', '<br>')) : noDesc}">Description</p>
@@ -718,9 +718,9 @@
         }
 
         function attachTaskListeners($card) {
-            if (!$card.hasClass('expanded') && !$card.hasClass('collapsed')) {
-                $card.addClass('collapsed');
-            }
+//            if (!$card.hasClass('expanded') && !$card.hasClass('collapsed')) {
+//                $card.addClass('collapsed');
+//            }
 
             $card.click(function(e) {
                 if (!$(e.target).hasClass('edit-task-btn') &&
