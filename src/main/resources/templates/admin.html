@@ -232,8 +232,9 @@
         <table class="table table-striped" id="userTable">
             <thead>
             <tr>
-                <th th:text="#{admin.username}">Username</th>
-                <th th:text="#{admin.role}">Role</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
                 <th>Subscription Status</th>
                 <th>Last Login</th>
             </tr>
@@ -246,6 +247,12 @@
                 <td data-label="Role">
                     <a th:href="@{/admin/profile/{username}(username=${user.username})}">
                         <span th:class="'badge ' + (${user.role == 'ADMIN'} ? 'bg-primary' : 'bg-secondary')" th:text="${user.role}"></span>
+                    </a>
+                </td>
+                <td data-label="Status">
+                    <a th:href="@{/admin/profile/{username}(username=${user.username})}">
+                        <span th:class="'badge ' + (${user.status == 'BLOCKED'} ? 'bg-danger' : 'bg-success')"
+                              th:text="${user.status}">ACTIVE</span>
                     </a>
                 </td>
                 <td data-label="Subscription Status" class="subscription-status">
@@ -334,6 +341,7 @@
                     <tr data-url="/admin/profile/${user.username}">
                         <td data-label="Username"><a href="/admin/profile/${user.username}">${user.username}</a></td>
                         <td data-label="Role"><a href="/admin/profile/${user.username}"><span class="badge ${user.role === 'ADMIN' ? 'bg-primary' : 'bg-secondary'}">${user.role}</span></a></td>
+                        <td data-label="Status"><a href="/admin/profile/${user.username}"><span class="badge ${user.status === 'BLOCKED' ? 'bg-danger' : 'bg-success'}">${user.status}</span></a></td>
                         <td data-label="Subscription Status" class="subscription-status">
                             <a href="/admin/profile/${user.username}">
                                 ${user.isPremium && user.expiresAt && new Date(user.expiresAt) > new Date() ?

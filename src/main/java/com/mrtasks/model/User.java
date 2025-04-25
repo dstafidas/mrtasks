@@ -1,5 +1,6 @@
 package com.mrtasks.model;
 
+import com.mrtasks.model.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -29,4 +30,8 @@ public class User extends Auditable {
 
     @Column(name = "last_login", nullable = true)
     private LocalDateTime lastLogin;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, columnDefinition = "varchar(15) default 'ACTIVE'")
+    private UserStatus status = UserStatus.ACTIVE;
 }

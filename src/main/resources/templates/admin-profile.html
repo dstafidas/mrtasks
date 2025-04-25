@@ -303,6 +303,13 @@
                 <input type="hidden" name="username" th:value="${user.username}">
                 <button type="submit" class="btn btn-danger">Reset Password</button>
             </form>
+            <form id="toggleBlockForm" action="/admin/toggle-block" method="post" class="d-inline">
+                <input type="hidden" name="username" th:value="${user.username}">
+                <button type="submit" th:class="'btn ' + (${user.status == 'BLOCKED' ? 'btn-success' : 'btn-danger'})"
+                        th:text="${user.status == 'BLOCKED' ? 'Unblock' : 'Block'}">
+                    Block/Unblock
+                </button>
+            </form>
         </div>
     </div>
 </div>
@@ -572,6 +579,44 @@
     } catch (error) {
         console.error('JavaScript error in admin-profile:', error);
     }
+
+    $('#toggleBlockForm').on('submit', function(e) {
+        e.preventDefault();
+        if (!confirm('Are you sure you want to ' +
+            ($('#toggleBlockForm button').text().toLowerCase()) +
+            ' this user?')) {
+            return;
+        }
+
+        const formData = $(this).serialize();
+        $.ajax({
+            url: '/admin/toggle-block',
+            type: 'POST',
+            data: formData,
+            success: function(user) {
+                const action = user.status === 'BLOCKED' ? 'blocked' : 'unblocked';
+                $('#ajax-message-text').text(`User successfully ${action}`);
+                $('#ajax-message').show();
+
+                // Update button text and class
+                const btn = $('#toggleBlockForm button');
+                btn.text(user.status === 'BLOCKED' ? 'Unblock' : 'Block');
+                btn.removeClass('btn-danger btn-success')
+                    .addClass(user.status === 'BLOCKED' ? 'btn-success' : 'btn-danger');
+
+                // Update history list immediately
+                const historyList = $('.update-history-list');
+                historyList.html(user.updateHistory ? user.updateHistory.split(';').filter(e => e.trim()).map(e => `<li>${e.trim()}</li>`).join('') : '');
+
+                setTimeout(() => $('#ajax-message').fadeOut(), 5000);
+            },
+            error: function(xhr) {
+                $('#ajax-error-text').text(xhr.responseText || 'Operation failed');
+                $('#ajax-error').show();
+                setTimeout(() => $('#ajax-error').fadeOut(), 5000);
+            }
+        });
+    });
 </script>
 </body>
 </html>

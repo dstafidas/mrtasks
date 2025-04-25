@@ -6,6 +6,7 @@ import com.mrtasks.model.UserSubscription;
 import com.mrtasks.model.dto.PageDto;
 import com.mrtasks.model.dto.UserDto;
 import com.mrtasks.model.dto.mapper.DtoMapper;
+import com.mrtasks.model.enums.UserStatus;
 import com.mrtasks.repository.UserProfileRepository;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserSubscriptionRepository;
@@ -20,7 +21,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.session.SessionInformation;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -289,6 +293,60 @@ public class AdminController {
         pageDto.setTotalPages(userPage.getTotalPages());
         pageDto.setTotalElements(userPage.getTotalElements());
         return pageDto;
+    }
+
+    @PostMapping("/toggle-block")
+    @ResponseBody
+    public ResponseEntity<?> toggleBlockUser(
+            @RequestParam String username,
+            Principal principal) {
+        try {
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+            UserProfile profile = userProfileRepository.findByUser(user).orElseGet(() -> {
+                UserProfile newProfile = new UserProfile();
+                newProfile.setUser(user);
+                return newProfile;
+            });
+
+            // Toggle status
+            user.setStatus(user.getStatus() == UserStatus.ACTIVE ?
+                    UserStatus.BLOCKED : UserStatus.ACTIVE);
+            userRepository.save(user);
+
+            // Log the action
+            String action = user.getStatus() == UserStatus.BLOCKED ? "blocked" : "unblocked";
+            logUpdate(profile, "User " + action, principal);
+            userProfileRepository.save(profile);
+
+           if (user.getStatus() == UserStatus.BLOCKED) {
+               sessionRegistry.getAllPrincipals().stream()
+                       .filter(p -> p instanceof UserDetails || p instanceof OAuth2User)
+                       .forEach(principl -> {
+                           String principalUsername = null;
+                           if (principl instanceof UserDetails) {
+                               principalUsername = ((UserDetails) principl).getUsername();
+                           } else if (principl instanceof OAuth2User) {
+                               principalUsername = ((OAuth2User) principl).getAttribute("sub");
+                           }
+
+                           if (username.equals(principalUsername)) {
+                               sessionRegistry.getAllSessions(principl, false)
+                                       .forEach(SessionInformation::expireNow);
+                           }
+                       });
+           }
+
+            UserSubscription subscription = userSubscriptionRepository.findByUser(user)
+                    .orElse(new UserSubscription());
+            return ResponseEntity.ok(dtoMapper.toUserDto(user, profile, subscription));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Operation failed: " + e.getMessage());
+        }
     }
 
     private void logUpdate(UserProfile profile, String action, Principal principal) {

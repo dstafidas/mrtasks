@@ -87,6 +87,7 @@ public class DtoMapper {
         dto.setUsername(user.getUsername());
         dto.setRole(user.getRole());
         dto.setLastLogin(user.getLastLogin());
+        dto.setStatus(user.getStatus().name());
         if (profile != null) {
             dto.setCompanyName(profile.getCompanyName());
             dto.setEmail(profile.getEmail());

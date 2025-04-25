@@ -2,9 +2,11 @@ package com.mrtasks.service;
 
 import com.mrtasks.model.User;
 import com.mrtasks.model.UserProfile;
+import com.mrtasks.model.enums.UserStatus;
 import com.mrtasks.repository.UserRepository;
 import com.mrtasks.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -44,6 +46,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
                     return savedUser;
                 });
+
+        // Add status check for OAuth2 users
+        if (user.getStatus() == UserStatus.BLOCKED) {
+            throw new DisabledException("This account has been blocked. Please contact support.");
+        }
 
         return oAuth2User;
     }

@@ -19,4 +19,5 @@ public class UserDto {
     private String updateHistory;
     private boolean isPremium;
     private LocalDateTime expiresAt;
+    private String status;
 }

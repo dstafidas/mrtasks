@@ -141,7 +141,12 @@
         <p th:text="#{login.loggedout}">You have been logged out.</p>
     </div>
     <div th:if="${param.error}" class="alert alert-danger">
-        <p th:text="#{login.error}">Invalid username or password.</p>
+        <p th:if="${session['SPRING_SECURITY_LAST_EXCEPTION'] instanceof T(org.springframework.security.authentication.DisabledException)}"
+           th:text="${session['SPRING_SECURITY_LAST_EXCEPTION'].message}">
+        </p>
+        <p th:unless="${session['SPRING_SECURITY_LAST_EXCEPTION'] instanceof T(org.springframework.security.authentication.DisabledException)}"
+           th:text="#{login.error}">Invalid username or password.
+        </p>
     </div>
     <div th:if="${param.reset}" class="alert alert-success">
         <p th:text="#{login.reset}">Your password has been reset. Please log in.</p>
