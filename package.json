@@ -1,0 +1,12 @@
+{
+  "name": "mrtasks-obfuscation",
+  "version": "1.0.0",
+  "scripts": {
+    "obfuscate": "node obfuscate.js"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
+    "javascript-obfuscator": "^4.1.0"
+  }
+}

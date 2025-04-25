@@ -53,6 +53,10 @@ public class TasksController {
             Model model,
             Authentication auth,
             HttpServletRequest request) {
+        // Validate page and size
+        if (page < 0) {
+            page = 0;
+        }
         // Rate limiting
         boolean canSearchTasks = rateLimitConfig.canSearchTasks(auth.getName(), RequestUtils.getClientIp(request));
         if (!canSearchTasks) {

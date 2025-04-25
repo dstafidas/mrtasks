@@ -71,6 +71,10 @@ public class ClientController {
             Model model,
             Authentication auth,
             HttpServletRequest request) {
+        // Validate page and size
+        if (page < 0) {
+            page = 0;
+        }
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
 
         boolean canSearchClients = rateLimitConfig.canSearchClients(auth.getName(), RequestUtils.getClientIp(request));
