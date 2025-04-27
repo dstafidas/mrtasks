@@ -65,7 +65,14 @@ public class DashboardController {
             rateLimitMessage = "limit.error.rate.list";
         }
 
-        UserProfile userProfile = userProfileRepository.findByUser(user).orElseThrow();
+        UserProfile userProfile = userProfileRepository.findByUser(user)
+                .orElseGet(() -> {
+                    UserProfile newProfile = new UserProfile();
+                    newProfile.setUser(user);
+                    newProfile.setLanguage("en");
+                    return userProfileRepository.save(newProfile);
+                });
+
         model.addAttribute("tasks", tasks);
         model.addAttribute("clients", clients);
         model.addAttribute("newTask", new TaskDto());
