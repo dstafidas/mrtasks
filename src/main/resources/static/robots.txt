@@ -1,12 +1,7 @@
 User-agent: *
 Disallow: /dashboard
 Disallow: /tasks
-Disallow: /admin
-Disallow: /admin-profile
 Disallow: /clients
-Disallow: /email-verification-result
-Disallow: /forgot-password
 Disallow: /profile
-Disallow: /reset-password
 Disallow: /reporting
 Sitemap: https://mrtasks.com/sitemap.xml
