@@ -14,7 +14,7 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-974408165"></script>
     <script>
-        window.dataLayer = window.dataLayer || [];
+        CRLF        window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
 
@@ -139,6 +139,13 @@
             .feature-card i {
                 font-size: 2.5rem;
             }
+            .ad-placeholder {
+                padding: 0.5rem;
+                max-width: 100%;
+                width: 100%;
+                max-height: 50px; /* Constrain the height for mobile */
+                overflow: hidden; /* Prevent overflow if the ad is taller */
+            }
         }
     </style>
 </head>
@@ -166,16 +173,18 @@
 
 <!-- AdSense Placeholder -->
 <div class="ad-placeholder">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2171590580364228" crossorigin="anonymous"></script>
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:728px;height:90px"
-         data-ad-layout="in-article"
-         data-ad-format="fluid"
-         data-ad-client="ca-pub-2171590580364228"
-         data-ad-slot="9943926283"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+    <!-- Insert AdSense code here (e.g., 728x90 banner) -->
+    <p>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2171590580364228" crossorigin="anonymous"></script>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="auto"
+             data-ad-client="ca-pub-2171590580364228"
+             data-ad-slot="9943926283"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </p>
 </div>
 
 <div class="feature-section">
@@ -228,16 +237,17 @@
 
 <!-- AdSense Placeholder -->
 <div class="ad-placeholder">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2171590580364228" crossorigin="anonymous"></script>
-    <ins class="adsbygoogle"
-         style="display:inline-block;width:728px;height:90px"
-         data-ad-layout="in-article"
-         data-ad-format="fluid"
-         data-ad-client="ca-pub-2171590580364228"
-         data-ad-slot="9943926283"></ins>
-    <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
+    <p>
+        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2171590580364228" crossorigin="anonymous"></script>
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="auto"
+             data-ad-client="ca-pub-2171590580364228"
+             data-ad-slot="9943926283"></ins>
+        <script>
+            (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </p>
 </div>
 
 <footer>
