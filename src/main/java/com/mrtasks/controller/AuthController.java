@@ -76,7 +76,7 @@ public class AuthController {
             user.setRole("ROLE_USER");
             user.setProvider("local");
             userRepository.save(user);
-            return "redirect:/login?registered=true";
+            return "redirect:/login?registered=true&username=" + user.getUsername();
         } catch (Exception e) {
             model.addAttribute("error", "Registration failed: " + e.getMessage());
             return "register";
