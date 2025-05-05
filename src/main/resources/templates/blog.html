@@ -53,19 +53,39 @@
             text-align: center;
         }
         .blog-card {
+            display: block;
             padding: 1.5rem;
             border-radius: 10px;
             transition: all 0.3s ease;
             margin-bottom: 1.5rem;
+            text-decoration: none;
+            color: inherit;
         }
         .blog-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
         }
         .blog-card h3 {
             color: #2c3e50;
             font-size: 1.5rem;
             margin-bottom: 1rem;
+        }
+        .blog-card:hover h3 {
+            color: #3498db;
+        }
+        .blog-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+        }
+        .blog-card h3 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .blog-card:hover h3 {
+            color: #3498db;
         }
         .blog-card h3 a {
             color: #2c3e50;
@@ -79,7 +99,6 @@
             font-size: 1rem;
         }
         .ad-placeholder {
-            background: #e9ecef;
             text-align: center;
             padding: 1rem;
             border-radius: 8px;
@@ -127,87 +146,97 @@
     <h1>Mr Tasks Blog</h1>
     <!-- Ad Placeholder -->
     <div class="ad-placeholder">
-        <p>Ad Placeholder</p>
+        <p>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3866548428800957" crossorigin="anonymous"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-format="auto"
+                 data-ad-client="ca-pub-3866548428800957"
+                 data-ad-slot="3488444557"></ins>
+            <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </p>
     </div>
     <!-- Blog Posts -->
-    <div class="row">
+   <div class="row">
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/why-mr-tasks-is-perfect-for-freelancers">Why Mr Tasks Is Perfect for Freelancers</a></h3>
+            <a href="/blog/why-mr-tasks-is-perfect-for-freelancers" class="blog-card">
+                <h3>Why Mr Tasks Is Perfect for Freelancers</h3>
                 <p>Discover how Mr Tasks simplifies task management, client tracking, and invoicing for freelancers. ✅</p>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/how-to-use-kanban-board-mr-tasks">How to Use the Kanban Board in Mr Tasks</a></h3>
-                <p>Learn to organize tasks efficiently with Mr Tasks’ drag-and-drop Kanban board. ✅</p>
-            </div>
+            <a href="/blog/how-to-use-kanban-board-mr-tasks" class="blog-card">
+                <h3>How to Use the Kanban Board in Mr Tasks</h3>
+                <p>Learn to organize tasks efficiently with Mr Tasks' drag-and-drop Kanban board. ✅</p>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/task-management-tips-small-businesses">5 Task Management Tips for Small Businesses</a></h3>
+            <a href="/blog/task-management-tips-small-businesses" class="blog-card">
+                <h3>5 Task Management Tips for Small Businesses</h3>
                 <p>Boost your small business productivity with these 5 task management tips using Mr Tasks. 🚀</p>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/how-to-generate-invoices-mr-tasks">How to Generate Invoices with Mr Tasks</a></h3>
-                <p>Learn how to create and send professional invoices with Mr Tasks’ invoicing feature. 💸</p>
-            </div>
+            <a href="/blog/how-to-generate-invoices-mr-tasks" class="blog-card">
+                <h3>How to Generate Invoices with Mr Tasks</h3>
+                <p>Learn how to create and send professional invoices with Mr Tasks' invoicing feature. 💸</p>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/benefits-multilingual-task-management">The Benefits of Multilingual Task Management</a></h3>
-                <p>Discover how Mr Tasks’ multilingual support enhances task management for global users. 🌍</p>
-            </div>
+            <a href="/blog/benefits-multilingual-task-management" class="blog-card">
+                <h3>The Benefits of Multilingual Task Management</h3>
+                <p>Discover how Mr Tasks' multilingual support enhances task management for global users. 🌍</p>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/track-revenue-mr-tasks-reporting">How to Track Revenue with Mr Tasks’ Reporting</a></h3>
-                <p>Use Mr Tasks’ reporting tools to track tasks and revenue by month or client. 📊</p>
-            </div>
+            <a href="/blog/track-revenue-mr-tasks-reporting" class="blog-card">
+                <h3>How to Track Revenue with Mr Tasks' Reporting</h3>
+                <p>Use Mr Tasks' reporting tools to track tasks and revenue by month or client. 📊</p>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/top-10-productivity-hacks-task-management">Top 10 Productivity Hacks for Task Management</a></h3>
+            <a href="/blog/top-10-productivity-hacks-task-management" class="blog-card">
+                <h3>Top 10 Productivity Hacks for Task Management</h3>
                 <p>Boost your productivity with these 10 task management hacks using Mr Tasks. 🚀</p>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/managing-clients-mr-tasks">Managing Clients Effectively with Mr Tasks</a></h3>
-                <p>Learn how to manage clients efficiently with Mr Tasks’ client management tools. 🤝</p>
-            </div>
+            <a href="/blog/managing-clients-mr-tasks" class="blog-card">
+                <h3>Managing Clients Effectively with Mr Tasks</h3>
+                <p>Learn how to manage clients efficiently with Mr Tasks' client management tools. 🤝</p>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/customize-mr-tasks-profile">How to Customize Your Mr Tasks Profile</a></h3>
+            <a href="/blog/customize-mr-tasks-profile" class="blog-card">
+                <h3>How to Customize Your Mr Tasks Profile</h3>
                 <p>Personalize your Mr Tasks experience by customizing your profile settings. 🎨</p>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/future-task-management-trends">The Future of Task Management: Trends to Watch</a></h3>
+            <a href="/blog/future-task-management-trends" class="blog-card">
+                <h3>The Future of Task Management: Trends to Watch</h3>
                 <p>Explore the future of task management with trends like AI and automation. 🚀</p>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/how-to-stay-organized-with-task-management-tools">How to Stay Organized with Task Management Tools</a></h3>
+            <a href="/blog/how-to-stay-organized-with-task-management-tools" class="blog-card">
+                <h3>How to Stay Organized with Task Management Tools</h3>
                 <p>Learn how to stay organized using task management tools like Mr Tasks. ✅</p>
-            </div>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/power-of-time-blocking-task-management">The Power of Time Blocking in Task Management</a></h3>
-                <p>Discover how time blocking boosts productivity with Mr Tasks’ tools. 🕒</p>
-            </div>
+            <a href="/blog/power-of-time-blocking-task-management" class="blog-card">
+                <h3>The Power of Time Blocking in Task Management</h3>
+                <p>Discover how time blocking boosts productivity with Mr Tasks' tools. 🕒</p>
+            </a>
         </div>
         <div class="col-md-6">
-            <div class="blog-card">
-                <h3><a href="/blog/how-to-delegate-tasks-effectively">How to Delegate Tasks Effectively</a></h3>
+            <a href="/blog/how-to-delegate-tasks-effectively" class="blog-card">
+                <h3>How to Delegate Tasks Effectively</h3>
                 <p>Learn how to delegate tasks effectively to boost productivity with Mr Tasks. ✅</p>
-            </div>
+            </a>
         </div>
     </div>
 </div>
