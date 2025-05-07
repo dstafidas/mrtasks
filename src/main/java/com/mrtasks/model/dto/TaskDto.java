@@ -21,4 +21,6 @@ public class TaskDto {
     private ClientDto client;
     private double total;
     private double remainingDue;
+    private double fixedAmount;
+    private String billingType;
 }

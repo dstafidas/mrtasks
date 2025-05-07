@@ -131,21 +131,21 @@ public class InvoiceService {
         document.add(Chunk.NEWLINE);
 
         // Task Table
-        PdfPTable table = new PdfPTable(7);
+        PdfPTable table = new PdfPTable(4);
         table.setWidthPercentage(100);
-        table.setWidths(new float[]{2f, 2f, 1f, 1f, 1f, 1.6f, 1.4f});
+        table.setWidths(new float[]{2.5f, 2f, 2f, 2f}); // Adjusted column widths
         table.getDefaultCell().setPadding(5);
-        table.getDefaultCell().setBackgroundColor(new Color(230, 230, 230)); // Light gray for header
+        table.getDefaultCell().setBackgroundColor(new Color(230, 230, 230));
         table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
 
         // Table Headers
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.task.header"), boldFont)));
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.description.header"), boldFont)));
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.hours.header"), boldFont)));
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.rate.header"), boldFont)));
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.total.header"), boldFont)));
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.advance.paid.header"), boldFont)));
-        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.amount.due.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.task.header"), normalFont)));
+//        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.description.header"), boldFont)));
+//        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.hours.header"), boldFont)));
+//        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.rate.header"), boldFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.total.header"), normalFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.advance.paid.header"), normalFont)));
+        table.addCell(new PdfPCell(new Phrase(messages.getString("invoice.amount.due.header"), normalFont)));
         table.getDefaultCell().setBackgroundColor(null);
 
         // Table Rows
@@ -156,9 +156,9 @@ public class InvoiceService {
         String currencySymbol = CurrencySymbolUtil.getSymbol(profile.getCurrency());
         for (Task task : selectedTasks) {
             table.addCell(new PdfPCell(new Phrase(task.getTitle(), normalFont)));
-            table.addCell(new PdfPCell(new Phrase(task.getDescription() != null ? task.getDescription() : "N/A", normalFont)));
-            table.addCell(new PdfPCell(new Phrase(String.valueOf(task.getHoursWorked()), normalFont)));
-            table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getHourlyRate()), normalFont)));
+//            table.addCell(new PdfPCell(new Phrase(task.getDescription() != null ? task.getDescription() : "N/A", normalFont)));
+//            table.addCell(new PdfPCell(new Phrase(String.valueOf(task.getHoursWorked()), normalFont)));
+//            table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getHourlyRate()), normalFont)));
             table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getTotal()), normalFont)));
             table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getAdvancePayment()), normalFont)));
             table.addCell(new PdfPCell(new Phrase(String.format(currencySymbol + "%.2f", task.getRemainingDue()), normalFont)));
@@ -170,7 +170,7 @@ public class InvoiceService {
 
         // Totals Section
         PdfPTable totalsTable = new PdfPTable(2);
-        totalsTable.setWidthPercentage(40);
+        totalsTable.setWidthPercentage(47);
         totalsTable.setHorizontalAlignment(Element.ALIGN_RIGHT);
         totalsTable.getDefaultCell().setBorder(Rectangle.NO_BORDER);
         totalsTable.addCell(new PdfPCell(new Phrase(messages.getString("invoice.grand.total"), boldFont)));

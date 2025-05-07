@@ -13,6 +13,83 @@ function initializeDashboard(translatedStatus, currencySymbol, sendingText, sent
         return currencySymbol + (num !== null && num !== undefined ? Number(num).toFixed(2) : '0.00');
     }
 
+    function updateEditInputsVisibility(isBillable, isHourly) {
+        const $modal = $('#editTaskModal');
+
+        if (!isBillable) {
+            $modal.find('.hourly-inputs input, .fixed-input input, #editAdvancePayment').prop('disabled', true);
+            $modal.find('.hourly-inputs, .fixed-input').hide();
+            $modal.find('#editAdvancePayment').closest('.mb-3').hide();
+            return;
+        }
+
+        $modal.find('#editAdvancePayment').closest('.mb-3').show();
+
+        if (isHourly) {
+            $modal.find('.hourly-inputs').show();
+            $modal.find('.fixed-input').hide();
+            $modal.find('#editHoursWorked, #editHourlyRate, #editAdvancePayment').prop('disabled', false);
+            $modal.find('#editFixedAmount').prop('disabled', true);
+        } else {
+            $modal.find('.hourly-inputs').hide();
+            $modal.find('.fixed-input').show();
+            $modal.find('#editHoursWorked, #editHourlyRate').prop('disabled', true);
+            $modal.find('#editFixedAmount, #editAdvancePayment').prop('disabled', false);
+        }
+    }
+
+    function updateInputsVisibility(isBillable, isHourly) {
+        const $modal = $('#addTaskModal');
+
+        if (!isBillable) {
+            $modal.find('#hoursWorked, #hourlyRate, #fixedAmount, #advancePayment')
+                .prop('disabled', true)
+                .closest('.mb-3').hide();
+            return;
+        }
+
+        $modal.find('#advancePayment')
+            .prop('disabled', false)
+            .closest('.mb-3').show();
+
+        if (isHourly) {
+            $modal.find('#hoursWorked, #hourlyRate')
+                .prop('disabled', false)
+                .closest('.mb-3').show();
+            $modal.find('#fixedAmount')
+                .prop('disabled', true)
+                .closest('.mb-3').hide();
+        } else {
+            $modal.find('#fixedAmount')
+                .prop('disabled', false)
+                .closest('.mb-3').show();
+            $modal.find('#hoursWorked, #hourlyRate')
+                .prop('disabled', true)
+                .closest('.mb-3').hide();
+        }
+    }
+
+    function initializeBillingFields() {
+        // Initialize fields with zeros and hide them
+        $('#addTaskModal .billing-type-toggle').hide();
+        $('#hoursWorked, #hourlyRate, #fixedAmount, #advancePayment')
+            .prop('disabled', true)
+            .closest('.mb-3').hide();
+
+        // Add Task modal handlers
+        $('#billable').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('#addTaskModal .billing-type-toggle').toggle(isChecked);
+            updateInputsVisibility(isChecked, $('#hourlyBilling').prop('checked'));
+        });
+
+        $('#hourlyBilling, #fixedBilling').on('change', function() {
+            const isHourly = $(this).val() === 'HOURLY';
+            const isBillable = $('#billable').prop('checked');
+            updateInputsVisibility(isBillable, isHourly);
+        });
+    }
+
     // jQuery setup for CSRF token
     const csrfToken = $('meta[name="_csrf"]').attr('content');
     const csrfHeader = $('meta[name="_csrf_header"]').attr('content');
@@ -45,24 +122,69 @@ function initializeDashboard(translatedStatus, currencySymbol, sendingText, sent
         });
 
         $card.find('.edit-task-btn').click(function(e) {
+            e.preventDefault();
             e.stopPropagation();
             const taskId = $(this).data('id');
             $.getJSON(`/dashboard/task/${taskId}`, function(task) {
                 $('#editTaskId').val(task.id);
                 $('#editTitle').val(task.title);
-                $('#editDescription').val(task.description || '');
-                $('#editDeadline').val(task.deadline ? task.deadline.split('T')[0] : '');
-                $('#editBillable').prop('checked', task.billable);
-                const isDisabled = !task.billable;
-                $('#editHourlyRate, #editAdvancePayment').prop('disabled', isDisabled);
-                $('#editHoursWorked').val(task.hoursWorked || 0.0);
-                $('#editHourlyRate').val(task.hourlyRate || 0.0);
-                $('#editAdvancePayment').val(task.advancePayment || 0.0);
+                $('#editDescription').val(task.description);
                 $('#editClient').val(task.client ? task.client.id : '');
+                $('#editDeadline').val(task.deadline ? task.deadline.split('T')[0] : '');
+
+                // Set billable and show/hide toggle
+                $('#editBillable').prop('checked', task.billable);
+                $('#editTaskModal .billing-type-toggle').toggle(task.billable);
+
+                // Set billing type radio button
+                const billingTypeId = 'edit' + task.billingType.charAt(0) + task.billingType.slice(1).toLowerCase() + 'Billing';
+                $('#' + billingTypeId).prop('checked', true);
+
+                // Set input values
+                $('#editHoursWorked').val(task.hoursWorked || 0);
+                $('#editHourlyRate').val(task.hourlyRate || 0);
+                $('#editFixedAmount').val(task.fixedAmount || 0);
+                $('#editAdvancePayment').val(task.advancePayment || 0);
                 $('#editColor').val(task.color);
                 $('#editStatus').val(task.status);
-                $('#editTaskModal').modal('show');
+
+                // Update visibility of inputs based on current state
+                updateEditInputsVisibility(task.billable, task.billingType === 'HOURLY');
+
+                // Show modal and re-initialize handlers
+                $('#editTaskModal').modal('show').one('shown.bs.modal', function() {
+                    // Re-bind billable checkbox handler
+                    $('#editBillable').off('change').on('change', function() {
+                        const isChecked = $(this).prop('checked');
+                        $('#editTaskModal .billing-type-toggle').toggle(isChecked);
+                        updateEditInputsVisibility(isChecked, $('#editHourlyBilling').prop('checked'));
+                    });
+
+                    // Re-bind billing type radio handlers
+                    $('#editHourlyBilling, #editFixedBilling').off('change').on('change', function() {
+                        const isHourly = $(this).val() === 'HOURLY';
+                        const isBillable = $('#editBillable').prop('checked');
+                        updateEditInputsVisibility(isBillable, isHourly);
+                    });
+                });
             });
+        });
+
+        // Billable checkbox handler for edit modal
+        $('#editBillable').on('change', function() {
+            const isChecked = $(this).prop('checked');
+            $('#editTaskModal .billing-type-toggle').toggle(isChecked);
+            const isHourly = $('#editHourlyBilling').prop('checked');
+            updateEditInputsVisibility(isChecked, isHourly);
+        });
+
+        // Billing type radio buttons handler for edit modal
+        $('input[name="billingType"]').on('change', function() {
+            if ($('#editTaskModal').hasClass('show')) { // Only handle if edit modal is open
+                const isHourly = $(this).val() === 'HOURLY';
+                const isBillable = $('#editBillable').prop('checked');
+                updateEditInputsVisibility(isBillable, isHourly);
+            }
         });
 
         $card.find('.delete-task-btn').click(function(e) {
@@ -182,28 +304,49 @@ function initializeDashboard(translatedStatus, currencySymbol, sendingText, sent
             attachTaskListeners($(this));
         });
 
-        // Billable checkbox handlers
+        // Billable checkbox and billing type handlers for Add Task Modal
         $('#billable').on('change', function() {
             const isChecked = $(this).prop('checked');
-            $('#hourlyRate, #advancePayment').prop('disabled', !isChecked);
-            if (!isChecked) {
-                $('#hourlyRate').val('0.0');
-                $('#advancePayment').val('0.0');
-            }
+            $('.billing-type-toggle').toggle(isChecked);
+            updateInputsVisibility(isChecked, $('#hourlyBilling').prop('checked'));
         });
 
+        // Billable checkbox and billing type handlers for Edit Task Modal
         $('#editBillable').on('change', function() {
             const isChecked = $(this).prop('checked');
-            $('#editHourlyRate, #editAdvancePayment').prop('disabled', !isChecked);
-            if (!isChecked) {
-                $('#editHourlyRate').val('0.0');
-                $('#editAdvancePayment').val('0.0');
-            }
+            $(this).closest('form').find('.billing-type-toggle').toggle(isChecked);
+            updateEditInputsVisibility(isChecked, $('#editHourlyBilling').prop('checked'));
         });
 
+        $('#editHourlyBilling, #editFixedBilling').on('change', function() {
+            const isHourly = $(this).val() === 'HOURLY';
+            const isBillable = $('#editBillable').prop('checked');
+            updateEditInputsVisibility(isBillable, isHourly);
+        });
+
+        $('input[name="billingType"]').on('change', function() {
+            const isHourly = $(this).val() === 'HOURLY';
+            const isBillable = $('#billable').prop('checked');
+            updateInputsVisibility(isBillable, isHourly);
+        });
+
+        // Update modal show handler
         $('#addTaskModal').on('show.bs.modal', function() {
-            const isChecked = $('#billable').prop('checked');
-            $('#hourlyRate, #advancePayment').prop('disabled', !isChecked);
+            // Reset form
+            $('#addTaskForm')[0].reset();
+
+            // Reset billable checkbox and hide billing fields
+            $('#billable').prop('checked', false);
+            $('.billing-type-toggle').hide();
+
+            // Reset all billing inputs to 0
+            $('#hoursWorked, #hourlyRate, #fixedAmount, #advancePayment')
+                .prop('disabled', true)
+                .val(0)
+                .closest('.mb-3').hide();
+
+            // Reset billing type to hourly
+            $('#hourlyBilling').prop('checked', true);
         });
 
         // Add Task Form Submission
@@ -536,4 +679,5 @@ function initializeDashboard(translatedStatus, currencySymbol, sendingText, sent
 
     // Expose changeColor globally
     window.changeColor = changeColor;
+    initializeBillingFields();
 }

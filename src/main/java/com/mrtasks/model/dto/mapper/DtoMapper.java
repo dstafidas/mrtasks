@@ -29,6 +29,8 @@ public class DtoMapper {
         dto.setClient(task.getClient() != null ? toClientDto(task.getClient()) : null);
         dto.setTotal(task.getTotal());
         dto.setRemainingDue(task.getRemainingDue());
+        dto.setFixedAmount(task.getFixedAmount());
+        dto.setBillingType(task.getBillingType().name());
         return dto;
     }
 
@@ -55,6 +57,8 @@ public class DtoMapper {
         task.setColor(dto.getColor());
         task.setHidden(dto.isHidden());
         task.setStatus(Task.TaskStatus.valueOf(dto.getStatus()));
+        task.setFixedAmount(dto.getFixedAmount());
+        task.setBillingType(Task.BillingType.valueOf(dto.getBillingType()));
         return task;
     }
 

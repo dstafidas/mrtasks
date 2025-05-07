@@ -204,6 +204,18 @@
         max-width: 100px;
         border-radius: 8px;
     }
+    .billing-type-toggle .btn-group {
+      width: 100%;
+    }
+
+    .billing-type-toggle .btn {
+      flex: 1;
+    }
+
+    .btn-check:checked + .btn-outline-primary {
+      background-color: #3498db;
+      color: white;
+    }
     @media (max-width: 912px) {
         body {
           padding: 0rem
@@ -399,20 +411,38 @@
                 <input type="date" id="editDeadline" name="deadline" class="form-control">
             </div>
             <div class="mb-3">
-              <label for="editBillable" class="form-label" th:text="#{dashboard.form.billable}">Billable</label>
-              <input type="checkbox" id="editBillable" name="billable" class="form-check-input">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="editBillable" name="billable">
+                <label class="form-check-label" for="editBillable" th:text="#{dashboard.form.billable}">Billable</label>
+              </div>
+              <div class="billing-type-toggle mt-2" style="display: none;">
+                <div class="btn-group" role="group">
+                  <input type="radio" class="btn-check" name="billingType" value="HOURLY" id="editHourlyBilling" autocomplete="off" checked>
+                  <label class="btn btn-outline-primary" for="editHourlyBilling" th:text="#{dashboard.form.billing.hourly}">Hourly</label>
+                  <input type="radio" class="btn-check" name="billingType" value="FIXED" id="editFixedBilling" autocomplete="off">
+                  <label class="btn btn-outline-primary" for="editFixedBilling" th:text="#{dashboard.form.billing.fixed}">Fixed</label>
+                </div>
+              </div>
             </div>
-            <div class="mb-3">
+
+            <div class="mb-3 hourly-inputs">
               <label for="editHoursWorked" class="form-label" th:text="#{dashboard.form.hours}">Hours Worked</label>
-              <input type="number" id="editHoursWorked" name="hoursWorked" step="0.1" class="form-control" value="0.0">
+              <input type="number" class="form-control" id="editHoursWorked" name="hoursWorked" step="0.1" min="0" disabled>
             </div>
-            <div class="mb-3">
+
+            <div class="mb-3 hourly-inputs">
               <label for="editHourlyRate" class="form-label" th:text="#{dashboard.form.rate}">Hourly Rate</label>
-              <input type="number" id="editHourlyRate" name="hourlyRate" step="0.01" class="form-control" value="0.0">
+              <input type="number" class="form-control" id="editHourlyRate" name="hourlyRate" step="0.01" min="0" disabled>
             </div>
+
+            <div class="mb-3 fixed-input" style="display: none;">
+              <label for="editFixedAmount" class="form-label" th:text="#{dashboard.form.fixed}">Fixed Amount</label>
+              <input type="number" class="form-control" id="editFixedAmount" name="fixedAmount" step="0.01" min="0" disabled>
+            </div>
+
             <div class="mb-3">
               <label for="editAdvancePayment" class="form-label" th:text="#{dashboard.form.advance}">Advance Payment</label>
-              <input type="number" id="editAdvancePayment" name="advancePayment" step="0.01" class="form-control" value="0.0">
+              <input type="number" class="form-control" id="editAdvancePayment" name="advancePayment" step="0.01" min="0" disabled>
             </div>
             <div class="mb-3">
               <label for="editColor" class="form-label" th:text="#{dashboard.form.color}">Color</label>
