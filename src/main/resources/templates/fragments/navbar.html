@@ -14,6 +14,7 @@
                 <a href="/tasks" class="nav-link" th:text="#{dashboard.allTasks}">All Tasks</a>
                 <a href="/clients" class="nav-link" th:text="#{dashboard.clients}">Clients</a>
                 <a href="/reporting" class="nav-link" th:text="#{dashboard.reporting}">Reporting</a>
+                <a href="/calendar" class="nav-link" th:text="#{navbar.calendar}">Calendar</a>
                 <a href="/admin" class="nav-link" th:classappend="${#authorization.expression('hasRole(''ROLE_ADMIN'')')} ? '' : 'd-none'" th:text="#{dashboard.admin}">Admin</a>
             </div>
             <div class="navbar-profile">
